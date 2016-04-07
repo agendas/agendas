@@ -1,0 +1,22 @@
+body {
+  background-color: #EEEEEE;
+}
+
+.main,
+.agendas-sidebar,
+.agendas-detail {
+  min-height: 100%;
+}
+
+.agendas-detail {
+  background-color: #FFFFFF;
+}
+
+.agendas-sidebar > md-toolbar {
+  background-color: transparent;
+  color: black;
+}
+
+.agendas-sidebar > md-toolbar md-icon {
+  color: black;
+}
