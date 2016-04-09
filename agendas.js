@@ -32,13 +32,15 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $googleDrive, $mdSidenav, $controller, $mdDialog) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $googleDrive, $mdSidenav, $controller, $mdDialog) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
+
     $scope.toggleSidenav = function(sidenav) {
       return $mdSidenav(sidenav).toggle();
     };
+
     $scope.showGoogleDriveDialog = function() {
-      $mdDialog.show($mdDialog.confirm().parent(angular.element(document.querySelector("body"))).clickOutsideToClose(true)
+      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true)
         .title('Use Google Drive')
         .textContent("Connect to Google Drive to sync and share your agendas.")
         .cancel("Remind me later").ok('Connect to Drive')
@@ -46,6 +48,28 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.authorize();
       });
     };
+
+    $scope.showAgendaCreationDialog = function(event) {
+      $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true).targetEvent(event)
+        .title("New agenda")
+        .textContent("Give your new agenda a name.")
+        .placeholder("Name")
+        .cancel("Cancel").ok("Done")
+      ).then(function(result) {
+        if ((typeof result == "string") && (result != "")) {
+          if ($agendaParser.newAgenda(result)) { // TODO: Error handling!!!
+            $scope.refresh();
+          }
+        }
+      });
+    };
+
+    $scope.agendaList = [];
+    $scope.refresh = function() {
+      $scope.agendaList = $agendaParser.listAgendas();
+    };
+    $scope.refresh();
+
     $scope.$watch("isAuthenticated", function() {
       ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
     });
@@ -53,12 +77,78 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .factory("$agendaParser", function() {
     var agendaParser = {};
 
+    function Agenda(agenda) {
+      this.raw = agenda;
+    }
+
+    Agenda.prototype = {
+      tasks: function() {
+        return this.raw.items.slice();
+      },
+      categories: function() {
+        return this.raw.categories.slice();
+      },
+      name: function() {
+        return this.raw.properties.name;
+      },
+      dates: function() {
+        var dates = {};
+        for (item of [["modified", "dateModified"], ["created", "dateCreated"]]) {
+          var date = this.raw.properties[item[1]];
+          dates[item[0]] = (typeof date == "date") ? date : new Date(date);
+        }
+        return dates;
+      },
+
+      modified: function() {
+        this.raw.properties.dateModified = new Date();
+      },
+
+      taskExists: function(id) {
+        return (((id >= 0) && (id < this.raw.items.length)) && !(this.raw.items[id].deleted));
+      },
+
+      newTask: function(name, deadline, deadlineTime, category) {
+        var task = {name: name};
+        if (deadline) {
+          task.deadline = deadline;
+          task.deadlineTime = deadlineTime;
+        }
+        if (category) {
+          task.category = category;
+        }
+        task.dateCreated = new Date();
+        this.raw.items.push(task);
+        this.modified();
+        return task;
+      },
+
+      getTask: function(id) {
+        if (this.taskExists(id)) {
+          var task = this.raw.items[id];
+          task.dateCreated = (typeof task.dateCreated != "date") ? new Date(task.dateCreated) : task.dateCreated;
+          return task;
+        }
+      },
+
+      deleteTask: function(id) {
+        if (this.taskExists(id)) {
+          this.raw.items[id] = {deleted: new Date()};
+        }
+      },
+
+      saveAgenda: function() {
+        localStorage.setItem(agendaParser.agendaKey(this.name()), JSON.stringify(this.raw));
+      }
+
+    };
+
     agendaParser.listAgendas = function() {
       var list = localStorage.getItem("agendas");
       return list ? JSON.parse(list) : [];
     };
 
-    agendaParser.emptyAgenda = function(agendaName) { return {
+    agendaParser.emptyAgenda = function(agendaName) { return new Agenda({
       properties: {
         name: agendaName,
         dateModified: new Date(),
@@ -66,23 +156,34 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       },
       categories: [],
       items: []
-    }};
+    });};
 
     agendaParser.agendaKey = function(agendaName) {
       return "agendas_" + agendaName;
     }
 
-    agendaParser.addAgenda = function(agendaName) {
+    agendaParser.newAgenda = function(agendaName) {
       var list = agendaParser.listAgendas();
       if (list.includes(agendaName)) {
         return false;
       }
 
-      localStorage.setItem(agendaParser.agendaKey(agendaName), JSON.stringify(agendaParser.emptyAgenda()));
+      localStorage.setItem(agendaParser.agendaKey(agendaName), JSON.stringify(agendaParser.emptyAgenda(agendaName).raw));
 
       list.push(agendaName);
       localStorage.setItem("agendas", JSON.stringify(list));
       return true;
+    };
+
+    agendaParser.parseAgenda = function(agendaJSON) {
+      var agenda = {};
+      try {
+        agenda = JSON.parse(agendaJSON);
+      } catch (jsonError) {
+        return {error: "Agenda " + agendaName + " is invalid."};
+      }
+
+      return new Agenda(agenda);
     };
 
     agendaParser.getAgenda = function(agendaName) {
@@ -96,17 +197,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         return {error: "Agenda " + agendaName + " is corrupted."};
       }
 
-      var agenda = {};
-      try {
-        agenda = JSON.parse(agendaJSON);
-      } catch (jsonError) {
-        return {error: "Agenda " + agendaName + " is invalid."};
-      }
-
-      agenda.properties.dateModified = new Date(agenda.properties.dateModified);
-      agenda.properties.dateCreated  = new Date(agenda.properties.dateCreated);
-
-      return agenda;
+      return agendaParser.parseAgenda(agendaJSON);
     };
 
     return agendaParser;

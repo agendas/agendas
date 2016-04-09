@@ -30,9 +30,22 @@
               <md-icon>menu</md-icon>
             </md-button>
             <h2>Agendas</h2>
+            <span flex></span>
+            <md-button class="md-icon-button" ng-click="showAgendaCreationDialog($event)">
+              <md-icon>add</md-icon>
+            </md-button>
           </div>
         </md-toolbar>
-        <p>{{test}}</p>
+        <md-list>
+          <md-list-item><md-icon>today</md-icon><p>Today</p></md-list-item>
+          <md-list-item><md-icon>view_week</md-icon><p>This week</p></md-list-item>
+          <md-list-item><md-icon>view_list</md-icon><p>All</p></md-list-item>
+        </md-list>
+        <md-card ng-repeat="agenda in agendaList">
+          <md-card-title>
+            <md-card-title-text>{{agenda}}</md-card-title-text>
+          </md-card-title>
+        </md-card>
       </div>
       <div class="agendas-detail md-whiteframe-7dp" flex>
         <md-tabs class="md-primary">
