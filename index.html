@@ -68,9 +68,12 @@
                   </md-list>
                 </div>
 
-                <div class="md-whiteframe-2dp new-task">
-                  New task
-                </div>
+                <md-list class="md-whiteframe-2dp new-task">
+                  <md-list-item ng-click="newTask()">
+                    <md-icon>add</md-icon>
+                    <p>New task</p>
+                  </md-list-item>
+                </md-list>
 
               </div>
 
@@ -100,6 +103,13 @@
         <label>Name</label>
         <input type="text" ng-model="selectedTask.name" />
       </md-input-container>
+
+      <div>
+        <p>Deadline</p>
+        <md-datepicker ng-model="selectedTask.deadlineDate" md-placeholder="Enter date"></md-datepicker>
+      </div>
+
+      <div><md-button class="md-block md-warn" ng-click="deleteSelectedTask()">Delete</md-button></div>
 
     </md-sidenav>
   </body>

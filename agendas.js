@@ -119,23 +119,41 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.selectedTask = null;
     $scope.viewTaskDetail = function(task) {
       $scope.selectedTask = task;
+      $scope.selectedTask.deadlineDate = task.deadline ? new Date(task.deadline) : undefined;
       $scope.toggleSidenav("agendas-task-detail");
-    }
+    };
     $scope.taskDetailIsOpen = function() {
       return false;
-    }
+    };
     $scope.saveTaskDetail = function() {
-      console.log("Hi")
       var task = $scope.selectedAgenda.getTask($scope.selectedTask.id); // TODO: Add an agenda property to tasks (similar to the id property)
-      task.name = $scope.selectedTask.name;
-      task.deadline = $scope.selectedTask.deadline;
-      task.deadlineTime = $scope.selectedTask.deadlineTime;
-      task.category = $scope.selectedTask.category;
-      task.completed = $scope.selectedTask.completed;
+      if (task) {
+        task.name = $scope.selectedTask.name;
+        if ($scope.selectedTask.deadlineDate) {
+          if (!$scope.selectedTask.deadline) {
+            $scope.selectedTask.deadline = new Date(1970, 1, 1, 0, 0, 0, 0);
+          }
+          task.deadline = new Date(
+            $scope.selectedTask.deadlineDate.getFullYear(),
+            $scope.selectedTask.deadlineDate.getMonth(),
+            $scope.selectedTask.deadlineDate.getDate(),
+            $scope.selectedTask.deadline.getHours(),
+            $scope.selectedTask.deadline.getMinutes(),
+            0,
+            0
+          );
+          task.deadlineTime = $scope.selectedTask.deadlineTime;
+        } else {
+          task.deadline = undefined;
+          task.deadlineTime = false;
+        }
+        task.category = $scope.selectedTask.category;
+        task.completed = $scope.selectedTask.completed;
+      }
       $scope.selectedAgenda.saveAgenda();
       $scope.refresh();
       $scope.selectedTask = null;
-    }
+    };
 
     $mdComponentRegistry.when("agendas-task-detail").then(function(sidenav) {
       $scope.taskDetailIsOpen = angular.bind(sidenav, sidenav.isOpen);
@@ -145,6 +163,24 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.saveTaskDetail();
       }
     }, true);
+
+    $scope.deleteSelectedTask = function() {
+      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true)
+        .title("Delete \"" + $scope.selectedTask.name + "\"?")
+        .textContent("Once you hit delete, \"" + $scope.selectedTask.name + "\" will be gone forever.")
+        .cancel("Cancel")
+        .ok("Delete")
+      ).then(function() {
+        $scope.selectedAgenda.deleteTask($scope.selectedTask.id);
+        $scope.toggleSidenav("agendas-task-detail");
+      });
+    };
+
+    $scope.newTask = function() {
+      var task = $scope.selectedAgenda.newTask("New Task");
+      $scope.selectedAgenda.saveAgenda();
+      $scope.refresh();
+    };
 
     $scope.refresh();
 
@@ -376,8 +412,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             nextDate.setMinutes(0);
             nextDate.setSeconds(0);
             nextDate.setMilliseconds(0);
-          }
-          if ((!nextDate && current.deadline) || (nextDate.getTime() != current.deadline.getTime())) {
+            if (nextDate.getTime() != current.deadline.getTime()) {
+              dates.push(current);
+              current = null;
+            }
+          } else if (current.deadline) {
             dates.push(current);
             current = null;
           }
@@ -436,7 +475,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input.toLocaleTimeString();
+    return input ? input.toLocaleTimeString() : "";
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
