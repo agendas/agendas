@@ -20,3 +20,21 @@ body {
 .agendas-sidebar > md-toolbar md-icon {
   color: black;
 }
+
+.agendas-list {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.agendas-list .md-whiteframe-2dp {
+  border-radius: 2px;
+}
+
+.task-deadline-time {
+  padding-right: 1em;
+}
+
+md-sidenav[md-component-id="agendas-task-detail"] {
+  overflow-x: hidden;
+  width: 640px;
+}

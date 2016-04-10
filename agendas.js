@@ -32,7 +32,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $googleDrive, $mdSidenav, $controller, $mdDialog) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -67,7 +67,85 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.agendaList = [];
     $scope.refresh = function() {
       $scope.agendaList = $agendaParser.listAgendas();
+      if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
+        $scope.selectedAgenda = $agendaParser.getAgenda($scope.selectedAgenda.name());
+        $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
+      } else {
+        $scope.tasks = [];
+      }
     };
+
+    $scope.selectedAgenda = null;
+    $scope.tasks = [];
+
+    $scope.selectAgenda = function(agenda) {
+      if ($agendaParser.listAgendas().includes(agenda)) {
+        // Select the agenda
+        $scope.selectedAgenda = $agendaParser.getAgenda(agenda);
+        $scope.refresh();
+      }
+    };
+    $scope.selectToday = function() {
+      $scope.populateToday();
+      $scope.selectedAgenda = "today";
+      $scope.refresh();
+      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("Today Selected").textContent("Today").ok("Okay"));
+    };
+    $scope.selectWeek = function() {
+      $scope.populateWeek();
+      $scope.selectedAgenda = "week";
+      $scope.refresh();
+      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("Week Selected").textContent("Week").ok("Okay"));
+    };
+    $scope.selectAllTasks = function() {
+      $scope.populateAll();
+      $scope.selectedAgenda = "all";
+      $scope.refresh();
+      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("All Selected").textContent("All").ok("Okay"));
+    };
+
+    $scope.populateToday = function() {};
+    $scope.populateWeek = function() {};
+    $scope.populateAll = function() {};
+
+    $scope.completeTask = function(task) {
+      $scope.selectedAgenda.getTask(task.id).completed = task.completed;
+      $scope.selectedAgenda.saveAgenda();
+      $scope.refresh();
+    };
+
+    $scope.showCompleted = false;
+
+    $scope.selectedTask = null;
+    $scope.viewTaskDetail = function(task) {
+      $scope.selectedTask = task;
+      $scope.toggleSidenav("agendas-task-detail");
+    }
+    $scope.taskDetailIsOpen = function() {
+      return false;
+    }
+    $scope.saveTaskDetail = function() {
+      console.log("Hi")
+      var task = $scope.selectedAgenda.getTask($scope.selectedTask.id); // TODO: Add an agenda property to tasks (similar to the id property)
+      task.name = $scope.selectedTask.name;
+      task.deadline = $scope.selectedTask.deadline;
+      task.deadlineTime = $scope.selectedTask.deadlineTime;
+      task.category = $scope.selectedTask.category;
+      task.completed = $scope.selectedTask.completed;
+      $scope.selectedAgenda.saveAgenda();
+      $scope.refresh();
+      $scope.selectedTask = null;
+    }
+
+    $mdComponentRegistry.when("agendas-task-detail").then(function(sidenav) {
+      $scope.taskDetailIsOpen = angular.bind(sidenav, sidenav.isOpen);
+    });
+    $scope.$watch("taskDetailIsOpen()", function(newValue, oldValue) {
+      if (!newValue && oldValue) {
+        $scope.saveTaskDetail();
+      }
+    }, true);
+
     $scope.refresh();
 
     $scope.$watch("isAuthenticated", function() {
@@ -83,7 +161,24 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     Agenda.prototype = {
       tasks: function() {
-        return this.raw.items.slice();
+        var tasks = [];
+        var i = 0;
+        for (var task of this.raw.items) {
+          if (!task.deleted) {
+            var object = {};
+            for (var property in task) {
+              if (property == "deadline" || property == "dateCreated") {
+                object[property] = (typeof task[property] == "date") ? task[property] : new Date(task[property]);
+              } else if (task.hasOwnProperty(property)) {
+                object[property] = task[property];
+              }
+            }
+            object.id = i;
+            tasks.push(object);
+          }
+          i++;
+        }
+        return tasks;
       },
       categories: function() {
         return this.raw.categories.slice();
@@ -93,7 +188,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       },
       dates: function() {
         var dates = {};
-        for (item of [["modified", "dateModified"], ["created", "dateCreated"]]) {
+        for (var item of [["modified", "dateModified"], ["created", "dateCreated"]]) {
           var date = this.raw.properties[item[1]];
           dates[item[0]] = (typeof date == "date") ? date : new Date(date);
         }
@@ -118,8 +213,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           task.category = category;
         }
         task.dateCreated = new Date();
+        task.completed = false;
         this.raw.items.push(task);
-        this.modified();
         return task;
       },
 
@@ -138,6 +233,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       },
 
       saveAgenda: function() {
+        this.modified();
         localStorage.setItem(agendaParser.agendaKey(this.name()), JSON.stringify(this.raw));
       }
 
@@ -202,6 +298,99 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     return agendaParser;
   })
+  .factory("$agendaSorter", function() {
+    var agendaSorter = {};
+
+    agendaSorter.sort = function(a, test) {
+      var array = a.slice();
+      var swaps = 0;
+      for (var passes = 0; (swaps > 0) || (passes < 1); passes++) {
+        swaps = 0;
+        for (var i = 1; i < (array.length - passes); i++) {
+          var a = array[i - 1];
+          var b = array[i];
+          if (test(a, b)) {
+            array[i - 1] = b;
+            array[i]     = a;
+            swaps++;
+          }
+        }
+      }
+      return array;
+    };
+
+    agendaSorter.deadlineSort = function(a, b) {
+      var dateA = new Date(a.deadline);
+      var dateB = new Date(b.deadline);
+      for (var date of [dateA, dateB]) {
+        if (date) {
+          date.setHours(0);
+          date.setMinutes(0);
+          date.setSeconds(0);
+          date.setMilliseconds(0);
+        }
+      }
+      if (!a.deadline && !b.deadline) {
+        return (b.completed && !a.completed);
+      } else if (!a.deadline || !b.deadline) {
+        return (b.deadline && !a.deadline);
+      } else if (dateA.getTime() == dateB.getTime()) {
+        if (a.completed && !b.completed) {
+          return true;
+        } else if (b.completed && !a.completed) {
+          return false;
+        } else if (a.deadlineTime && !b.deadlineTime) {
+          return false;
+        } else if (b.deadlineTime && !a.deadlineTime) {
+          return true;
+        } else if (a.deadlineTime) {
+          return a.date < b.date;
+        }
+        return false;
+      } else {
+        return dateA > dateB;
+      }
+    };
+
+    agendaSorter.separateDeadlines = function(a) {
+      var tasks = agendaSorter.sort(a, agendaSorter.deadlineSort);
+      var dates = [];
+      var current = null;
+      var i = 0;
+      for (var task of tasks) {
+        var date = new Date(task.deadline);
+        date.setHours(0);
+        date.setMinutes(0);
+        date.setSeconds(0);
+        date.setMilliseconds(0);
+        if (!current) {
+          current = {deadline: task.deadline ? date : undefined, tasks: []};
+        }
+        current.tasks.push(task);
+        i++;
+        if (tasks.length > i) {
+          var nextDate = null;
+          if (tasks[i].hasOwnProperty("deadline") && typeof tasks[i].deadline != "undefined") {
+            nextDate = new Date(tasks[i].deadline);
+            nextDate.setHours(0);
+            nextDate.setMinutes(0);
+            nextDate.setSeconds(0);
+            nextDate.setMilliseconds(0);
+          }
+          if ((!nextDate && current.deadline) || (nextDate.getTime() != current.deadline.getTime())) {
+            dates.push(current);
+            current = null;
+          }
+        }
+      }
+      if (current) {
+        dates.push(current);
+      }
+      return dates;
+    };
+
+    return agendaSorter;
+  })
   .factory("$googleDrive", function() {
     return {
       checkAuth: function(CLIENT_ID, SCOPES, handler) {
@@ -220,3 +409,49 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     };
   })
+  .filter("dateFilter", function() { return function(input) {
+    if (!input) {
+      return "No deadline";
+    }
+
+    var inputDate = new Date(input);
+    inputDate.setHours(0);
+    inputDate.setMinutes(0);
+    inputDate.setSeconds(0);
+    inputDate.setMilliseconds(0);
+
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    var difference = Math.floor((inputDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+    if (difference == 0) {
+      return "Today";
+    } else if (inputDate < today) {
+      return (difference * -1) + " " + ((difference == -1) ? "day" : "days") + " ago";
+    } else if (difference == 1) {
+      return "Tomorrow";
+    } else if (difference < 7) {
+      return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][inputDate.getDay()] + " (" + inputDate.toLocaleDateString() + ")";
+    } else {
+      return inputDate.toLocaleDateString();
+    }
+  }})
+  .filter("timeFilter", function() { return function(input) {
+    return input.toLocaleTimeString();
+  }})
+  .filter("tasksListFilter", function() { return function(input, showCompleted) {
+    return showCompleted ? input : input.filter(function(value) {
+      var incompleteTaskFound = false;
+      for (var task of value.tasks) {
+        if (!task.completed) {
+          incompleteTaskFound = true;
+          break;
+        }
+      }
+      return incompleteTaskFound;
+    });
+  }})
+  .filter("completedTaskExclusionFilter", function() { return function(input, showCompleted) {
+    return showCompleted ? input : input.filter(function(task) {
+      return !task.completed;
+    });
+  }})
