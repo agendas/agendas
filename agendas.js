@@ -120,6 +120,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.viewTaskDetail = function(task) {
       $scope.selectedTask = task;
       $scope.selectedTask.deadlineDate = task.deadline ? new Date(task.deadline) : undefined;
+      if ($scope.selectedTask.deadline && $scope.selectedTask.deadlineTime) {
+        var deadline = new Date($scope.selectedTask.deadline);
+        var deadlineTime = new Date(1970, 0, 1, deadline.getHours(), deadline.getMinutes(), 0, 0, 0);
+        $scope.selectedTask.time = ((deadlineTime.getMinutes() % 15) == 0) ? deadlineTime.toJSON() : "";
+      } else {
+        $scope.selectedTask.time = "";
+      }
       $scope.toggleSidenav("agendas-task-detail");
     };
     $scope.taskDetailIsOpen = function() {
@@ -130,8 +137,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       if (task) {
         task.name = $scope.selectedTask.name;
         if ($scope.selectedTask.deadlineDate) {
-          if (!$scope.selectedTask.deadline) {
-            $scope.selectedTask.deadline = new Date(1970, 1, 1, 0, 0, 0, 0);
+          if ($scope.selectedTask.time == "") {
+            $scope.selectedTask.deadline = new Date(1970, 0, 1, 0, 0, 0, 0);
+            $scope.selectedTask.deadlineTime = false;
+          } else {
+            $scope.selectedTask.deadline = new Date($scope.selectedTask.time);
+            $scope.selectedTask.deadlineTime = true;
           }
           task.deadline = new Date(
             $scope.selectedTask.deadlineDate.getFullYear(),
@@ -164,8 +175,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     }, true);
 
-    $scope.deleteSelectedTask = function() {
-      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true)
+    $scope.deleteSelectedTask = function(event) {
+      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
         .title("Delete \"" + $scope.selectedTask.name + "\"?")
         .textContent("Once you hit delete, \"" + $scope.selectedTask.name + "\" will be gone forever.")
         .cancel("Cancel")
@@ -181,6 +192,21 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.selectedAgenda.saveAgenda();
       $scope.refresh();
     };
+
+    $scope.generateTimes = function() {
+      var times = [{name: "None", value: "", date: false}];
+      var currentHour = (new Date()).getHours();
+      for (var hour = currentHour; hour != (currentHour - 1); hour += ((hour >= 23) ? -23 : 1)) {
+        for (var minute = 0; minute < 60; minute += 15) {
+          times.push({
+            name: (((hour % 12) == 0) ? 12 : (hour % 12)) + ":" + ((minute == 0) ? "00" : minute) + ((hour / 12 >= 1) ? "pm" : "am"),
+            value: (new Date(1970, 0, 1, hour, minute, 0, 0)).toJSON()
+          });
+        }
+      }
+      return times;
+    };
+    $scope.times = $scope.generateTimes();
 
     $scope.refresh();
 
@@ -475,7 +501,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? input.toLocaleTimeString() : "";
+    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() == 0) ? "00" : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
