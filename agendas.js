@@ -501,7 +501,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? input.toLocaleTimeString() : "";
+    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() == 0) ? "00" : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {

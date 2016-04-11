@@ -1,15 +1,39 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #EEEEEE;
+  background-color: #FFFFFF;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.main {
+  width: 100vw;
 }
 
 .main,
-.agendas-sidebar,
 .agendas-detail {
-  min-height: 100%;
+  min-height: 100vh;
 }
 
 .agendas-detail {
   background-color: #FFFFFF;
+  position: relative;
+  width: 67vw;
+  margin-left: 33vw;
+}
+
+.agendas-sidebar {
+  background-color: #EEEEEE;
+  width: 33vw;
+  height: 100vh;
+  overflow: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .agendas-sidebar > md-toolbar {
@@ -22,12 +46,23 @@ body {
 }
 
 .agendas-list {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin: 3rem auto 3rem auto;
+  padding: 0 3rem 0 3rem;
+  width: 100%;
+  max-width: 640px;
 }
 
 .agendas-list .md-whiteframe-2dp {
   border-radius: 2px;
+}
+
+.task-group,
+.agendas-list .new-task {
+  margin-top: 2rem;
+}
+
+.task-group p {
+  margin-bottom: 0.5rem;
 }
 
 .task-deadline-time {
@@ -37,4 +72,12 @@ body {
 md-sidenav[md-component-id="agendas-task-detail"] {
   overflow-x: hidden;
   width: 640px;
+}
+
+.new-task.md-fab {
+  position: fixed;
+  top: auto;
+  left: auto;
+  bottom: 10px;
+  right: 10px;
 }
