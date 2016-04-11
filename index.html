@@ -109,7 +109,16 @@
         <md-datepicker ng-model="selectedTask.deadlineDate" md-placeholder="Enter date"></md-datepicker>
       </div>
 
-      <div><md-button class="md-block md-warn" ng-click="deleteSelectedTask()">Delete</md-button></div>
+      <div>
+        <md-input-container>
+          <label>Time</label>
+          <md-select ng-model="selectedTask.time">
+            <md-option ng-repeat="time in times" value="{{time.value}}">{{time.name}}</md-option>
+          </md-select>
+        </md-input-container>
+      </div>
+
+      <div><md-button class="md-block md-warn" ng-click="deleteSelectedTask($event)">Delete</md-button></div>
 
     </md-sidenav>
   </body>
