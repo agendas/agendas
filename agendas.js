@@ -406,7 +406,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else if (b.deadlineTime && !a.deadlineTime) {
           return true;
         } else if (a.deadlineTime) {
-          return a.date < b.date;
+          return a.date > b.date;
         }
         return false;
       } else {
