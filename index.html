@@ -47,6 +47,7 @@
           <md-card-title>
             <md-card-title-text>{{agenda}}</md-card-title-text>
           </md-card-title>
+          <md-button ng-click="showAgendaEditor(agenda, $event)">Edit</md-button>
         </md-card>
       </div>
       <div class="agendas-detail md-whiteframe-7dp">
@@ -64,8 +65,8 @@
                     <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="viewTaskDetail(task)">
                       <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
                       <div class="md-list-item-text">
-                        <h3>{{task.name}}</h3>
-                        <p>{{task.category | categoryNamingFilter:selectedAgenda}}</p>
+                        <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
+                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task.category)" style="background-color: #{{task.category | categoryColorFilter:selectedAgenda}}"></span>{{task.category | categoryNamingFilter:selectedAgenda}}</p>
                       </div>
                       <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
                       <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
@@ -128,7 +129,7 @@
           <label>Category</label>
           <md-select ng-model="category">
             <md-option value="none">No category</md-option>
-            <md-option ng-repeat="category in categories" value="category-{{category.id}}">{{category.name}}</md-option>
+            <md-option ng-repeat="category in categories" value="category-{{category.id}}"><span class="category-circle" ng-if="category.color" style="background-color: #{{category.color | categoryColorFilter}}"></span>{{category.name}}</md-option>
             <md-option value="new"><md-icon>add</md-icon> New category</md-option>
           </md-select>
         </md-input-container>
