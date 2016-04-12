@@ -90,6 +90,9 @@ md-sidenav[md-component-id="agendas-task-detail"] {
 }
 
 .category-circle {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5em;
   width: 1em;
   height: 1em;
   border-radius: 50%;

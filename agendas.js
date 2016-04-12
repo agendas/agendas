@@ -263,15 +263,20 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     });
 
-    $scope.showAgendaEditor = function(name) {
+    $scope.showAgendaEditor = function(name, event) {
       $mdDialog.show({
         controller: "AgendaEditorController",
         locals: {agendaName: name},
         templateUrl: "agenda-editor.html",
-        escapeToClose: false
+        escapeToClose: false,
+        targetEvent: event
       }).then(function() {
         $scope.refresh();
       });
+    };
+
+    $scope.shouldShowCategoryCircle = function(category) {
+      return (category != undefined && $scope.selectedAgenda.categoryExists(category)) && $scope.selectedAgenda.getCategory(category).color;
     };
 
     $scope.refresh();
@@ -323,7 +328,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       $scope.agenda.saveAgenda();
       $mdDialog.hide();
-    }
+    };
 
     $scope.init();
   })
@@ -681,4 +686,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   }})
   .filter("categoryNamingFilter", function() { return function(input, agenda) {
     return (input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
+  }})
+  .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
+    return agenda ? ((input != undefined && agenda.categoryExists(input)) ? colors[agenda.getCategory(input).color] : false) : colors[input];
   }})
