@@ -1,0 +1,41 @@
+<md-dialog ng-cloak>
+  <md-toolbar>
+    <div class="md-toolbar-tools">
+      <h2>Edit Agenda "{{agenda.name()}}"</h2>
+    </div>
+  </md-toolbar>
+  <md-dialog-content>
+    <div class="md-dialog-content">
+      <div>
+        <md-input-container class="md-block">
+          <label>Name</label>
+          <input type="text" ng-model="agenda.raw.properties.name" disabled />
+        </md-input-container>
+      </div>
+      <div>
+        <md-list class="category-list">
+          <md-subheader class="md-no-sticky">Categories</md-subheader>
+          <md-list-item ng-repeat="category in categories" layout="row">
+            <md-select placeholder="Color" flex="16" ng-change="saveCategory(category)" ng-model="category.color">
+              <md-option value="">None</md-option>
+              <md-option value="{{color.name}}" ng-repeat="color in colors"><div class="category-circle" style="background-color: #{{color.color}}"></div></md-option>
+            </md-select>
+            <md-input-container class="md-block" flex md-no-float>
+              <input type="text" placeholder="Category Name" ng-change="saveCategory(category)" ng-model="category.name" />
+            </md-input-container>
+            <md-icon class="md-secondary" ng-click="deleteCategory(category)">delete</md-icon>
+          </md-list-item>
+          <md-list-item ng-click="addCategory()">
+            <md-icon>add</md-icon>
+            <p>New category</p>
+          </md-list-item>
+        </md-list>
+      </div>
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions>
+    <span flex></span>
+    <md-button class="md-warn" ng-click="cancel()">Discard</md-button>
+    <md-button class="md-primary" ng-click="saveAndDismiss()">Save</md-button>
+  </md-dialog-actions>
+</md-dialog>

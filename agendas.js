@@ -2,6 +2,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .config(function($mdThemingProvider) {
     $mdThemingProvider.theme("default").primaryPalette("green").accentPalette("orange").warnPalette("red");
   })
+  .value("colors", {red: "F44336", pink: "E91E63", purple: "9C27B0",
+                    "deep-purple": "673AB7", indigo: "3F51B5", blue: "2196F3",
+                    "light-blue": "03A9F4", cyan: "00BCD4", teal: "009688",
+                    green: "4CAF50", "light-green": "8BC34A", lime: "CDDC39",
+                    yellow: "FFEB3B", amber: "FFC107", orange: "FF9800",
+                    "deep-orange": "FF5722", brown: "795548", grey: "9E9E9E",
+                    "blue-grey": "607D8B"
+  })
   .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
 
     // Establish a connection to Google Drive.
@@ -165,7 +173,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
         if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
           task.category = parseInt($scope.category.slice(9));
-          console.log(task.category);
         } else {
           task.category = undefined;
         }
@@ -256,11 +263,69 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     });
 
+    $scope.showAgendaEditor = function(name) {
+      $mdDialog.show({
+        controller: "AgendaEditorController",
+        locals: {agendaName: name},
+        templateUrl: "agenda-editor.html",
+        escapeToClose: false
+      }).then(function() {
+        $scope.refresh();
+      });
+    };
+
     $scope.refresh();
 
     $scope.$watch("isAuthenticated", function() {
       ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
     });
+  })
+  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog) {
+    $scope.init = function() {
+      $scope.agenda = $agendaParser.getAgenda(agendaName);
+      $scope.refresh();
+    };
+    $scope.refresh = function() {
+      $scope.categories = $scope.agenda.categories();
+    };
+    $scope.colors = [];
+    for (var color in colors) {
+      if (colors.hasOwnProperty(color)) {
+        $scope.colors.push({name: color, color: colors[color]})
+      }
+    }
+    $scope.saveCategory = function(category) {
+      var original = $scope.agenda.getCategory(category.id);
+      original.name = category.name;
+      if (category.color == "") {
+        original.color = undefined;
+      } else {
+        original.color = category.color;
+      }
+    };
+    $scope.deleteCategory = function(category) {
+      $scope.categoriesDeleted = true;
+      $scope.agenda.deleteCategory(category.id);
+      $scope.refresh();
+    };
+    $scope.addCategory = function() {
+      $scope.agenda.newCategory("Category");
+      $scope.refresh();
+    };
+    $scope.categoriesDeleted = false;
+
+    $scope.cancel = function() {
+      $mdDialog.cancel();
+    };
+    $scope.saveAndDismiss = function() {
+      if ($scope.categoriesDeleted) {
+        $scope.agenda.tasks();
+      }
+      $scope.agenda.saveAgenda();
+      $mdDialog.hide();
+    }
+
+    $scope.init();
   })
   .factory("$agendaParser", function() {
     var agendaParser = {};

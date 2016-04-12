@@ -88,3 +88,24 @@ md-sidenav[md-component-id="agendas-task-detail"] {
   text-decoration: line-through;
   color: rgba(0, 0, 0, 0.48);
 }
+
+.category-circle {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+}
+
+.category-list {
+  width: 480px;
+}
+
+.category-list md-input-container,
+.category-list md-select {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.category-list md-input-container > .md-errors-spacer {
+  height: 0;
+  min-height: 0;
+}
