@@ -82,3 +82,9 @@ md-sidenav[md-component-id="agendas-task-detail"] {
   bottom: 10px;
   right: 10px;
 }
+
+.agendas-list md-list > md-list-item h3.complete-true {
+  width: auto;
+  text-decoration: line-through;
+  color: rgba(0, 0, 0, 0.48);
+}
