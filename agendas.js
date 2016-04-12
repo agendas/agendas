@@ -225,7 +225,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           $scope.category = undefined;
         } else if (newValue == "new") {
           $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true)
-            .title("New Category in " + $scope.selectedAgenda.name())
+            .title("New Category in \"" + $scope.selectedAgenda.name() + "\"")
             .textContent("Give your category a name.")
             .placeholder("Name")
             .cancel("Cancel")
@@ -243,8 +243,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                 var category = $scope.selectedAgenda.newCategory(name);
                 $scope.categories.push({name: name, color: undefined, id: category});
                 $scope.category = "category-" + category;
+              } else {
+                $scope.category = undefined;
               }
+            } else {
+              $scope.category = undefined;
             }
+          }, function() {
+            $scope.category = undefined;
           });
         }
       }
@@ -377,7 +383,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       getCategory: function(id) {
         if (this.categoryExists(id)) {
           var category = this.raw.categories[id];
-          category.dateCreated = (typeof task.dateCreated != "date") ? new Date(task.dateCreated) : task.dateCreated;
+          category.dateCreated = (typeof category.dateCreated != "date") ? new Date(category.dateCreated) : category.dateCreated;
           return category;
         }
       },
@@ -607,4 +613,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return showCompleted ? input : input.filter(function(task) {
       return !task.completed;
     });
+  }})
+  .filter("categoryNamingFilter", function() { return function(input, agenda) {
+    return (input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
   }})

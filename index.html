@@ -61,9 +61,12 @@
                 <div class="task-group" ng-repeat="taskGroup in tasks | tasksListFilter:showCompleted">
                   <p>{{taskGroup.deadline | dateFilter}}</p>
                   <md-list class="md-whiteframe-2dp">
-                    <md-list-item ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="viewTaskDetail(task)">
+                    <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="viewTaskDetail(task)">
                       <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
-                      <p>{{task.name}}</p>
+                      <div class="md-list-item-text">
+                        <h3>{{task.name}}</h3>
+                        <p>{{task.category | categoryNamingFilter:selectedAgenda}}</p>
+                      </div>
                       <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
                       <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
                     </md-list-item>
