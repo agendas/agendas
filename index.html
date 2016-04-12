@@ -120,6 +120,17 @@
         </md-input-container>
       </div>
 
+      <div>
+        <md-input-container>
+          <label>Category</label>
+          <md-select ng-model="category">
+            <md-option value="none">No category</md-option>
+            <md-option ng-repeat="category in categories" value="category-{{category.id}}">{{category.name}}</md-option>
+            <md-option value="new"><md-icon>add</md-icon> New category</md-option>
+          </md-select>
+        </md-input-container>
+      </div>
+
       <div><md-button class="md-block md-warn" ng-click="deleteSelectedTask($event)">Delete</md-button></div>
 
     </md-sidenav>

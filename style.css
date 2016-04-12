@@ -76,6 +76,7 @@ md-sidenav[md-component-id="agendas-task-detail"] {
 
 .new-task.md-fab {
   position: fixed;
+  z-index: 50;
   top: auto;
   left: auto;
   bottom: 10px;
