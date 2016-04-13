@@ -45,9 +45,15 @@
         </md-list>
         <md-card ng-repeat="agenda in agendaList" ng-click="selectAgenda(agenda)">
           <md-card-title>
-            <md-card-title-text>{{agenda}}</md-card-title-text>
+            <md-card-title-text>
+              <span class="md-headline">{{agenda}}</span>
+            </md-card-title-text>
           </md-card-title>
-          <md-button ng-click="showAgendaEditor(agenda, $event)">Edit</md-button>
+          <md-card-actions layout="row" layout-align="end center">
+            <md-button class="md-icon-button" ng-click="showAgendaEditor(agenda, $event)">
+              <md-icon>edit</md-icon>
+            </md-button>
+          </md-card-actions>
         </md-card>
       </div>
       <div class="agendas-detail md-whiteframe-7dp">
@@ -105,10 +111,12 @@
         </div>
       </md-toolbar>
 
-      <md-input-container class="md-block">
-        <label>Name</label>
-        <input type="text" ng-model="selectedTask.name" />
-      </md-input-container>
+      <div>
+        <md-input-container class="md-block task-name-field">
+          <label>Name</label>
+          <input type="text" ng-model="selectedTask.name" />
+        </md-input-container>
+      </div>
 
       <div>
         <p>Deadline</p>
@@ -118,7 +126,7 @@
       <div>
         <md-input-container>
           <label>Time</label>
-          <md-select ng-model="selectedTask.time">
+          <md-select ng-model="selectedTask.time" ng-disabled="!selectedTask.deadlineDate">
             <md-option ng-repeat="time in times" value="{{time.value}}">{{time.name}}</md-option>
           </md-select>
         </md-input-container>

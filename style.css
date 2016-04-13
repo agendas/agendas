@@ -45,6 +45,11 @@ body {
   color: black;
 }
 
+.agendas-sidebar md-card {
+  display: inline-block;
+  width: calc(50% - 16px);
+}
+
 .agendas-list {
   margin: 3rem auto 3rem auto;
   padding: 0 3rem 0 3rem;
@@ -72,6 +77,14 @@ body {
 md-sidenav[md-component-id="agendas-task-detail"] {
   overflow-x: hidden;
   width: 640px;
+}
+
+md-sidenav[md-component-id="agendas-task-detail"] > div {
+  padding: 1rem 1.5rem 0 1.5rem;
+}
+
+.task-name-field {
+  margin-bottom: 0;
 }
 
 .new-task.md-fab {
@@ -108,7 +121,8 @@ md-sidenav[md-component-id="agendas-task-detail"] {
   margin-bottom: 0;
 }
 
-.category-list md-input-container > .md-errors-spacer {
+.category-list md-input-container > .md-errors-spacer,
+.task-name-field .md-errors-spacer {
   height: 0;
   min-height: 0;
 }
