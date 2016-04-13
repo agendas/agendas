@@ -1,7 +1,7 @@
 <md-dialog ng-cloak>
   <md-toolbar>
     <div class="md-toolbar-tools">
-      <h2>Edit Agenda "{{agenda.name()}}"</h2>
+      <h2>Edit Agenda "{{name}}"</h2>
     </div>
   </md-toolbar>
   <md-dialog-content>
@@ -9,7 +9,7 @@
       <div>
         <md-input-container class="md-block">
           <label>Name</label>
-          <input type="text" ng-model="agenda.raw.properties.name" disabled />
+          <input type="text" ng-model="name" />
         </md-input-container>
       </div>
       <div>
@@ -31,6 +31,7 @@
           </md-list-item>
         </md-list>
       </div>
+      <md-button class="md-warn" ng-click="deleteAgenda($event)">Delete Agenda</md-button>
     </div>
   </md-dialog-content>
   <md-dialog-actions>

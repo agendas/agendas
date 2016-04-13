@@ -44,7 +44,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -82,16 +82,28 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.taskCreationAllowed = false;
       if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
         $scope.selectedAgenda = $agendaParser.getAgenda($scope.selectedAgenda.name());
-        $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
-        $scope.taskCreationAllowed = true;
+        if ($scope.selectedAgenda.error == "Agenda does not exist") {
+          $scope.selectedAgenda = undefined;
+        } else if (!$scope.selectedAgenda.error) {
+          $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
+          $scope.taskCreationAllowed = true;
+          $rootScope.agenda = $scope.selectedAgenda.name();
+        } else {
+          console.warn($scope.selectedAgenda.error);
+        }
       } else if ($scope.selectedAgenda == "today") {
         $scope.populateToday();
+        $rootScope.agenda = "Today";
       } else if ($scope.selectedAgenda == "week") {
         $scope.populateWeek();
+        $rootScope.agenda = "Week";
       } else if ($scope.selectedAgenda == "all") {
         $scope.populateAll();
-      } else {
+        $rootScope.agenda = "All";
+      }
+      if (!$scope.selectedAgenda) {
         $scope.tasks = [];
+        $rootScope.agenda = "None";
       }
     };
 
@@ -102,7 +114,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.selectAgenda = function(agenda) {
       if ($agendaParser.listAgendas().includes(agenda)) {
         // Select the agenda
-        $scope.selectedAgenda = $agendaParser.getAgenda(agenda);
+        $scope.selectedAgenda = {name:function(){return agenda;}};
         $scope.refresh();
       }
     };
@@ -313,7 +325,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.showAgendaEditor = function(name, event) {
       $mdDialog.show({
         controller: "AgendaEditorController",
-        locals: {agendaName: name},
+        locals: {
+          agendaName: name,
+          refresh: function() {
+            $scope.refresh();
+          }
+        },
         templateUrl: "agenda-editor.html",
         escapeToClose: false,
         targetEvent: event
@@ -334,9 +351,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
     });
   })
-  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog) {
+  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
     $scope.init = function() {
       $scope.agenda = $agendaParser.getAgenda(agendaName);
+      $scope.name = agendaName;
       $scope.refresh();
     };
     $scope.refresh = function() {
@@ -376,8 +394,31 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       if ($scope.categoriesDeleted) {
         $scope.agenda.tasks();
       }
+      if ($scope.name && $scope.agenda.name() != $scope.name) {
+        $scope.renameAgenda();
+      }
       $scope.agenda.saveAgenda();
       $mdDialog.hide();
+    };
+
+    $scope.renameAgenda = function() {
+      if (!$agendaParser.listAgendas().includes($scope.name)) {
+        $agendaParser.newAgenda($scope.name);
+        $scope.agenda.raw.properties.name = $scope.name;
+        $agendaParser.deleteAgenda(agendaName);
+      }
+    };
+    $scope.deleteAgenda = function(event) {
+      var l = $scope.agenda.tasks().length;
+      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
+        .title("Delete Agenda \"" + agendaName + "\"?!")
+        .textContent("You're about to delete \"" + agendaName + "\" and its " + l + " task" + ((l == 1) ? "" : "s") + ". This cannot be undone.")
+        .cancel("Cancel")
+        .ok("Delete")
+      ).then(function() {
+        $agendaParser.deleteAgenda(agendaName);
+        refresh();
+      });
     };
 
     $scope.init();
@@ -553,7 +594,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       try {
         agenda = JSON.parse(agendaJSON);
       } catch (jsonError) {
-        return {error: "Agenda " + agendaName + " is invalid."};
+        return {error: "Agenda is invalid."};
       }
 
       return new Agenda(agenda);
@@ -562,15 +603,27 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     agendaParser.getAgenda = function(agendaName) {
       var list = agendaParser.listAgendas();
       if (!list.includes(agendaName)) {
-        return {error: "Agenda " + agendaName + " does not exist"};
+        return {error: "Agenda does not exist"};
       }
 
       var agendaJSON = localStorage.getItem(agendaParser.agendaKey(agendaName));
       if (!agendaJSON) {
-        return {error: "Agenda " + agendaName + " is corrupted."};
+        return {error: "Agenda is corrupted."};
       }
 
       return agendaParser.parseAgenda(agendaJSON);
+    };
+
+    agendaParser.deleteAgenda = function(agenda) {
+      if (agendaParser.listAgendas().includes(agenda)) {
+        var agendas = agendaParser.listAgendas();
+        var index = agendas.indexOf(agenda);
+        if (index >= 0) {
+          agendas.splice(agendas.indexOf(agenda), 1);
+          localStorage.setItem("agendas", JSON.stringify(agendas));
+          localStorage.removeItem(agendaParser.agendaKey(agenda));
+        }
+      }
     };
 
     return agendaParser;
@@ -578,7 +631,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .factory("$agendaSorter", function() {
     var agendaSorter = {};
 
-    agendaSorter.sort = function(a, test) {
+    agendaSorter.sort = function(a, test) { // TODO: Replace with native sort()
       var array = a.slice();
       var swaps = 0;
       for (var passes = 0; (swaps > 0) || (passes < 1); passes++) {
