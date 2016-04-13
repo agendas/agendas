@@ -8,9 +8,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                     green: "4CAF50", "light-green": "8BC34A", lime: "CDDC39",
                     yellow: "FFEB3B", amber: "FFC107", orange: "FF9800",
                     "deep-orange": "FF5722", brown: "795548", grey: "9E9E9E",
-                    "blue-grey": "607D8B"
+                    "blue-grey": "607D8B", black: "000000"
   })
   .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
+
+    $scope.agendaForTask = function(task) {
+      return $agendaParser.getAgenda(task.agenda);
+    }
 
     // Establish a connection to Google Drive.
     var CLIENT_ID = "Why should you know my Client ID?";
@@ -75,13 +79,19 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.agendaList = [];
     $scope.refresh = function() {
       $scope.agendaList = $agendaParser.listAgendas();
+      $scope.taskCreationAllowed = false;
       if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
         $scope.selectedAgenda = $agendaParser.getAgenda($scope.selectedAgenda.name());
         $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
-        $scope.categories = $scope.selectedAgenda.categories();
+        $scope.taskCreationAllowed = true;
+      } else if ($scope.selectedAgenda == "today") {
+        $scope.populateToday();
+      } else if ($scope.selectedAgenda == "week") {
+        $scope.populateWeek();
+      } else if ($scope.selectedAgenda == "all") {
+        $scope.populateAll();
       } else {
         $scope.tasks = [];
-        $scope.categories = [];
       }
     };
 
@@ -97,31 +107,59 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     };
     $scope.selectToday = function() {
-      $scope.populateToday();
       $scope.selectedAgenda = "today";
       $scope.refresh();
-      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("Today Selected").textContent("Today").ok("Okay"));
     };
     $scope.selectWeek = function() {
-      $scope.populateWeek();
       $scope.selectedAgenda = "week";
       $scope.refresh();
-      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("Week Selected").textContent("Week").ok("Okay"));
     };
     $scope.selectAllTasks = function() {
-      $scope.populateAll();
       $scope.selectedAgenda = "all";
       $scope.refresh();
-      $mdDialog.show($mdDialog.alert().clickOutsideToClose(true).title("All Selected").textContent("All").ok("Okay"));
     };
 
-    $scope.populateToday = function() {};
-    $scope.populateWeek = function() {};
-    $scope.populateAll = function() {};
+    $scope.populateToday = function() {
+      $scope.populateAll();
+      var now = new Date();
+      now.setHours(0);
+      now.setMinutes(0);
+      now.setSeconds(0);
+      now.setMilliseconds(0);
+      var tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
+      $scope.tasks = $scope.tasks.filter(function(group) {
+        return (new Date(group.deadline)) <= tomorrow;
+      });
+    };
+    $scope.populateWeek = function() {
+      $scope.populateAll();
+      var now = new Date();
+      now.setHours(0);
+      now.setMinutes(0);
+      now.setSeconds(0);
+      now.setMilliseconds(0);
+      var nextWeek = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+      $scope.tasks = $scope.tasks.filter(function(group) {
+        return (new Date(group.deadline)) < nextWeek;
+      });
+    };
+    $scope.populateAll = function() {
+      var agendas = $agendaParser.listAgendas();
+      var tasks = [];
+      var categories = [];
+      for (var agenda of agendas) {
+        for (var task of $agendaParser.getAgenda(agenda).tasks()) {
+          tasks.push(task);
+        }
+      }
+      $scope.tasks = $agendaSorter.separateDeadlines(tasks);
+      $scope.categories = [];
+    };
 
     $scope.completeTask = function(task) {
-      $scope.selectedAgenda.getTask(task.id).completed = task.completed;
-      $scope.selectedAgenda.saveAgenda();
+      var agenda = $scope.agendaForTask(task);
+      agenda.getTask(task.id).completed = task.completed;
+      agenda.saveAgenda();
       $scope.refresh();
     };
 
@@ -141,6 +179,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         $scope.selectedTask.time = "";
       }
+      $scope.categories = $scope.agendaForTask(task).categories();
       $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
       $scope.toggleSidenav("agendas-task-detail");
     };
@@ -148,8 +187,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       return false;
     };
     $scope.saveTaskDetail = function() {
-      var task = $scope.selectedAgenda.getTask($scope.selectedTask.id); // TODO: Add an agenda property to tasks (similar to the id property)
-      if (task) {
+      if ($scope.selectedTask) {
+        var agenda = $scope.agendaForTask($scope.selectedTask);
+        var task = agenda.getTask($scope.selectedTask.id)
         task.name = $scope.selectedTask.name;
         if ($scope.selectedTask.deadlineDate) {
           if ($scope.selectedTask.time == "") {
@@ -179,10 +219,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           task.category = undefined;
         }
         task.completed = $scope.selectedTask.completed;
+
+        agenda.saveAgenda();
+        $scope.selectedTask = null;
       }
-      $scope.selectedAgenda.saveAgenda();
       $scope.refresh();
-      $scope.selectedTask = null;
     };
 
     $mdComponentRegistry.when("agendas-task-detail").then(function(sidenav) {
@@ -201,7 +242,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
-        $scope.selectedAgenda.deleteTask($scope.selectedTask.id);
+        var agenda = $scope.agendaForTask($scope.selectedTask);
+        agenda.deleteTask($scope.selectedTask.id);
+        $scope.selectedTask = null;
+        agenda.saveAgenda();
         $scope.toggleSidenav("agendas-task-detail");
       });
     };
@@ -233,8 +277,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         if (newValue == "none") {
           $scope.category = undefined;
         } else if (newValue == "new") {
+          var agenda = $scope.agendaForTask($scope.selectedTask);
           $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true)
-            .title("New Category in \"" + $scope.selectedAgenda.name() + "\"")
+            .title("New Category in \"" + agenda.name() + "\"")
             .textContent("Give your category a name.")
             .placeholder("Name")
             .cancel("Cancel")
@@ -249,7 +294,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                 }
               }
               if (!categoryExists) {
-                var category = $scope.selectedAgenda.newCategory(name);
+                var category = agenda.newCategory(name);
                 $scope.categories.push({name: name, color: undefined, id: category});
                 $scope.category = "category-" + category;
               } else {
@@ -277,8 +322,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
 
-    $scope.shouldShowCategoryCircle = function(category) {
-      return (category != undefined && $scope.selectedAgenda.categoryExists(category)) && $scope.selectedAgenda.getCategory(category).color;
+    $scope.shouldShowCategoryCircle = function(task) {
+      var category = task.category;
+      var agenda = $scope.agendaForTask(task);
+      return (category != undefined && agenda.categoryExists(category)) && agenda.getCategory(category).color;
     };
 
     $scope.refresh();
@@ -306,6 +353,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       original.name = category.name;
       if (category.color == "") {
         original.color = undefined;
+        category.color = undefined;
       } else {
         original.color = category.color;
       }
@@ -357,6 +405,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                 object[property] = task[property];
               }
             }
+            object.agenda = this.name();
             object.id = i;
             tasks.push(object);
           }
@@ -686,8 +735,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       return !task.completed;
     });
   }})
-  .filter("categoryNamingFilter", function() { return function(input, agenda) {
-    return (input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
+  .filter("categoryNamingFilter", function() { return function(input, agenda, selectedAgenda) {
+    var prefix = (typeof selectedAgenda == "string") ? agenda.name() : "";
+    var category = (input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
+    return prefix + ((prefix && category) ? " | " : "") + category;
   }})
   .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
     return agenda ? ((input != undefined && agenda.categoryExists(input)) ? colors[agenda.getCategory(input).color] : false) : colors[input];

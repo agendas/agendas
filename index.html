@@ -37,11 +37,9 @@
           </div>
         </md-toolbar>
         <md-list>
-          <!--
           <md-list-item ng-click="selectToday()"><md-icon>today</md-icon><p>Today</p></md-list-item>
           <md-list-item ng-click="selectWeek()"><md-icon>view_week</md-icon><p>This week</p></md-list-item>
           <md-list-item ng-click="selectAllTasks()"><md-icon>view_list</md-icon><p>All</p></md-list-item>
-          -->
         </md-list>
         <md-card ng-repeat="agenda in agendaList" ng-click="selectAgenda(agenda)">
           <md-card-title>
@@ -72,7 +70,7 @@
                       <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
                       <div class="md-list-item-text">
                         <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task.category)" style="background-color: #{{task.category | categoryColorFilter:selectedAgenda}}"></span>{{task.category | categoryNamingFilter:selectedAgenda}}</p>
+                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" style="background-color: #{{task.category | categoryColorFilter:agendaForTask(task)}}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>
                       </div>
                       <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
                       <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
@@ -80,7 +78,7 @@
                   </md-list>
                 </div>
 
-                <md-list class="md-whiteframe-2dp new-task">
+                <md-list class="md-whiteframe-2dp new-task" ng-if="taskCreationAllowed">
                   <md-list-item ng-click="newTask()">
                     <md-icon>add</md-icon>
                     <p>New task</p>
@@ -147,7 +145,7 @@
 
     </md-sidenav>
 
-    <md-button class="new-task md-fab md-block" ng-click="newTask()">
+    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-disabled="!taskCreationAllowed">
       <md-icon>add</md-icon>
     </md-button>
   </body>
