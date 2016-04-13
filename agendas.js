@@ -129,6 +129,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.category = undefined;
     $scope.selectedTask = null;
+    $scope.themes = [];
+    $scope.detailTheme = "default";
     $scope.viewTaskDetail = function(task) {
       $scope.selectedTask = task;
       $scope.selectedTask.deadlineDate = task.deadline ? new Date(task.deadline) : undefined;
