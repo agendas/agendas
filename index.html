@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html ng-app="agendasApp">
   <head>
-    <title>Agendas</title>
+    <title>Agendas - {{agenda}}</title>
 
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
@@ -41,7 +41,7 @@
           <md-list-item ng-click="selectWeek()"><md-icon>view_week</md-icon><p>This week</p></md-list-item>
           <md-list-item ng-click="selectAllTasks()"><md-icon>view_list</md-icon><p>All</p></md-list-item>
         </md-list>
-        <md-card ng-repeat="agenda in agendaList" ng-click="selectAgenda(agenda)">
+        <md-card ng-repeat="agenda in agendaList | orderBy:'+'" ng-click="selectAgenda(agenda)">
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{agenda}}</span>
@@ -59,7 +59,7 @@
           <md-tab id="agendas-list-tab">
             <md-tab-label>List</md-tab-label>
             <md-tab-body>
-              <div class="agendas-list">
+              <div class="agendas-list" ng-if="selectedAgenda">
 
                 <md-switch ng-model="showCompleted">Show Completed</md-switch>
 
