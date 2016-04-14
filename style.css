@@ -50,6 +50,12 @@ body {
   width: calc(50% - 16px);
 }
 
+@media (max-width: 1280px) {
+  .agendas-sidebar md-card {
+    width: calc(100% - 16px);
+  }
+}
+
 .agendas-list {
   margin: 3rem auto 3rem auto;
   padding: 0 3rem 0 3rem;
@@ -125,4 +131,28 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
 .task-name-field .md-errors-spacer {
   height: 0;
   min-height: 0;
+}
+
+.agendas-detail-back {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 50;
+  color: white;
+}
+
+.agendas-detail-back md-icon {
+  color: white;
+}
+
+@media (max-width: 599px) {
+  md-tabs md-pagination-wrapper {
+    left: calc(10px + 2rem);
+  }
+
+  .agendas-sidebar,
+  .agendas-detail {
+    width: 100%;
+    margin: 0;
+  }
 }
