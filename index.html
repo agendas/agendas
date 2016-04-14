@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css" />
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc3/angular-material.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc3/angular-material.min.js"></script>
 
     <script src="agendas.js"></script>
     <script>
@@ -135,6 +135,23 @@
             <md-option ng-repeat="time in times" value="{{time.value}}">{{time.name}}</md-option>
           </md-select>
         </md-input-container>
+      </div>
+
+      <div>
+        <md-input-container>
+          <label>Repeat Every</label>
+          <md-select ng-model="selectedTask.repeat" ng-disabled="!selectedTask.deadlineDate">
+            <md-option value="">None</md-option>
+            <md-option value="day">Day</md-option>
+            <md-option value="weekday">Weekday</md-option>
+            <md-option value="week">Week</md-option>
+            <md-option value="2-weeks">Other Week</md-option>
+            <md-option value="month">Month</md-option>
+            <md-option value="year">Year</md-option>
+          </md-select>
+        </md-input-container>
+        <p>Repeat Ends</p>
+        <md-datepicker ng-model="selectedTask.repeatEnds" ng-disabled="!(selectedTask.deadlineDate && selectedTask.repeat)" md-placeholder="Enter date"></md-datepicker>
       </div>
 
       <div>

@@ -173,7 +173,45 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.completeTask = function(task) {
       var agenda = $scope.agendaForTask(task);
-      agenda.getTask(task.id).completed = task.completed;
+      var now = new Date();
+      var next = undefined;
+      if (task.deadline) {
+        if (task.repeat == "day") {
+          next = new Date(task.deadline.getTime() + (24 * 60 * 60 * 1000));
+        } else if (task.repeat == "weekday") {
+          next = task.deadline;
+          while ((next.getDay() > 0) && (next.getDay() < 6)) {
+            next = new Date(next.getTime() + (24 * 60 * 60 * 1000));
+          }
+        } else if (task.repeat == "week") {
+          next = new Date(task.deadline.getTime() + (7 * 24 * 60 * 60 * 1000));
+        } else if (task.repeat == "2-weeks") {
+          next = new Date(task.deadline.getTime() + (14 * 24 * 60 * 60 * 1000));
+        } else if (task.repeat == "month") {
+          next = new Date(task.deadline.getTime() + (30 * 24 * 60 * 60 * 1000));
+        } else if (task.repeat == "year") {
+          next = new Date(task.deadline.getFullYear() + 1, task.deadline.getMonth(), task.deadline.getDate(), 0, 0, 0, 0);
+        }
+      }
+      if (next) {
+        next.setHours(0);
+        next.setMinutes(0);
+        next.setSeconds(0);
+        next.setMilliseconds(0);
+      }
+      if (task.completed && next && (!task.repeatEnds || (next <= task.repeatEnds))) {
+        agenda.getTask(task.id).deadline = new Date(
+          next.getFullYear(),
+          next.getMonth(),
+          next.getDate(),
+          task.deadline.getHours(),
+          task.deadline.getMinutes(),
+          task.deadline.getSeconds(),
+          task.deadline.getMilliseconds()
+        );
+      } else {
+        agenda.getTask(task.id).completed = task.completed;
+      }
       agenda.saveAgenda();
       $scope.refresh();
     };
@@ -195,6 +233,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       $scope.categories = $scope.agendaForTask(task).categories();
       $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
+      $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
       $scope.toggleSidenav("agendas-task-detail");
     };
     $scope.taskDetailIsOpen = function() {
@@ -223,9 +262,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             0
           );
           task.deadlineTime = $scope.selectedTask.deadlineTime;
+          task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : undefined;
+          task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : undefined;
         } else {
           task.deadline = undefined;
           task.deadlineTime = false;
+          task.repeat = undefined;
+          task.repeatEnds = undefined;
         }
         if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
           task.category = parseInt($scope.category.slice(9));
@@ -313,6 +356,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                 var category = agenda.newCategory(name);
                 $scope.categories.push({name: name, color: undefined, id: category});
                 $scope.category = "category-" + category;
+                agenda.saveAgenda();
               } else {
                 $scope.category = undefined;
               }
@@ -449,8 +493,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           if (!task.deleted) {
             var object = {};
             for (var property in task) {
-              if (property == "deadline" || property == "dateCreated") {
-                object[property] = (typeof task[property] == "date") ? task[property] : new Date(task[property]);
+              if (property == "deadline" || property == "dateCreated" || property == "repeatEnds") {
+                object[property] = (typeof task[property] == "undefined") ? task[property] : new Date(task[property]);
               } else if (property == "category" && typeof task.category == "number") {
                 object[property] = this.categoryExists(task[property]) ? task[property] : undefined;
               } else if (task.hasOwnProperty(property)) {
