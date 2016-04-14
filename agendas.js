@@ -313,6 +313,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                 var category = agenda.newCategory(name);
                 $scope.categories.push({name: name, color: undefined, id: category});
                 $scope.category = "category-" + category;
+                agenda.saveAgenda();
               } else {
                 $scope.category = undefined;
               }

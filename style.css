@@ -155,4 +155,23 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   .agendas-sidebar {
     position: static;
   }
+
+  .category-list md-list-item {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .category-list md-select-value {
+    min-width: initial;
+    text-overflow: clip;
+  }
+
+  .category-list .category-circle {
+    width: 0.8em;
+    height: 0.8em;
+  }
+
+  .category-list .md-icon-button {
+    margin: 0;
+  }
 }
