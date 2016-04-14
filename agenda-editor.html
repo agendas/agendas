@@ -21,7 +21,7 @@
               <md-option value="{{color.name}}" ng-repeat="color in colors"><div class="category-circle" style="background-color: #{{color.color}}"></div></md-option>
             </md-select>
             <md-input-container class="md-block" md-no-float>
-              <input type="text" placeholder="Category Name" ng-change="saveCategory(category)" ng-model="category.name" />
+              <input type="text" placeholder="Category" ng-change="saveCategory(category)" ng-model="category.name" />
             </md-input-container>
             <md-icon class="md-secondary" ng-click="deleteCategory(category)">delete</md-icon>
           </md-list-item>
