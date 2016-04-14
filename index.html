@@ -23,7 +23,7 @@
   </head>
   <body ng-controller="AgendasUIController as agendas">
     <div class="main">
-      <div class="agendas-sidebar">
+      <div class="agendas-sidebar" ng-hide="xs() && screen != 'sidebar'">
         <md-toolbar>
           <div class="md-toolbar-tools">
             <md-button class="md-icon-button" ng-click="toggleSidenav('agendas-navigation-sidenav')">
@@ -54,7 +54,7 @@
           </md-card-actions>
         </md-card>
       </div>
-      <div class="agendas-detail md-whiteframe-7dp">
+      <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs() && screen != 'detail'">
         <md-tabs md-dynamic-height class="md-primary">
           <md-tab id="agendas-list-tab">
             <md-tab-label>List</md-tab-label>
@@ -94,6 +94,7 @@
             <md-tab-body class="agendas-calendar"></md-tab-body>
           </md-tab>
         </md-tabs>
+        <md-button class="md-icon-button agendas-detail-back" hide-gt-xs ng-click="selectedAgenda = undefined; refresh()"><md-icon>arrow_back</md-icon></md-button>
       </div>
     </div>
     <md-sidenav class="md-sidenav-left md-whiteframe-4dp" md-component-id="agendas-navigation-sidenav">
@@ -149,7 +150,7 @@
 
     </md-sidenav>
 
-    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-disabled="!taskCreationAllowed">
+    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-hide="xs() && screen != 'detail'" ng-disabled="!taskCreationAllowed">
       <md-icon>add</md-icon>
     </md-button>
   </body>

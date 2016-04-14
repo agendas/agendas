@@ -44,7 +44,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -104,6 +104,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       if (!$scope.selectedAgenda) {
         $scope.tasks = [];
         $rootScope.agenda = "None";
+        $scope.screen = "sidebar";
+      } else {
+        $scope.screen = "detail";
       }
     };
 
@@ -179,7 +182,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.category = undefined;
     $scope.selectedTask = null;
-    $scope.themes = [];
     $scope.detailTheme = "default";
     $scope.viewTaskDetail = function(task) {
       $scope.selectedTask = task;
@@ -235,6 +237,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         agenda.saveAgenda();
         $scope.selectedTask = null;
       }
+      $scope.category = undefined;
+      $scope.categories = [];
       $scope.refresh();
     };
 
@@ -350,6 +354,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.$watch("isAuthenticated", function() {
       ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
     });
+
+    $scope.xs = function() {
+      return $mdMedia("xs");
+    };
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
     $scope.init = function() {
