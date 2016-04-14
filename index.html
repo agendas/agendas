@@ -2,6 +2,8 @@
 <html ng-app="agendasApp">
   <head>
     <title>Agendas - {{agenda}}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
@@ -23,7 +25,7 @@
   </head>
   <body ng-controller="AgendasUIController as agendas">
     <div class="main">
-      <div class="agendas-sidebar" ng-hide="xs() && screen != 'sidebar'">
+      <div class="agendas-sidebar" ng-hide="xs && (screen != 'sidebar')">
         <md-toolbar>
           <div class="md-toolbar-tools">
             <md-button class="md-icon-button" ng-click="toggleSidenav('agendas-navigation-sidenav')">
@@ -54,7 +56,7 @@
           </md-card-actions>
         </md-card>
       </div>
-      <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs() && screen != 'detail'">
+      <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs && (screen != 'detail')">
         <md-tabs md-dynamic-height class="md-primary">
           <md-tab id="agendas-list-tab">
             <md-tab-label>List</md-tab-label>
@@ -150,7 +152,7 @@
 
     </md-sidenav>
 
-    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-hide="xs() && screen != 'detail'" ng-disabled="!taskCreationAllowed">
+    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-hide="xs && (screen != 'detail')" ng-disabled="!taskCreationAllowed">
       <md-icon>add</md-icon>
     </md-button>
   </body>

@@ -117,10 +117,6 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   border-radius: 50%;
 }
 
-.category-list {
-  width: 480px;
-}
-
 .category-list md-input-container,
 .category-list md-select {
   margin-top: 0;
@@ -154,5 +150,9 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   .agendas-detail {
     width: 100%;
     margin: 0;
+  }
+
+  .agendas-sidebar {
+    position: static;
   }
 }
