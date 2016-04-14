@@ -355,9 +355,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
     });
 
-    $scope.xs = function() {
+    $scope.xs = $mdMedia("xs");
+    $scope.$watch(function() {
       return $mdMedia("xs");
-    };
+    }, function(newValue) {
+      $scope.xs = newValue;
+    });
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
     $scope.init = function() {
