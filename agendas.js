@@ -78,6 +78,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.agendaList = [];
     $scope.refresh = function() {
+      $scope.clearSelection();
       $scope.agendaList = $agendaParser.listAgendas();
       $scope.taskCreationAllowed = false;
       if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
@@ -236,6 +237,29 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
       $scope.toggleSidenav("agendas-task-detail");
     };
+
+    $scope.selectedTasks = [];
+    $scope.clearSelection = function() {
+      for (var task of $scope.selectedTasks) {
+        task.selected = false;
+      }
+      $scope.selectedTasks = [];
+    }
+    $scope.selectTask = function(task, event) {
+      if (event.shiftKey) {
+        task.selected = !task.selected;
+        if (task.selected) {
+          $scope.selectedTasks.push(task);
+        } else {
+          $scope.selectedTasks.splice($scope.selectedTasks.indexOf(task), 1);
+        }
+      } else {
+        $scope.clearSelection();
+        $scope.viewTaskDetail(task);
+      }
+    }
+
+
     $scope.taskDetailIsOpen = function() {
       return false;
     };
@@ -309,10 +333,33 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
 
+    $scope.deleteSelectedTasks = function(event) {
+      $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
+        .title("Delete " + $scope.selectedTasks.length + " tasks?")
+        .textContent("This action cannot be undone.")
+        .cancel("Cancel")
+        .ok("Delete")
+      ).then(function() {
+        for (var task of $scope.selectedTasks) {
+          var agenda = $scope.agendaForTask(task);
+          agenda.deleteTask(task.id);
+          agenda.saveAgenda();
+        }
+        $scope.refresh();
+      });
+    };
+
     $scope.newTask = function() {
-      $scope.selectedAgenda.newTask("New Task");
+      var id = $scope.selectedAgenda.newTask("New Task");
       $scope.selectedAgenda.saveAgenda();
       $scope.refresh();
+      var tasks = $scope.selectedAgenda.tasks();
+      for (var i = tasks.length - 1; i >= 0; i--) {
+        if (tasks[i].id == id) {
+          $scope.viewTaskDetail(tasks[i]);
+          break;
+        }
+      }
     };
 
     $scope.generateTimes = function() {
