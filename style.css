@@ -142,6 +142,25 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   color: white;
 }
 
+.task-selected-true h3,
+.task-selected-true p {
+  color: #4CAF50 !important;
+}
+
+.selected-tasks-actions {
+  position: fixed;
+  top: 48px;
+  right: 8px;
+}
+
+.selected-tasks-actions md-card-actions > .selected-tasks-actions-title:first-child {
+  cursor: default;
+}
+
+.selected-tasks-actions md-card-actions > .selected-tasks-actions-title:hover {
+  background-color: transparent;
+}
+
 @media (max-width: 599px) {
   md-tabs md-pagination-wrapper {
     left: calc(10px + 2rem);
