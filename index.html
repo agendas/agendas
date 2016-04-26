@@ -33,6 +33,9 @@
             </md-button>
             <h2>Agendas</h2>
             <span flex></span>
+            <md-button class="md-icon-button" ng-if="agendasFolder" ng-click="sync()">
+              <md-icon>refresh</md-icon>
+            </md-button>
             <md-button class="md-icon-button" ng-click="showAgendaCreationDialog($event)">
               <md-icon>add</md-icon>
             </md-button>
