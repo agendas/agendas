@@ -17,7 +17,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
 
     // Establish a connection to Google Drive.
-    var CLIENT_ID = "Why should you know my Client ID?";
+    var CLIENT_ID = "153820900287-94r8o59pghaud0grrvkfcs1foedkbc6g.apps.googleusercontent.com";
     var SCOPES    = ["https://www.googleapis.com/auth/drive.appfolder", "https://www.googleapis.com/auth/drive.metadata.readonly"];
 
     var scope = $scope;
@@ -27,7 +27,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         scope.$apply(function($scope) {
           $scope.isAuthenticated = 1;
         });
-        // loadDriveApi()
+        $googleDrive.loadApis(function() {
+          scope.$apply(function($scope) {
+            $scope.apiLoaded = true;
+          });
+        });
       } else {
         scope.$apply(function($scope) {
           $scope.isAuthenticated = 0;
@@ -36,12 +40,52 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
 
     $scope.isAuthenticated = 2;
+    $scope.apiLoaded = false;
     $scope.checkAuth = function() {
       $googleDrive.checkAuth(CLIENT_ID, SCOPES, handleAuthResult);
     };
     $scope.authorize = function() {
       $googleDrive.authorize(CLIENT_ID, SCOPES, handleAuthResult);
     };
+
+    $scope.agendasFolder = null;
+    $scope.$watch("apiLoaded", function(apiLoaded) {
+      if (apiLoaded) {
+        gapi.client.drive.files.list({
+          "spaces": "appDataFolder" // TODO: Add a special query
+        }).then(function(response) {
+          var agendaFolderFound = false;
+          for (var file of response.result.files) {
+            if (file.mimeType == "application/vnd.google-apps.folder" && file.name == "agendas") {
+              agendaFolderFound = true;
+              $scope.$apply(function($scope) {
+                $scope.agendasFolder = file.id;
+              });
+              break;
+            }
+          }
+          if (!agendaFolderFound) {
+            gapi.client.drive.files.create({
+              resource: {
+                name: "agendas",
+                mimeType: "application/vnd.google-apps.folder",
+                parents: ["appDataFolder"]
+              }
+            }).then(function(response) {
+              $scope.$apply(function($scope) {
+                $scope.agendasFolder = response.id;
+              });
+            });
+          }
+        });
+      }
+    });
+    var unbind = $scope.$watch("agendasFolder", function(agendasFolder, oldValue) {
+      if (agendasFolder) {
+        $googleDrive.sync(agendasFolder);
+        unbind();
+      }
+    });
 
   })
   .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia) {
@@ -110,6 +154,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.screen = "detail";
       }
     };
+
+    $scope.$on("driveSyncFinished", function() {
+      console.log("Drive Sync Finished");
+      $scope.$apply(function($scope) {
+        $scope.refresh();
+      });
+    });
 
     $scope.selectedAgenda = null;
     $scope.tasks = [];
@@ -365,7 +416,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.generateTimes = function() {
       var times = [{name: "None", value: "", date: false}];
       var currentHour = (new Date()).getHours();
-      for (var hour = currentHour; hour != (currentHour - 1); hour += ((hour >= 23) ? -23 : 1)) {
+      for (var hour = currentHour; (hour != currentHour) || (times.length <= 1); hour += ((hour >= 23) ? -23 : 1)) {
         for (var minute = 0; minute < 60; minute += 15) {
           var time = {
             value: (new Date(1970, 0, 1, hour, minute, 0, 0)).toJSON()
@@ -452,6 +503,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }, function(newValue) {
       $scope.xs = newValue;
     });
+
+    $scope.sync = function() {
+      $googleDrive.sync($scope.agendasFolder);
+    };
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
     $scope.init = function() {
@@ -477,6 +532,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         original.color = category.color;
       }
+      original.dateModified = new Date();
     };
     $scope.deleteCategory = function(category) {
       $scope.categoriesDeleted = true;
@@ -606,6 +662,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           task.category = category;
         }
         task.dateCreated = new Date();
+        task.dateModified = new Date();
         task.completed = false;
         this.raw.items.push(task);
         return this.raw.items.length - 1;
@@ -618,6 +675,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           if (task.category != undefined && !this.categoryExists(task.category)) {
             task.category = undefined;
           }
+          task.dateModified = new Date();
           return task;
         }
       },
@@ -629,7 +687,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       },
 
       newCategory: function(name, color) {
-        var category = {name: name, color: color, dateCreated: new Date()};
+        var category = {name: name, color: color, dateCreated: new Date(), dateModified: new Date()};
         this.raw.categories.push(category);
         return this.raw.categories.length - 1;
       },
@@ -680,15 +738,16 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     agendaParser.newAgenda = function(agendaName) {
       var list = agendaParser.listAgendas();
-      if (list.includes(agendaName)) {
-        return false;
+      var actualName = agendaName;
+      while (list.includes(actualName)) {
+        actualName += "-";
       }
 
-      localStorage.setItem(agendaParser.agendaKey(agendaName), JSON.stringify(agendaParser.emptyAgenda(agendaName).raw));
+      localStorage.setItem(agendaParser.agendaKey(actualName), JSON.stringify(agendaParser.emptyAgenda(agendaName).raw));
 
-      list.push(agendaName);
+      list.push(actualName);
       localStorage.setItem("agendas", JSON.stringify(list));
-      return true;
+      return agendaParser.getAgenda(actualName);
     };
 
     agendaParser.parseAgenda = function(agendaJSON) {
@@ -826,7 +885,145 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     return agendaSorter;
   })
-  .factory("$googleDrive", function() {
+  .factory("$googleDrive", function($rootScope, $agendaParser, $agendaSorter) {
+    var buildMultipart = function(parts) {
+      var boundary = Math.random().toString(36).slice(2);
+      var mime = "multipart/mixed; boundary=\"" + boundary + "\"";
+      var body = [];
+      for (var part of parts) {
+        body.push("\r\n--" + boundary + "\r\n");
+        body.push("Content-Type: " + part.mimeType + "\r\n\r\n");
+        body.push(part.content);
+      }
+      body.push("\r\n--" + boundary + "--");
+      return {
+        mimeType: mime,
+        body: body.join("")
+      };
+    };
+
+    var mergeProperties = function(local, online) {
+      return local;
+    };
+
+    var mergeTasks = function(local, online) {
+      // Decide if each task needs to be merged
+      var needsMerge   = [];
+      var newOnline    = [];
+      var newLocal     = [];
+      var deletedTasks = [];
+
+      var deleted = 0;
+      for (var i = 0; i < local.length; i++) {
+        var task = local[i];
+        task.id = i - deleted;
+        // Try to obtain a task's online counterpart
+        if (online.length > i) {
+          var onlineTask = online[i];
+          onlineTask.id = i;
+          // Is the local task deleted?
+          if (task.deleted) {
+            // Is the online task deleted?
+            if (onlineTask.deleted) {
+              // Delete this task.
+              task.deleted = ((new Date(task.deleted)) < (new Date(onlineTask.deleted))) ? new Date(task.deleted) : new Date(onlineTask.deleted);
+              deletedTasks.push(task);
+            } else if ((new Date(task.deleted)) > (new Date(onlineTask.dateCreated))) {
+              // Delete this task.
+              deletedTasks.push(task);
+            } else {
+              // This task was created online.
+              newOnline.push(onlineTask);
+            }
+          } else if (onlineTask.deleted) {
+            // When was the local task created?
+            if ((new Date(task.dateCreated)) > (new Date(onlineTask.created))) {
+              // This task was created locally.
+              newLocal.push(task);
+            } else {
+              // Delete this task.
+              deletedTasks.push(onlineTask);
+            }
+          } else {
+            // Are these tasks the same?
+            if ((new Date(task.dateCreated)).getTime() == (new Date(onlineTask.dateCreated)).getTime()) {
+              // These tasks need to be merged.
+              needsMerge.push({local: task, online: onlineTask});
+            } else {
+              // This task was created both locally and online.
+              newLocal.push(task);
+              newOnline.push(onlineTask);
+            }
+          }
+        } else {
+          // Has the task been deleted?
+          if (task.deleted) {
+            // Exclude the task
+            console.log("Task excluded");
+            deleted++;
+          } else {
+            // This task was created locally.
+            newLocal.push(task);
+          }
+        }
+      }
+      // Add the rest of the tasks
+      for (var i = 0; i < online.length; i++) {
+        var task = online[i];
+        if (typeof task.id != "number") {
+          task.id = i;
+          newOnline.push(task);
+        }
+      }
+      var shouldUpload = (newLocal.length > 0) || (deletedTasks.length > 0);
+      // Merge tasks
+      var mergedTasks = [];
+      for (var task of needsMerge) {
+        // Merge a single task.
+        if (!task.local.dateModified && !task.online.dateModified) {
+          mergedTasks.push(task.online);
+        } else if (!task.online.dateModified) {
+          shouldUpload = true;
+          mergedTasks.push(task.local);
+        } else {
+          var localDate = new Date(task.local.dateModified);
+          var onlineDate = new Date(task.online.dateModified);
+          mergedTasks.push((localDate > onlineDate) ? task.local : task.online);
+          if (localDate > onlineDate) {
+            shouldUpload = true;
+          }
+        }
+      }
+      // Assign new IDs to locally created tasks
+      var totalLength = needsMerge.length + newOnline.length + deletedTasks.length;
+      for (var i = 0; i < newLocal; i++) {
+        var task = newLocal[i];
+        task.id = totalLength + i;
+      }
+      // Combine everything
+      var unsorted = mergedTasks.concat(newOnline, newLocal, deletedTasks);
+      // Sort the tasks by ID
+      var merged = $agendaSorter.sort(unsorted, function(a, b) {
+        return a.id > b.id;
+      });
+      // Remove id properties
+      for (var task of merged) {
+        delete task.id;
+      }
+      // We're done! Phew.
+      console.log({merged: merged, needsMerge: needsMerge, mergedTasks: mergedTasks, newOnline: newOnline, newLocal: newLocal, deletedTasks: deletedTasks, unsorted: unsorted});
+      return {tasks: merged, shouldUpload: shouldUpload};
+    };
+
+    var mergeAgendas = function(local, online) {
+      var properties = mergeProperties(local.raw.properties, online.raw.properties);
+      var categories = mergeTasks(local.raw.categories, online.raw.categories);
+      var items      = mergeTasks(local.raw.items, online.raw.items);
+      var merged     = {agenda: {properties: properties, categories: categories.tasks, items: items.tasks}, shouldUpload: categories.shouldUpload || items.shouldUpload};
+      console.log(merged);
+      return merged;
+    };
+
     return {
       checkAuth: function(CLIENT_ID, SCOPES, handler) {
         gapi.auth.authorize({
@@ -841,6 +1038,150 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           scope: SCOPES,
           immediate: false
         }, handler);
+      },
+      loadApis: function(callback) {
+        gapi.client.load("drive", "v3", callback);
+      },
+
+      buildMultipart: buildMultipart,
+      mergeAgendas: mergeAgendas,
+
+      sync: function(folder) {
+        console.log("Syncing");
+        gapi.client.drive.files.list({
+          "q": "'" + folder + "' in parents",
+          "spaces": "appDataFolder"
+        }).then(function(response) {
+          var list = response.result.files;
+          var localList = $agendaParser.listAgendas();
+          var localDriveIds = [];
+          for (var name of localList) {
+            var agenda = $agendaParser.getAgenda(name);
+            if (agenda.raw.properties.driveId) {
+              // The agenda is already in Google Drive
+              var deleted = true;
+              for (var file of list) {
+                if (file.id == agenda.raw.properties.driveId) {
+                  localDriveIds.push(file.id);
+                  deleted = false;
+                  break;
+                }
+              }
+              if (deleted) {
+                // Delete the agenda locally
+                $agendaParser.deleteAgenda(name);
+                $rootScope.$broadcast("driveSyncFinished");
+              } else {
+                var downloadRequest = gapi.client.drive.files.get({
+                  fileId: agenda.raw.properties.driveId,
+                  alt: "media"
+                });
+                (function() {
+                  var agendaName = name;
+                  var local = agenda;
+                  downloadRequest.then(function(response) {
+                    if (response.status == 200) {
+                      var merged = mergeAgendas(local, $agendaParser.parseAgenda(response.body));
+                      var agenda = $agendaParser.getAgenda(agendaName);
+                      agenda.raw = merged.agenda;
+                      agenda.saveAgenda();
+                      $rootScope.$broadcast("driveSyncFinished");
+                      // Update the agenda
+                      if (merged.shouldUpload) {
+                        var fileId = agenda.raw.properties.driveId;
+                        delete agenda.raw.properties.driveId;
+                        var multipart = buildMultipart([
+                          {
+                            mimeType: "application/json",
+                            content: JSON.stringify({
+                              name: agenda.name(),
+                              mimeType: "application/json"
+                            })
+                          },
+                          {
+                            mimeType: "application/json",
+                            content: JSON.stringify(agenda.raw)
+                          }
+                        ]);
+                        gapi.client.request({
+                          path: "/upload/drive/v3/files/" + fileId,
+                          method: "PATCH",
+                          params: {
+                            uploadType: "multipart"
+                          },
+                          headers: {"Content-Type": multipart.mimeType},
+                          body: multipart.body
+                        }).then(function(response) {
+                          console.log(response);
+                        });
+                      }
+                    }
+                  });
+                })();
+              }
+            } else {
+              // The agenda needs to be uploaded to Google Drive
+              var multipart = buildMultipart([
+                {
+                  mimeType: "application/json",
+                  content: JSON.stringify({
+                    name: agenda.name(),
+                    mimeType: "application/json",
+                    parents: [folder]
+                  })
+                },
+                {
+                  mimeType: "application/json",
+                  content: JSON.stringify(agenda.raw)
+                }
+              ]);
+              var request = gapi.client.request({
+                path: "/upload/drive/v3/files",
+                method: "POST",
+                params: {
+                  uploadType: "multipart"
+                },
+                headers: {"Content-Type": multipart.mimeType},
+                body: multipart.body
+              });
+              (function() {
+                var agendaName = name;
+                request.then(function(response) {
+                  console.log(response);
+                  if (response.result.id) {
+                    var agenda = $agendaParser.getAgenda(agendaName);
+                    agenda.raw.properties.driveId = response.result.id;
+                    agenda.saveAgenda();
+                    $rootScope.$broadcast("driveSyncFinished");
+                  }
+                });
+              })();
+            }
+          }
+          for (var file of list) {
+            if (!localDriveIds.includes(file.id)) {
+              // Has the agenda been deleted locally?
+              // Download the agenda.
+              var downloadRequest = gapi.client.drive.files.get({
+                fileId: file.id,
+                alt: "media"
+              });
+              (function() {
+                var metadata = file;
+                downloadRequest.then(function(response) {
+                  console.log("Downloaded agenda " + metadata.name);
+                  if (response.status == 200) {
+                    var agenda = $agendaParser.newAgenda(metadata.name);
+                    agenda.raw = response.result;
+                    agenda.raw.properties.driveId = metadata.id;
+                    agenda.saveAgenda();
+                    $rootScope.$broadcast("driveSyncFinished");
+                  }
+                });
+              })();
+            }
+          }
+        });
       }
     };
   })
