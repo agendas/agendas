@@ -3,7 +3,7 @@
   <head>
     <title>Agendas - {{agenda}}</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=320px, initial-scale=1.0, maximum-scale=1.0" />
 
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc3/angular-material.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
@@ -33,11 +33,8 @@
             </md-button>
             <h2>Agendas</h2>
             <span flex></span>
-            <md-button class="md-icon-button" ng-if="agendasFolder" ng-click="sync()">
+            <md-button class="md-icon-button" ng-if="apiLoaded" ng-click="sync()">
               <md-icon>refresh</md-icon>
-            </md-button>
-            <md-button class="md-icon-button" ng-click="showAgendaCreationDialog($event)">
-              <md-icon>add</md-icon>
             </md-button>
           </div>
         </md-toolbar>
@@ -46,7 +43,7 @@
           <md-list-item ng-click="selectWeek()"><md-icon>view_week</md-icon><p>This week</p></md-list-item>
           <md-list-item ng-click="selectAllTasks()"><md-icon>view_list</md-icon><p>All</p></md-list-item>
         </md-list>
-        <md-card ng-repeat="agenda in agendaList | orderBy:'+'" ng-click="selectAgenda(agenda)">
+        <md-card ng-repeat="agenda in agendaList | orderBy:'+'" ng-class="(selectedAgenda.name() == agenda) ? 'selected-agenda' : ''" ng-click="selectAgenda(agenda)">
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{agenda}}</span>
@@ -57,6 +54,13 @@
               <md-icon>edit</md-icon>
             </md-button>
           </md-card-actions>
+        </md-card>
+        <md-card ng-click="showAgendaCreationDialog($event)">
+          <md-card-title>
+            <md-card-title-text>
+              <span class="md-headline"><md-icon>add</md-icon><span>New Agenda</span></span>
+            </md-card-title-text>
+          </md-card-title>
         </md-card>
       </div>
       <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs && (screen != 'detail')">
@@ -181,7 +185,7 @@
 
     </md-sidenav>
 
-    <md-button class="new-task md-fab md-block" ng-click="newTask()" ng-hide="xs && (screen != 'detail')" ng-disabled="!taskCreationAllowed">
+    <md-button class="new-task md-fab md-block" ng-click="quickAdd($event)" ng-hide="xs && (screen != 'detail')" ng-disabled="!taskCreationAllowed">
       <md-icon>add</md-icon>
     </md-button>
   </body>
