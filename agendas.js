@@ -19,7 +19,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     // Establish a connection to Google Drive.
     var CLIENT_ID = "153820900287-94r8o59pghaud0grrvkfcs1foedkbc6g.apps.googleusercontent.com";
     var SCOPES    = ["https://www.googleapis.com/auth/drive.appfolder", "https://www.googleapis.com/auth/drive.metadata.readonly"];
-    CLIENT_ID = "653971855682-hnfub9hpkctnv27vdkeorlufgn86889g.apps.googleusercontent.com";
 
     var scope = $scope;
 
@@ -1144,7 +1143,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       sync: function(folder) {
         gapi.client.drive.files.list({
           spaces: "appDataFolder",
-          fields: "files(id,name,parents)"
+          fields: "files(id,name,parents,mimeType)"
         }).then(function(response) {
           var agendaFolderFound = false;
           for (var file of response.result.files) {
