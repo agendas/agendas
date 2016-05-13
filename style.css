@@ -225,3 +225,12 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
     top: 0;
   }
 }
+
+.selected-agenda {
+  background-color: rgb(76, 175, 80);
+  color: white;
+}
+
+.selected-agenda md-icon {
+  color: white;
+}

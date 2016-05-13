@@ -49,7 +49,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, quickAddSamples) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -468,6 +468,47 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.sync = function() {
       $googleDrive.sync();
     };
+
+    $scope.quickAdd = function(event) {
+      $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true).targetEvent(event)
+        .title("Quick Add")
+        .textContent("This feature is still in development.")
+        .placeholder($filter("pickRandomItem")(quickAddSamples))
+        .cancel("Cancel")
+        .ok("Add")
+      ).then(function(response) {
+        if (response) {
+          var regex = /^(.*?)( +(by|due) +(.+?)| +(today|tomorrow))?( +(in|for) +(.*))?$/;
+          var data = regex.exec(response);
+          if (data[0]) {
+            var name = data[1];
+            var deadline = data[4] || data[5];
+            var categoryName = data[8];
+            var categoryId = undefined;
+            for (var category of $scope.selectedAgenda.categories()) {
+              if (category.name === categoryName) {
+                categoryId = category.id;
+                break;
+              }
+            }
+            var deadlineDate = undefined;
+            var weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            if (deadline == "today") {
+              deadlineDate = new Date();
+            } else if (deadline == "tomorrow") {
+              deadlineDate = new Date(Date.now() + (24 * 60 * 60 * 1000));
+            } else if (weekdays.includes(deadline)) {
+              var index = weekdays.indexOf(deadline);
+              var today = (new Date()).getDay();
+              deadlineDate = new Date(Date.now() + ((((index < today) ? (index + 7) : index) - today) * 24 * 60 * 60 * 1000));
+            }
+            $scope.selectedAgenda.newTask(name, deadlineDate, deadlineDate ? false : undefined, categoryId);
+            $scope.selectedAgenda.saveAgenda();
+            $scope.refresh();
+          }
+        }
+      });
+    };
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
     $scope.init = function() {
@@ -619,7 +660,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           task.deadline = deadline;
           task.deadlineTime = deadlineTime;
         }
-        if (category) {
+        if (category !== undefined) {
           task.category = category;
         }
         task.dateCreated = new Date();
@@ -1061,7 +1102,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
               content: JSON.stringify({
                 name: agenda.name(),
                 mimeType: "application/json",
-                parents: [folder]
+                parents: [folder.id]
               })
             },
             {
@@ -1224,3 +1265,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
     return agenda ? ((input != undefined && agenda.categoryExists(input)) ? colors[agenda.getCategory(input).color] : false) : colors[input];
   }})
+  .filter("pickRandomItem", function() { return function(input) {
+    return input[Math.floor(Math.random() * input.length)];
+  }})
+  .value("quickAddSamples", [
+    "Do work today",
+    "Rent instrument by Saturday",
+    "Work on essay for English",
+    "Cook today for Family"
+  ]);
