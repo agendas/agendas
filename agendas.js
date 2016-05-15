@@ -782,6 +782,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         var agendas = agendaParser.listAgendas();
         var index = agendas.indexOf(agenda);
         if (index >= 0) {
+          try {
+            var driveId = agendaParser.getAgenda(agenda).raw.properties.driveId;
+            if (driveId) {
+              var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
+              deletedAgendas.push(driveId);
+              localStorage.setItem("agendas-deleted", JSON.stringify(deletedAgendas));
+            }
+          } catch(e) {console.warn(e);}
           agendas.splice(agendas.indexOf(agenda), 1);
           localStorage.setItem("agendas", JSON.stringify(agendas));
           localStorage.removeItem(agendaParser.agendaKey(agenda));
@@ -1133,30 +1141,40 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           })();
         }
       }
+      var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
       for (var file of list) {
         console.log(file);
         if (!localDriveIds.includes(file.id) && file.parents.includes(folder.id)) {
           // Has the agenda been deleted locally?
-          // Download the agenda.
-          var downloadRequest = gapi.client.drive.files.get({
-            fileId: file.id,
-            alt: "media"
-          });
-          (function() {
-            var metadata = file;
-            downloadRequest.then(function(response) {
-              console.log("Downloaded agenda " + metadata.name);
-              if (response.status == 200) {
-                var agenda = $agendaParser.newAgenda(metadata.name);
-                agenda.raw = response.result;
-                agenda.raw.properties.driveId = metadata.id;
-                agenda.saveAgenda();
-                $rootScope.$broadcast("driveSyncFinished");
-              }
+          if (deletedAgendas.includes(file.id)) {
+            gapi.client.drive.files.delete({
+              fileId: file.id
+            }).then(function() {
+              console.log("Deletion succeeded");
+            })
+          } else {
+            // Download the agenda.
+            var downloadRequest = gapi.client.drive.files.get({
+              fileId: file.id,
+              alt: "media"
             });
-          })();
+            (function() {
+              var metadata = file;
+              downloadRequest.then(function(response) {
+                console.log("Downloaded agenda " + metadata.name);
+                if (response.status == 200) {
+                  var agenda = $agendaParser.newAgenda(metadata.name);
+                  agenda.raw = response.result;
+                  agenda.raw.properties.driveId = metadata.id;
+                  agenda.saveAgenda();
+                  $rootScope.$broadcast("driveSyncFinished");
+                }
+              });
+            })();
+          }
         }
       }
+      localStorage.removeItem("agendas-deleted");
     };
 
     return {
@@ -1181,7 +1199,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       buildMultipart: buildMultipart,
       mergeAgendas: mergeAgendas,
 
-      sync: function(folder) {
+      sync: function() {
         gapi.client.drive.files.list({
           spaces: "appDataFolder",
           fields: "files(id,name,parents,mimeType)"
