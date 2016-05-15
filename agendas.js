@@ -117,7 +117,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
     $scope.$on("driveSyncFinished", function() {
-      console.log("Drive Sync Finished");
       $scope.$apply(function($scope) {
         $scope.refresh();
       });
@@ -228,8 +227,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       agenda.saveAgenda();
       $scope.refresh();
     };
-
-    $scope.showCompleted = false;
 
     $scope.category = undefined;
     $scope.selectedTask = null;
@@ -446,6 +443,20 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
 
+    $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
+    $scope.showCompleted = $scope.settings.showCompleted || false;
+    $scope.openSettings = function(event) {
+      $mdDialog.show({
+        controller: "AgendasSettingsController",
+        templateUrl: "settings.html",
+        escapeToClose: false,
+        targetEvent: event
+      }).then(function() {
+        $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
+        $scope.showCompleted = $scope.settings.showCompleted || false;
+      });
+    }
+
     $scope.shouldShowCategoryCircle = function(task) {
       var category = task.category;
       var agenda = $scope.agendaForTask(task);
@@ -582,6 +593,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
     $scope.init();
+  })
+  .controller("AgendasSettingsController", function($scope, $mdDialog) {
+    $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
+    $scope.cancel = $mdDialog.cancel;
+    $scope.saveAndDismiss = function() {
+      localStorage.setItem("agendas-settings", JSON.stringify($scope.settings));
+      $mdDialog.hide();
+    }
   })
   .factory("$agendaParser", function() {
     var agendaParser = {};
@@ -782,6 +801,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         var agendas = agendaParser.listAgendas();
         var index = agendas.indexOf(agenda);
         if (index >= 0) {
+          try {
+            var driveId = agendaParser.getAgenda(agenda).raw.properties.driveId;
+            if (driveId) {
+              var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
+              deletedAgendas.push(driveId);
+              localStorage.setItem("agendas-deleted", JSON.stringify(deletedAgendas));
+            }
+          } catch(e) {console.warn(e);}
           agendas.splice(agendas.indexOf(agenda), 1);
           localStorage.setItem("agendas", JSON.stringify(agendas));
           localStorage.removeItem(agendaParser.agendaKey(agenda));
@@ -961,7 +988,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           // Has the task been deleted?
           if (task.deleted) {
             // Exclude the task
-            console.log("Task excluded");
             deleted++;
           } else {
             // This task was created locally.
@@ -1013,7 +1039,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         delete task.id;
       }
       // We're done! Phew.
-      console.log({merged: merged, needsMerge: needsMerge, mergedTasks: mergedTasks, newOnline: newOnline, newLocal: newLocal, deletedTasks: deletedTasks, unsorted: unsorted});
       return {tasks: merged, shouldUpload: shouldUpload};
     };
 
@@ -1022,7 +1047,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       var categories = mergeTasks(local.raw.categories, online.raw.categories);
       var items      = mergeTasks(local.raw.items, online.raw.items);
       var merged     = {agenda: {properties: properties, categories: categories.tasks, items: items.tasks}, shouldUpload: categories.shouldUpload || items.shouldUpload};
-      console.log(merged);
       return merged;
     };
 
@@ -1044,6 +1068,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           }
           if (deleted) {
             // Delete the agenda locally
+            console.log("Deleting local copy of agenda " + name);
             $agendaParser.deleteAgenda(name);
             $rootScope.$broadcast("driveSyncFinished");
           } else {
@@ -1054,8 +1079,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             (function() {
               var agendaName = name;
               var local = agenda;
+              console.log("Fetching agenda " + agendaName);
               downloadRequest.then(function(response) {
                 if (response.status == 200) {
+                  console.log("Merging agenda " + agendaName);
                   var merged = mergeAgendas(local, $agendaParser.parseAgenda(response.body));
                   var agenda = $agendaParser.getAgenda(agendaName);
                   agenda.raw = merged.agenda;
@@ -1063,6 +1090,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                   $rootScope.$broadcast("driveSyncFinished");
                   // Update the agenda
                   if (merged.shouldUpload) {
+                    console.log("Updating agenda " + agendaName);
                     var fileId = agenda.raw.properties.driveId;
                     delete agenda.raw.properties.driveId;
                     var multipart = buildMultipart([
@@ -1087,7 +1115,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                       headers: {"Content-Type": multipart.mimeType},
                       body: multipart.body
                     }).then(function(response) {
-                      console.log(response);
+                      console.log("Synced agenda " + agendaName);
                     });
                   }
                 }
@@ -1096,6 +1124,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           }
         } else {
           // The agenda needs to be uploaded to Google Drive
+          console.log("Uploading agenda " + name);
           var multipart = buildMultipart([
             {
               mimeType: "application/json",
@@ -1122,7 +1151,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           (function() {
             var agendaName = name;
             request.then(function(response) {
-              console.log(response);
               if (response.result.id) {
                 var agenda = $agendaParser.getAgenda(agendaName);
                 agenda.raw.properties.driveId = response.result.id;
@@ -1133,30 +1161,39 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           })();
         }
       }
+      var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
       for (var file of list) {
-        console.log(file);
         if (!localDriveIds.includes(file.id) && file.parents.includes(folder.id)) {
           // Has the agenda been deleted locally?
-          // Download the agenda.
-          var downloadRequest = gapi.client.drive.files.get({
-            fileId: file.id,
-            alt: "media"
-          });
-          (function() {
-            var metadata = file;
-            downloadRequest.then(function(response) {
-              console.log("Downloaded agenda " + metadata.name);
-              if (response.status == 200) {
-                var agenda = $agendaParser.newAgenda(metadata.name);
-                agenda.raw = response.result;
-                agenda.raw.properties.driveId = metadata.id;
-                agenda.saveAgenda();
-                $rootScope.$broadcast("driveSyncFinished");
-              }
+          if (deletedAgendas.includes(file.id)) {
+            console.log("Deleting agenda " + file.name);
+            gapi.client.drive.files.delete({
+              fileId: file.id
+            }).then(function(){});
+          } else {
+            // Download the agenda.
+            console.log("Downloading agenda " + file.name);
+            var downloadRequest = gapi.client.drive.files.get({
+              fileId: file.id,
+              alt: "media"
             });
-          })();
+            (function() {
+              var metadata = file;
+              downloadRequest.then(function(response) {
+                console.log("Downloaded agenda " + metadata.name);
+                if (response.status == 200) {
+                  var agenda = $agendaParser.newAgenda(metadata.name);
+                  agenda.raw = response.result;
+                  agenda.raw.properties.driveId = metadata.id;
+                  agenda.saveAgenda();
+                  $rootScope.$broadcast("driveSyncFinished");
+                }
+              });
+            })();
+          }
         }
       }
+      localStorage.removeItem("agendas-deleted");
     };
 
     return {
@@ -1181,7 +1218,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       buildMultipart: buildMultipart,
       mergeAgendas: mergeAgendas,
 
-      sync: function(folder) {
+      sync: function() {
         gapi.client.drive.files.list({
           spaces: "appDataFolder",
           fields: "files(id,name,parents,mimeType)"
@@ -1207,7 +1244,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             });
           }
         });
-        console.log("Syncing");
+        console.log("Syncing with Google Drive...");
       }
     };
   })
