@@ -234,3 +234,22 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
 .selected-agenda md-icon {
   color: white;
 }
+
+control-point {
+  margin-right: 2rem;
+}
+
+control-point md-icon {
+  display: block;
+  font-size: 2em;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  text-align: center;
+  padding: 0.5em;
+  margin: 0;
+}
+
+.control-points {
+  overflow: auto;
+}

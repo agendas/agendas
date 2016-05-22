@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=320px, initial-scale=1.0, maximum-scale=1.0" />
 
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc3/angular-material.min.css" />
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc4/angular-material.min.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc3/angular-material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc4/angular-material.min.js"></script>
 
     <script src="agendas.js"></script>
     <script>
@@ -194,6 +194,13 @@
             <md-option ng-repeat="category in categories" value="category-{{category.id}}"><span class="category-circle" ng-if="category.color" style="background-color: #{{category.color | categoryColorFilter}}"></span>{{category.name}}</md-option>
             <md-option value="new"><md-icon>add</md-icon> New category</md-option>
           </md-select>
+        </md-input-container>
+      </div>
+
+      <div>
+        <md-input-container>
+          <label>Notes</label>
+          <textarea ng-model="selectedTask.notes"></textarea>
         </md-input-container>
       </div>
 

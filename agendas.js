@@ -308,6 +308,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else {
           task.category = undefined;
         }
+        task.notes = $scope.selectedTask.notes;
         task.completed = $scope.selectedTask.completed;
 
         agenda.saveAgenda();
@@ -433,7 +434,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           agendaName: name,
           refresh: function() {
             $scope.refresh();
-          }
+          },
+          settings: $scope.settings
         },
         templateUrl: "agenda-editor.html",
         escapeToClose: false,
@@ -521,10 +523,24 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
   })
-  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh) {
+  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh, settings) {
+    $scope.settings = settings;
+    $scope.today = new Date();
     $scope.init = function() {
       $scope.agenda = $agendaParser.getAgenda(agendaName);
       $scope.name = agendaName;
+
+      $scope.schedule = $scope.agenda.raw.properties.schedule || {type: "block"};
+      $scope.schedule.use = !!$scope.agenda.raw.properties.schedule && !$scope.agenda.raw.properties.schedule.deleted;
+      if (!$scope.schedule.block) {
+        $scope.schedule.block = {
+          blocks: [],
+          days: [],
+          points: []
+        };
+      }
+      $scope.scheduleModified = false;
+
       $scope.refresh();
     };
     $scope.refresh = function() {
@@ -533,7 +549,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.colors = [];
     for (var color in colors) {
       if (colors.hasOwnProperty(color)) {
-        $scope.colors.push({name: color, color: colors[color]})
+        $scope.colors.push({name: color, color: colors[color]});
       }
     }
     $scope.saveCategory = function(category) {
@@ -565,6 +581,18 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       if ($scope.categoriesDeleted) {
         $scope.agenda.tasks();
       }
+      if ($scope.schedule.use) {
+        delete $scope.schedule.use;
+        if ($scope.schedule.deleted) {
+          delete $scope.schedule.deleted;
+        }
+        $scope.agenda.raw.properties.schedule = $scope.schedule;
+        if ($scope.scheduleModified) {
+          $scope.agenda.raw.properties.schedule.modified = new Date();
+        }
+      } else if (!!$scope.agenda.raw.properties.schedule && !$scope.agenda.raw.properties.schedule.deleted) {
+        $scope.agenda.raw.properties.schedule = {deleted: new Date()};
+      }
       if ($scope.name && $scope.agenda.name() != $scope.name) {
         $scope.renameAgenda();
       }
@@ -592,8 +620,105 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
 
+    $scope.newBlock = function() {
+      $scope.schedule.block.blocks.push({});
+    };
+    $scope.deleteBlock = function(index) {
+      $scope.schedule.block.blocks.splice(index, 1);
+    };
+
+    $scope.newDay = function() {
+      $scope.schedule.block.days.push({name: "", categories: []});
+    };
+    $scope.deleteDay = function(index) {
+      $scope.schedule.block.days.splice(index, 1);
+    };
+
+    $scope.showPointCreation = function() {
+      $scope.selectedPoint = {id: -1};
+    };
+    $scope.editPoint = function(point) {
+      $scope.selectedPoint = {id: point, date: new Date($scope.schedule.block.points[point].date), type: $scope.schedule.block.points[point].type};
+    }
+    $scope.cancelPoint = function() {
+      $scope.selectedPoint.id = undefined;
+    };
+    $scope.savePoint = function() {
+      var point = {date: $scope.selectedPoint.date, type: $scope.selectedPoint.type};
+      if ($scope.selectedPoint.id === -1) {
+        $scope.schedule.block.points.push(point);
+      } else {
+        $scope.schedule.block.points[$scope.selectedPoint.id] = point;
+      }
+      $scope.selectedPoint.id = undefined;
+    };
+    $scope.removePoint = function() {
+      $scope.schedule.block.points.splice($scope.selectedPoint.id, 1);
+      $scope.selectedPoint.id = undefined;
+    }
+
+    $scope.$watch("schedule", function() {
+      $scope.scheduleModified = true;
+    });
+
     $scope.init();
   })
+  .directive("scheduleCategoryChooser", function() { return {
+    templateUrl: "category-chooser.html",
+    scope: {
+      value: "=ngModel",
+    },
+    restrict: "E",
+    transclude: true,
+    controller: function($scope) {
+      $scope.categories = [];
+      this.addCategory = function(scope) {
+        $scope.categories.push(scope);
+      };
+      $scope.selectOption = function(option, value) {
+        $scope.option = option;
+        $scope.value = value;
+      };
+      $scope.$watch("categories.length", function() {
+        for (var i = 0; i < $scope.categories.length; i++) {
+          if ($scope.categories[i].value === $scope.value) {
+            $scope.option = i;
+            break;
+          }
+        }
+      });
+    }
+  }})
+  .directive("scheduleCategoryOption", function() { return {
+    template: "",
+    transclude: false,
+    restrict: "E",
+    scope: {
+      value: "=value",
+      name: "@name",
+      color: "@color",
+      disabled: "=disabled"
+    },
+    require: "^^scheduleCategoryChooser",
+    link: function(scope, element, attrs, chooser) {
+      chooser.addCategory(scope);
+    }
+  }})
+  .directive("controlPoint", function() { return {
+    template: "<div layout='column' layout-align='center center'><md-icon md-colors=\"{background: '{{color}}'}\">{{icon}}</md-icon><div ng-transclude></div></div>",
+    transclude: true,
+    restrict: "E",
+    scope: {
+      icon: "@icon",
+      selected: "=selected"
+    },
+    controller: function($scope) {
+      $scope.color = "primary";
+      $scope.$watch("selected", function() {
+        $scope.color = $scope.selected ? "blue" : "primary";
+      });
+    }
+  }})
   .controller("AgendasSettingsController", function($scope, $mdDialog) {
     $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
     $scope.cancel = $mdDialog.cancel;
@@ -932,7 +1057,25 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
     var mergeProperties = function(local, online) {
-      return local;
+      var merged = {};
+      merged.name = local.name;
+      merged.dateCreated = online.dateCreated;
+      merged.dateModified = (new Date(online.dateModified) > new Date(local.dateModified)) ? online.dateModified : local.dateModified;
+      merged.driveId = local.driveId;
+      if ((local.schedule && !local.schedule.deleted) || (online.schedule && !online.schedule.deleted)) {
+        if (!local.schedule) {
+          merged.schedule = online.schedule;
+        } else if (!online.schedule) {
+          merged.schedule = local.schedule;
+        } else if (online.schedule.deleted) {
+          merged.schedule = (new Date(online.schedule.deleted) > new Date(local.schedule.modified)) ? online.schedule : local.schedule;
+        } else if (local.schedule.deleted) {
+          merged.schedule = (new Date(local.schedule.deleted) > new Date(online.schedule.modified)) ? local.schedule : online.schedule;
+        } else {
+          merged.schedule = (new Date(online.schedule.modified) > new Date(local.schedule.modified)) ? online.schedule : local.schedule;
+        }
+      }
+      return merged;
     };
 
     var mergeTasks = function(local, online) {
@@ -1274,6 +1417,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       return inputDate.toLocaleDateString();
     }
   }})
+  .filter("toDateString", function() { return function(input) {
+    return (new Date(input)).toDateString();
+  }})
   .filter("timeFilter", function() { return function(input) {
     return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() == 0) ? "00" : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
   }})
@@ -1304,6 +1450,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   }})
   .filter("pickRandomItem", function() { return function(input) {
     return input[Math.floor(Math.random() * input.length)];
+  }})
+  .filter("pointTypeFilter", function() { return function(input, days) {
+    var day = parseInt(input);
+    return isNaN(day) ? "Free day" : days[day].name;
   }})
   .value("quickAddSamples", [
     "Do work today",
