@@ -244,6 +244,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.categories = $scope.agendaForTask(task).categories();
       $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
       $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
+      $scope.selectedBlock = undefined;
       if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
         $scope.generateBlocks($scope.selectedTask.category);
       }
