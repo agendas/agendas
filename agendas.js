@@ -477,7 +477,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         var date = $scope.blocks[parseInt($scope.selectedBlock)];
         $scope.selectedTask.deadlineDate = new Date(date.getTime());
         $scope.selectedTask.deadline = new Date(date.getTime());
-        if (date.getTime() % (24 * 60 * 60 * 1000) < 1000) {
+        if (date.getTime() % (24 * 60 * 60 * 1000) != 0) {
           $scope.selectedTask.deadlineTime = true;
           var time = new Date(1970, 0, 1, date.getHours(), date.getMinutes(), 0, 0, 0);
           $scope.selectedTask.time = ((time.getMinutes() % 15) == 0) ? time.toJSON() : "";
