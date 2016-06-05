@@ -47,7 +47,11 @@
                     <p class="md-title">Schedule</p>
                   </td>
                   <td ng-repeat="block in schedule.block.blocks">
-                    <p class="md-title">{{$index + 1}}</p>
+                    <time-picker ng-model="block.start" use-24-hours="false">
+                    </time-picker>
+                    <p>to</p>
+                    <time-picker ng-model="block.end" use-24-hours="false">
+                    </time-picker>
                     <md-button class="md-icon-button md-warn" ng-click="deleteBlock($index)"><md-icon>close</md-icon></md-button>
                   </td>
                   <td ng-click="newBlock()">

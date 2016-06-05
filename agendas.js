@@ -244,6 +244,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.categories = $scope.agendaForTask(task).categories();
       $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
       $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
+      if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
+        $scope.generateBlocks($scope.selectedTask.category);
+      }
       $scope.toggleSidenav("agendas-task-detail");
     };
 
@@ -373,7 +376,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
     $scope.generateTimes = function() {
-      var times = [{name: "None", value: "", date: false}];
+      var times = [{name: "No Time", value: "", date: false}];
       var currentHour = (new Date()).getHours();
       for (var hour = currentHour; (hour != currentHour) || (times.length <= 1); hour += ((hour >= 23) ? -23 : 1)) {
         for (var minute = 0; minute < 60; minute += 15) {
@@ -387,6 +390,103 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       return times;
     };
     $scope.times = $scope.generateTimes();
+
+    $scope.blocks = [];
+    $scope.generateBlocks = function(category) {
+      $scope.blocks = [];
+      if (category === undefined) {
+        return;
+      }
+      // Get the control points.
+      var schedule = $scope.agendaForTask($scope.selectedTask).raw.properties.schedule;
+      var days = schedule.block.days;
+      var points = schedule.block.points;
+      if (points.length <= 0) {
+        return;
+      }
+      // Sort the control points.
+      points = $agendaSorter.sort(points.filter(function(v) {
+        var d = (new Date(v.date)).getDay();
+        return d > 0 || d < 6;
+      }), function(a, b) {
+        return new Date(a.date) > new Date(b.date);
+      });
+      // Select the most recent control point.
+      var now = new Date();
+      now.setHours(0);
+      now.setMinutes(0);
+      now.setSeconds(0);
+      now.setMilliseconds(0);
+      for (var j = 0; j < 7; j++) {
+        var d = new Date(now.getTime() + (j * 24 * 60 * 60 * 1000));
+        if (d.getDay() == 0 || d.getDay() == 6) {
+          continue;
+        }
+        var recentPoint = -1;
+        var freeDays = 0;
+        for (var i = points.length - 1; i >= 0; i--) {
+          var pointDate = new Date(points[i].date);
+          if (pointDate <= d && points[i].type !== "none" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
+            recentPoint = i;
+            break;
+          } else if (pointDate.getTime() == d.getTime()) {
+            recentPoint = -1;
+            break;
+          } else if (points[i].type == "none") {
+            freeDays++;
+          }
+        }
+        if (recentPoint == -1) {
+          continue;
+        }
+        // Calculate the number of weekends.
+        var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
+        // What day is today?
+        var day = days[(((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + parseInt(points[recentPoint].type)) % days.length];
+        // Find the blocks that the category occurs in.
+        var blocks = [];
+        var i = -1;
+        while ((i = day.categories.indexOf(category, i + 1)) >= 0) {
+          blocks.push(i);
+        }
+        for (var b of blocks) {
+          var block = schedule.block.blocks[b];
+          if (block.start !== undefined) {
+            $scope.blocks.push(new Date(d.getTime() + (block.start * 60 * 1000)));
+          } else {
+            $scope.blocks.push(new Date(d.getTime()));
+          }
+        }
+      }
+    };
+    $scope.refreshBlocks = function() {
+      if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
+        var category = parseInt($scope.category.slice(9));
+        if (category !== $scope.selectedTask.category) {
+          return new Promise(function(resolve, reject) {
+            $scope.generateBlocks(parseInt($scope.category.slice(9)));
+            resolve();
+          });
+        }
+      } else if ($scope.selectedTask.category !== undefined) {
+        $scope.generateBlocks(undefined);
+      }
+    };
+    $scope.$watch("selectedBlock", function() {
+      if (!isNaN($scope.selectedBlock)) {
+        var date = $scope.blocks[parseInt($scope.selectedBlock)];
+        $scope.selectedTask.deadlineDate = new Date(date.getTime());
+        $scope.selectedTask.deadline = new Date(date.getTime());
+        if (date.getTime() % (24 * 60 * 60 * 1000) < 1000) {
+          $scope.selectedTask.deadlineTime = true;
+          var time = new Date(1970, 0, 1, date.getHours(), date.getMinutes(), 0, 0, 0);
+          $scope.selectedTask.time = ((time.getMinutes() % 15) == 0) ? time.toJSON() : "";
+        } else {
+          $scope.selectedTask.deadlineTime = false;
+          $scope.selectedTask.time = "";
+        }
+      }
+    });
 
     $scope.$watch("category", function(newValue) {
       if (newValue) {
@@ -662,6 +762,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     });
 
     $scope.init();
+
+    $scope.$watch(function() {
+      return $scope.sdfsdfsdf + "_" + $scope.sdfsdf;
+    }, function(val) {
+      console.log(val);
+    });
   })
   .directive("scheduleCategoryChooser", function() { return {
     templateUrl: "category-chooser.html",
@@ -717,6 +823,64 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.$watch("selected", function() {
         $scope.color = $scope.selected ? "blue" : "primary";
       });
+    }
+  }})
+  .directive("timePicker", function() { return {
+    template: "<md-input-container md-no-float md-is-error='error'><input ng-model='input' ng-change='updateValue()' type='text' /></md-input-container>",
+    transclude: false,
+    restrict: "E",
+    scope: {
+      use24Hours: "=use24Hours",
+      value: "=ngModel"
+    },
+    controller: function($scope) {
+      $scope.error = false;
+      $scope.$watch("value", function() {
+        var value = $scope.value;
+        if (!isNaN(value)) {
+          var hour = Math.floor(value / 60);
+          var minute = value - (hour * 60);
+          var minuteStr = (minute < 10) ? ("0" + minute) : minute;
+          if ($scope.use24Hours) {
+            $scope.input = hour + ":" + minuteStr;
+          } else {
+            var pm = (hour >= 12);
+            var hr = hour - (pm ? 12 : 0);
+            $scope.input = ((hr <= 0) ? 12 : hr) + ":" + minuteStr + (pm ? "pm" : "am");
+          }
+        } else {
+          $scope.input = "";
+        }
+      });
+      $scope.updateValue = function() {
+        if ($scope.input === "") {
+          $scope.error = false;
+          $scope.value = undefined;
+        } else {
+          var results = /^ *0*([12]?[0123456789]) *: *([012345][0123456789]) *(am|pm)? *$/i.exec($scope.input);
+          if (results && (results.length >= 3) && (results.length <= 4)) {
+            var hour = parseInt(results[1]);
+            var minute = parseInt(results[2]);
+            if (!results[3]) {
+              $scope.error = (hour >= 24);
+              if (hour < 24) {
+                $scope.value = hour * 60 + minute;
+              }
+            } else {
+              if (hour <= 12) {
+                hour = (hour == 12) ? 0 : hour;
+                hour = (results[3].toLowerCase() == "pm") ? (hour + 12) : hour;
+                $scope.error = false;
+                $scope.value = hour * 60 + minute;
+              } else {
+                $scope.error = true;
+              }
+            }
+          } else {
+            $scope.error = true;
+          }
+        }
+      };
     }
   }})
   .controller("AgendasSettingsController", function($scope, $mdDialog) {
@@ -1459,5 +1623,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     "Do work today",
     "Rent instrument by Saturday",
     "Work on essay for English",
-    "Cook today for Family"
+    "Cook today for Family",
+    "Meow"
   ]);
