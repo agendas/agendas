@@ -157,21 +157,27 @@
 
       <div>
         <p>Deadline</p>
-        <md-datepicker ng-model="selectedTask.deadlineDate" md-placeholder="Enter date"></md-datepicker>
+        <div layout="row">
+          <md-datepicker ng-model="selectedTask.deadlineDate" md-placeholder="Date"></md-datepicker>
+          <md-input-container md-no-float>
+            <md-select ng-model="selectedTask.time" ng-disabled="!selectedTask.deadlineDate" md-placeholder="Time">
+              <md-option ng-repeat="time in times" value="{{time.value}}">{{time.name}}</md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+        <div ng-show="selectedTask && agendaForTask(selectedTask).raw.properties.schedule && !agendaForTask(selectedTask).raw.properties.schedule.deleted">
+          <md-input-container>
+            <label>Schedule</label>
+            <md-select ng-model="selectedBlock" ng-disabled="!category || category === 'none'" md-on-open="refreshBlocks()">
+              <md-option ng-repeat="block in blocks track by $index" ng-value="$index"><strong>{{block | dateFilter}}</strong> {{block | timeFilter}}</md-option>
+            </md-select>
+          </md-input-container>
+        </div>
       </div>
 
       <div>
         <md-input-container>
-          <label>Time</label>
-          <md-select ng-model="selectedTask.time" ng-disabled="!selectedTask.deadlineDate">
-            <md-option ng-repeat="time in times" value="{{time.value}}">{{time.name}}</md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-
-      <div>
-        <md-input-container>
-          <label>Repeat Every</label>
+          <label>Repeat</label>
           <md-select ng-model="selectedTask.repeat" ng-disabled="!selectedTask.deadlineDate">
             <md-option value="">None</md-option>
             <md-option value="day">Day</md-option>
