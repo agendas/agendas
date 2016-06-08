@@ -25,6 +25,8 @@ body {
   width: 67vw;
   margin-left: 33vw;
   left: 0;
+  height: 100vh;
+  overflow: auto;
 }
 
 .agendas-sidebar {
