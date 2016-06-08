@@ -191,8 +191,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         if (task.repeat == "day") {
           next = new Date(task.deadline.getTime() + (24 * 60 * 60 * 1000));
         } else if (task.repeat == "weekday") {
-          next = task.deadline;
-          while ((next.getDay() > 0) && (next.getDay() < 6)) {
+          next = new Date(task.deadline.getTime() + (24 * 60 * 60 * 1000));
+          while ((next.getDay() == 0) || (next.getDay() == 6)) {
             next = new Date(next.getTime() + (24 * 60 * 60 * 1000));
           }
         } else if (task.repeat == "week") {
