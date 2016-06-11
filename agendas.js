@@ -1608,9 +1608,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
     return agenda ? ((input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).color : false) : colors[input];
   }})
-  .filter("mdCategoryColorFilter", function() { return function(input) {
-    return (input == undefined) ? "green" : ((input == "black") ? "grey-900" : input);
-  }})
   .filter("pickRandomItem", function() { return function(input) {
     return input[Math.floor(Math.random() * input.length)];
   }})
