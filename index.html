@@ -84,7 +84,7 @@
                       <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
                       <div class="md-list-item-text task-selected-{{task.selected}}">
                         <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" md-colors="{background: '{{task.category | categoryColorFilter:agendaForTask(task)}}'}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>
+                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" md-colors="{background: '{{task.category | categoryColorFilter:agendaForTask(task) | mdCategoryColorFilter}}'}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>
                       </div>
                       <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
                       <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
@@ -137,7 +137,7 @@
     </md-sidenav>
     <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="agendas-task-detail">
 
-      <md-toolbar md-colors="{background: '{{(!selectedTask && selectedCategory() === undefined) ? 'green' : ((selectedCategory() | categoryColorFilter:agendaForTask(selectedTask)) || 'green')}}'}">
+      <md-toolbar md-colors="{background: '{{(!selectedTask && selectedCategory() === undefined) ? 'green' : (selectedCategory() | categoryColorFilter:agendaForTask(selectedTask) | mdCategoryColorFilter)}}'}">
         <div class="md-toolbar-tools">
           <md-button class="md-icon-button" ng-click="toggleSidenav('agendas-task-detail')">
             <md-icon>close</md-icon>
