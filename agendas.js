@@ -1572,7 +1572,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return (new Date(input)).toDateString();
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() == 0) ? "00" : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
+    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() < 10) ? ("0" + input.getMinutes()) : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
