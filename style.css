@@ -255,3 +255,11 @@ control-point md-icon {
 .control-points {
   overflow: auto;
 }
+
+time-picker md-input-container {
+  margin: 3px 0 0 0;
+}
+
+.deadline-picker time-picker md-input-container {
+  margin-left: 1em;
+}
