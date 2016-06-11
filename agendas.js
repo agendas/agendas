@@ -467,8 +467,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.selectedTask.deadline = new Date(date.getTime());
         if (date.getTime() % (24 * 60 * 60 * 1000) != 0) {
           $scope.selectedTask.deadlineTime = true;
-          var time = new Date(1970, 0, 1, date.getHours(), date.getMinutes(), 0, 0, 0);
-          $scope.selectedTask.time = time.getTime() / (60 * 1000);
+          $scope.selectedTask.time = (date.getHours() * 60) + date.getMinutes();
         } else {
           $scope.selectedTask.deadlineTime = false;
           $scope.selectedTask.time = undefined;
