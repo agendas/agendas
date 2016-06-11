@@ -475,15 +475,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     });
 
-    $scope.selectedCategory = function() {
-      if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
-        var category = parseInt($scope.category.slice(9));
-        return category;
-      } else {
-        return undefined;
-      }
-    }
-
     $scope.$watch("category", function(newValue) {
       if (newValue) {
         if (newValue == "none") {
@@ -1606,10 +1597,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return prefix + ((prefix && category) ? " | " : "") + category;
   }})
   .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
-    return agenda ? ((input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).color : false) : colors[input];
-  }})
-  .filter("mdCategoryColorFilter", function() { return function(input) {
-    return (input == undefined) ? "green" : ((input == "black") ? "grey-900" : input);
+    return agenda ? ((input != undefined && agenda.categoryExists(input)) ? colors[agenda.getCategory(input).color] : false) : colors[input];
   }})
   .filter("pickRandomItem", function() { return function(input) {
     return input[Math.floor(Math.random() * input.length)];
