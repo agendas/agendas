@@ -749,13 +749,36 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     });
 
     $scope.init();
-
-    $scope.$watch(function() {
-      return $scope.sdfsdfsdf + "_" + $scope.sdfsdf;
-    }, function(val) {
-      console.log(val);
-    });
   })
+  .directive("agendasCalendar", function() { return {
+    templateUrl: "calendar.html",
+    scope: {
+      tasks: "=tasks",
+      onTaskEdit: "&onTaskEdit"
+    },
+    restrict: "E",
+    transclude: false,
+    controller: function($scope) {
+      $scope.calendarMode = "day";
+      $scope.currentDay = new Date();
+
+      $scope.switchMode = function() {
+        $scope.calendarMode = "month";
+        // TODO: Add a week view
+      };
+
+      $scope.changeDay = function(days) {
+        if ($scope.calendarMode == "month") {
+          $scope.currentDay.setMonth($scope.currentDay.getMonth() + 1);
+        } else {
+          $scope.currentDay = new Date($scope.currentDay.getTime() + (days * 24 * 60 * 60 * 1000));
+        }
+      };
+      $scope.today = function() {
+        $scope.currentDay = new Date();
+      };
+    }
+  }})
   .directive("scheduleCategoryChooser", function() { return {
     templateUrl: "category-chooser.html",
     scope: {
@@ -1605,6 +1628,15 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("pointTypeFilter", function() { return function(input, days) {
     var day = parseInt(input);
     return isNaN(day) ? "Free day" : days[day].name;
+  }})
+  .filter("calendarTitleFilter", function() { return function(input, mode) {
+    if (mode == "month") {
+      var months = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+      return months[input.getMonth()] + " " + input.getFullYear();
+    } else {
+      return input.toDateString();
+    }
   }})
   .value("quickAddSamples", [
     "Do work today",

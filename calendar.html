@@ -1,0 +1,17 @@
+<div class="calendar-header" layout="row" layout-align="start center">
+  <md-button ng-show="calendarMode != 'month'" ng-click="switchMode()" class="md-icon-button">
+    <md-icon>arrow_back</md-icon>
+    <md-tooltip>Month</md-tooltip>
+  </md-button>
+  <span class="calendar-title" flex>{{currentDay | calendarTitleFilter:calendarMode}}</span>
+  <md-button class="md-icon-button" ng-click="changeDay(-1)">
+    <md-icon>chevron_left</md-icon>
+  </md-button>
+  <md-button class="md-icon-button" ng-click="today()">
+    <md-icon>today</md-icon>
+    <md-tooltip>Today</md-tooltip>
+  </md-button>
+  <md-button class="md-icon-button" ng-click="changeDay(1)">
+    <md-icon>chevron_right</md-icon>
+  </md-button>
+</div>
