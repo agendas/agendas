@@ -236,10 +236,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.selectedTask.deadlineDate = task.deadline ? new Date(task.deadline) : undefined;
       if ($scope.selectedTask.deadline && $scope.selectedTask.deadlineTime) {
         var deadline = new Date($scope.selectedTask.deadline);
-        var deadlineTime = new Date(1970, 0, 1, deadline.getHours(), deadline.getMinutes(), 0, 0, 0);
-        $scope.selectedTask.time = ((deadlineTime.getMinutes() % 15) == 0) ? deadlineTime.toJSON() : "";
+        $scope.selectedTask.time = deadline.getHours() * 60 + deadline.getMinutes();
+        console.log($scope.selectedTask.time);
       } else {
-        $scope.selectedTask.time = "";
+        $scope.selectedTask.time = undefined;
       }
       $scope.categories = $scope.agendaForTask(task).categories();
       $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
@@ -282,13 +282,16 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         var task = agenda.getTask($scope.selectedTask.id)
         task.name = $scope.selectedTask.name;
         if ($scope.selectedTask.deadlineDate) {
-          if ($scope.selectedTask.time == "") {
+          if ($scope.selectedTask.time == undefined) {
             $scope.selectedTask.deadline = new Date(1970, 0, 1, 0, 0, 0, 0);
             $scope.selectedTask.deadlineTime = false;
           } else {
-            $scope.selectedTask.deadline = new Date($scope.selectedTask.time);
+            var hours = Math.floor($scope.selectedTask.time / 60);
+            var minutes = $scope.selectedTask.time - (hours * 60)
+            $scope.selectedTask.deadline = new Date(1970, 0, 1, hours, minutes, 0, 0);
             $scope.selectedTask.deadlineTime = true;
           }
+          console.log($scope.selectedTask.deadline);
           task.deadline = new Date(
             $scope.selectedTask.deadlineDate.getFullYear(),
             $scope.selectedTask.deadlineDate.getMonth(),
@@ -375,22 +378,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       }
     };
-
-    $scope.generateTimes = function() {
-      var times = [{name: "No Time", value: "", date: false}];
-      var currentHour = (new Date()).getHours();
-      for (var hour = currentHour; (hour != currentHour) || (times.length <= 1); hour += ((hour >= 23) ? -23 : 1)) {
-        for (var minute = 0; minute < 60; minute += 15) {
-          var time = {
-            value: (new Date(1970, 0, 1, hour, minute, 0, 0)).toJSON()
-          };
-          time.name = $filter("timeFilter")(new Date(time.value));
-          times.push(time);
-        }
-      }
-      return times;
-    };
-    $scope.times = $scope.generateTimes();
 
     $scope.blocks = [];
     $scope.generateBlocks = function(category) {
@@ -480,11 +467,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.selectedTask.deadline = new Date(date.getTime());
         if (date.getTime() % (24 * 60 * 60 * 1000) != 0) {
           $scope.selectedTask.deadlineTime = true;
-          var time = new Date(1970, 0, 1, date.getHours(), date.getMinutes(), 0, 0, 0);
-          $scope.selectedTask.time = ((time.getMinutes() % 15) == 0) ? time.toJSON() : "";
+          $scope.selectedTask.time = (date.getHours() * 60) + date.getMinutes();
         } else {
           $scope.selectedTask.deadlineTime = false;
-          $scope.selectedTask.time = "";
+          $scope.selectedTask.time = undefined;
         }
       }
     });
@@ -1586,7 +1572,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return (new Date(input)).toDateString();
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() == 0) ? "00" : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
+    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() < 10) ? ("0" + input.getMinutes()) : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
