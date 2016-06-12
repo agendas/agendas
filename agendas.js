@@ -762,14 +762,61 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.calendarMode = "day";
       $scope.currentDay = new Date();
 
+      $scope.generateWeeks = function() {
+        var weeks = [];
+        var date = new Date($scope.currentDay.getFullYear(), $scope.currentDay.getMonth(), 1);
+        var day = date.getDay();
+        for (var i = 0; i < day; i++) {
+          if (weeks.length < 1) {
+            weeks.push([]);
+          }
+          weeks[0].push(undefined);
+        }
+        while (date.getMonth() == $scope.currentDay.getMonth()) {
+          if (day == 0) {
+            weeks.push([]);
+          }
+          weeks[weeks.length - 1].push(date.getDate());
+          date.setDate(date.getDate() + 1);
+          day = date.getDay();
+        }
+        while (weeks[weeks.length - 1].length < 7) {
+          weeks[weeks.length - 1].push(undefined);
+        }
+        return weeks;
+      };
+      $scope.$watch("currentDay.getTime()", function() {
+        $scope.weeks = $scope.generateWeeks();
+      });
+
+      $scope.generateTimes = function() {
+        var times = [];
+        var midnight = new Date(1970, 0, 1, 0, 0);
+        for (var i = 0; i < (24 * 4); i++) {
+          var time = {};
+          time.time = new Date(midnight.getTime() + (i * 15 * 60 * 1000));
+          time.showTime = i % 4 == 0;
+          times.push(time);
+        }
+        console.log(times);
+        return times;
+      };
+      $scope.times = $scope.generateTimes();
+
       $scope.switchMode = function() {
         $scope.calendarMode = "month";
         // TODO: Add a week view
       };
+      $scope.switchToDate = function(date) {
+        if (date !== undefined) {
+          $scope.currentDay.setDate(date);
+          $scope.calendarMode = "day";
+        }
+      }
 
       $scope.changeDay = function(days) {
         if ($scope.calendarMode == "month") {
-          $scope.currentDay.setMonth($scope.currentDay.getMonth() + 1);
+          $scope.currentDay.setMonth($scope.currentDay.getMonth() + days);
         } else {
           $scope.currentDay = new Date($scope.currentDay.getTime() + (days * 24 * 60 * 60 * 1000));
         }

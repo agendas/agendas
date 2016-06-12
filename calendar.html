@@ -15,3 +15,35 @@
     <md-icon>chevron_right</md-icon>
   </md-button>
 </div>
+<div class="calendar-day" ng-show="calendarMode == 'day'">
+  <table class="calendar-times">
+    <tbody>
+      <tr ng-repeat="time in times">
+        <td>{{time.showTime ? (time.time | timeFilter) : ""}}</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="calendar-month" ng-show="calendarMode == 'month'">
+  <table>
+    <thead>
+      <tr>
+        <td>Sunday</td>
+        <td>Monday</td>
+        <td>Tuesday</td>
+        <td>Wednesday</td>
+        <td>Thursday</td>
+        <td>Friday</td>
+        <td>Saturday</td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="week in weeks">
+        <td ng-repeat="day in week track by $index" ng-click="switchToDate(day)">
+          {{day}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

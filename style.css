@@ -263,3 +263,10 @@ time-picker md-input-container {
 .deadline-picker time-picker md-input-container {
   margin-left: 1em;
 }
+
+.calendar-times tr,
+.calendar-times td {
+  height: 1em;
+  margin: 0;
+  padding: 0;
+}
