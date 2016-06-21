@@ -18,9 +18,33 @@
 <div class="calendar-day" ng-show="calendarMode == 'day'">
   <table class="calendar-times">
     <tbody>
+      <tr>
+        <td>No Time</td>
+        <td>
+          <span ng-click="noTimeTasksShowing = !noTimeTasksShowing">
+            <div ng-show="noTimeTasks.length == 1">
+              {{noTimeTasks[0].name}}
+            </div>
+            <div ng-show="noTimeTasks.length > 1">
+              <span class="badge">{{noTimeTasks.length}}</span> tasks
+            </div>
+          </span>
+          <task-list ng-if="noTimeTasks.length > 0" tasks="noTimeTasks" ng-show="noTimeTasksShowing" show-completed="true" on-complete-task="onComplete" on-click-task="onEditTask" on-edit-task="onEditTask"></task-list>
+        </td>
+      </tr>
       <tr ng-repeat="time in times">
         <td>{{time.showTime ? (time.time | timeFilter) : ""}}</td>
-        <td></td>
+        <td>
+          <span ng-click="time.tasksShowing = !time.tasksShowing">
+            <div ng-show="time.tasks.length == 1">
+              {{time.tasks[0].name}}
+            </div>
+            <div ng-show="time.tasks.length > 1">
+              <span class="badge">{{time.tasks.length}}</span> tasks
+            </div>
+          </span>
+          <task-list ng-if="time.tasks.length > 0" ng-show="time.tasksShowing" tasks="time.tasks" show-completed="true" on-complete-task="onComplete" on-click-task="onEditTask" on-edit-task="onEditTask"></task-list>
+        </td>
       </tr>
     </tbody>
   </table>

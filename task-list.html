@@ -1,0 +1,11 @@
+<md-list class="md-whiteframe-2dp">
+  <md-list-item class="md-2-line" ng-repeat="task in tasks | completedTaskExclusionFilter:showCompleted" ng-click="selectTask(task, $event)">
+    <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask()"></md-checkbox>
+    <div class="md-list-item-text task-selected-{{task.selected}}">
+      <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
+      <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" style="background-color: #{{task.category | categoryColorFilter:agendaForTask(task)}}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>
+    </div>
+    <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
+    <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
+  </md-list-item>
+</md-list>

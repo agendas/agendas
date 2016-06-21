@@ -79,17 +79,7 @@
 
                 <div class="task-group" ng-repeat="taskGroup in tasks | tasksListFilter:showCompleted">
                   <p>{{taskGroup.deadline | dateFilter}}</p>
-                  <md-list class="md-whiteframe-2dp">
-                    <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="selectTask(task, $event)">
-                      <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
-                      <div class="md-list-item-text task-selected-{{task.selected}}">
-                        <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                        <p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" style="background-color: #{{task.category | categoryColorFilter:agendaForTask(task)}}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>
-                      </div>
-                      <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
-                      <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
-                    </md-list-item>
-                  </md-list>
+                  <task-list tasks="taskGroup.tasks" show-completed="showCompleted" on-complete-task="completeTask" on-click-task="selectTask" on-edit-task="viewTaskDetail"></task-list>
                 </div>
 
                 <md-list class="md-whiteframe-2dp new-task" ng-if="taskCreationAllowed">
@@ -106,7 +96,7 @@
           <md-tab id="agendas-calendar-tab" ng-disabled="settings.useCalendar !== true">
             <md-tab-label>Calendar</md-tab-label>
             <md-tab-body>
-              <agendas-calendar tasks="" on-task-edit=""></agendas-calendar>
+              <agendas-calendar ng-if="settings.useCalendar" tasks="taskList" on-complete-task="completeTask" on-task-edit="selectTask"></agendas-calendar>
             </md-tab-body>
           </md-tab>
         </md-tabs>

@@ -10,11 +10,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                     "deep-orange": "FF5722", brown: "795548", grey: "9E9E9E",
                     "blue-grey": "607D8B", black: "000000"
   })
-  .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
+  .controller("AgendasController", function($scope, $rootScope, $agendaParser, $googleDrive) {
 
-    $scope.agendaForTask = function(task) {
+    $rootScope.agendaForTask = function(task) {
       return $agendaParser.getAgenda(task.agenda);
     }
+
+    $scope.agendaForTask = $rootScope.agendaForTask;
 
     // Establish a connection to Google Drive.
     var CLIENT_ID = "153820900287-94r8o59pghaud0grrvkfcs1foedkbc6g.apps.googleusercontent.com";
@@ -86,12 +88,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.clearSelection();
       $scope.agendaList = $agendaParser.listAgendas();
       $scope.taskCreationAllowed = false;
+      $scope.taskList = [];
       if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
         $scope.selectedAgenda = $agendaParser.getAgenda($scope.selectedAgenda.name());
         if ($scope.selectedAgenda.error == "Agenda does not exist") {
           $scope.selectedAgenda = undefined;
         } else if (!$scope.selectedAgenda.error) {
-          $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
+          $scope.taskList = $agendaSorter.sort($scope.selectedAgenda.tasks(), $agendaSorter.deadlineSort);
+          $scope.tasks = $agendaSorter.separateDeadlines($scope.taskList);
           $scope.taskCreationAllowed = true;
           $rootScope.agenda = $scope.selectedAgenda.name();
         } else {
@@ -106,6 +110,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else if ($scope.selectedAgenda == "all") {
         $scope.populateAll();
         $rootScope.agenda = "All";
+      }
+      if (typeof $scope.selectedAgenda === "string") {
+        $scope.tasks = $agendaSorter.separateDeadlines($scope.taskList);
       }
       if (!$scope.selectedAgenda) {
         $scope.tasks = [];
@@ -154,8 +161,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       now.setSeconds(0);
       now.setMilliseconds(0);
       var tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
-      $scope.tasks = $scope.tasks.filter(function(group) {
-        return (new Date(group.deadline)) <= tomorrow;
+      $scope.taskList = $scope.taskList.filter(function(task) {
+        return (new Date(task.deadline)) <= tomorrow;
       });
     };
     $scope.populateWeek = function() {
@@ -166,8 +173,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       now.setSeconds(0);
       now.setMilliseconds(0);
       var nextWeek = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-      $scope.tasks = $scope.tasks.filter(function(group) {
-        return (new Date(group.deadline)) < nextWeek;
+      $scope.taskList = $scope.taskList.filter(function(task) {
+        return (new Date(task.deadline)) < nextWeek;
       });
     };
     $scope.populateAll = function() {
@@ -179,7 +186,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           tasks.push(task);
         }
       }
-      $scope.tasks = $agendaSorter.separateDeadlines(tasks);
+      $scope.taskList = $agendaSorter.sort(tasks, $agendaSorter.deadlineSort);
       $scope.categories = [];
     };
 
@@ -754,11 +761,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     templateUrl: "calendar.html",
     scope: {
       tasks: "=tasks",
-      onTaskEdit: "&onTaskEdit"
+      onTaskEdit: "=onTaskEdit",
+      onComplete: "=onCompleteTask"
     },
     restrict: "E",
     transclude: false,
-    controller: function($scope) {
+    controller: function($scope, $agendaSorter) {
       $scope.calendarMode = "day";
       $scope.currentDay = new Date();
 
@@ -790,18 +798,20 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
 
       $scope.generateTimes = function() {
+        var start = Date.now();
         var times = [];
         var midnight = new Date(1970, 0, 1, 0, 0);
         for (var i = 0; i < (24 * 4); i++) {
           var time = {};
           time.time = new Date(midnight.getTime() + (i * 15 * 60 * 1000));
           time.showTime = i % 4 == 0;
+          time.tasks = $scope.tasksForTime(time.time);
           times.push(time);
         }
-        console.log(times);
+        $scope.noTimeTasks = $scope.tasksForTime(undefined);
+        console.log("Time generation took " + (Date.now() - start))
         return times;
       };
-      $scope.times = $scope.generateTimes();
 
       $scope.switchMode = function() {
         $scope.calendarMode = "month";
@@ -812,7 +822,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           $scope.currentDay.setDate(date);
           $scope.calendarMode = "day";
         }
-      }
+      };
 
       $scope.changeDay = function(days) {
         if ($scope.calendarMode == "month") {
@@ -823,6 +833,55 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       };
       $scope.today = function() {
         $scope.currentDay = new Date();
+      };
+
+      $scope.tasksForTime = function(time) { // TODO: Optimize performance
+        var currentDay = new Date($scope.currentDay.getFullYear(), $scope.currentDay.getMonth(), $scope.currentDay.getDate(), 0, 0, 0, 0);
+        var tasksForTime = [];
+        var tasks = $scope.tasks || [];
+        for (var task of $scope.tasks) {
+          if (task.deadline) {
+            var taskDeadline = new Date(task.deadline.getTime());
+            taskDeadline.setHours(0);
+            var deadlineDay = Math.floor(taskDeadline.getTime() / (60 * 60 * 1000)) * 60 * 60 * 1000;
+            if (deadlineDay === currentDay.getTime()) {
+              var d = time ? task.deadline.getMinutes() - time.getMinutes() : undefined;
+              var shouldPush = ((!task.deadlineTime) && time == undefined) || (task.deadlineTime && time && task.deadline.getHours() === time.getHours() && d >= 0 && d < 15);
+              if (shouldPush) {
+                tasksForTime.push(task);
+              }
+            } else if (deadlineDay > currentDay.getTime()) {
+              break;
+            }
+          }
+        }
+        return tasksForTime;
+      };
+
+      var updateTimes = function() {
+        $scope.times = $scope.generateTimes();
+      };
+      $scope.$watch("tasks", updateTimes);
+      $scope.$watch("currentDay.getTime()", updateTimes);
+    }
+  }})
+  .directive("taskList", function() { return {
+    templateUrl: "task-list.html",
+    scope: {
+      tasks: "=tasks",
+      showCompleted: "=showCompleted",
+      completeTask: "=onCompleteTask",
+      selectTask: "=onClickTask",
+      viewTaskDetail: "=onEditTask"
+    },
+    restrict: "E",
+    transclude: false,
+    controller: function($scope, $rootScope) {
+      $scope.agendaForTask = $rootScope.agendaForTask;
+      $scope.shouldShowCategoryCircle = function(task) {
+        var category = task.category;
+        var agenda = $scope.agendaForTask(task);
+        return (category != undefined && agenda.categoryExists(category)) && agenda.getCategory(category).color;
       };
     }
   }})
@@ -1218,8 +1277,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     };
 
-    agendaSorter.separateDeadlines = function(a) {
-      var tasks = agendaSorter.sort(a, agendaSorter.deadlineSort);
+    agendaSorter.separateDeadlines = function(tasks) {
       var dates = [];
       var current = null;
       var i = 0;
@@ -1663,7 +1721,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   }})
   .filter("categoryNamingFilter", function() { return function(input, agenda, selectedAgenda) {
     var prefix = (typeof selectedAgenda == "string") ? agenda.name() : "";
-    var category = (input != undefined && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
+    var category = (input != undefined && agenda && agenda.categoryExists(input)) ? agenda.getCategory(input).name : "";
     return prefix + ((prefix && category) ? " | " : "") + category;
   }})
   .filter("categoryColorFilter", function(colors) { return function(input, agenda) {
