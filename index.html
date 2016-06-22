@@ -47,7 +47,7 @@
           <md-list-item ng-click="selectWeek()"><md-icon>view_week</md-icon><p>This week</p></md-list-item>
           <md-list-item ng-click="selectAllTasks()"><md-icon>view_list</md-icon><p>All</p></md-list-item>
         </md-list>
-        <md-card ng-repeat="agenda in agendaList | orderBy:'+'" ng-class="(selectedAgenda.name() == agenda) ? 'selected-agenda' : ''" ng-click="selectAgenda(agenda)">
+        <md-card ng-repeat="agenda in agendaList | archivedAgendaFilter:false | orderBy:'+'" ng-class="(selectedAgenda.name() == agenda) ? 'selected-agenda' : ''" ng-click="selectAgenda(agenda)">
           <md-card-title>
             <md-card-title-text>
               <span class="md-headline">{{agenda}}</span>
@@ -67,6 +67,28 @@
             </md-card-title-text>
           </md-card-title>
         </md-card>
+        <md-list ng-hide="(agendaList | archivedAgendaFilter:true).length == 0">
+          <md-list-item ng-click="showArchived = !showArchived">
+            <md-icon>archive</md-icon>
+            <p>Archived agendas</p>
+            <md-icon class="md-secondary">{{showArchived ? "keyboard_arrow_down" : "chevron_right"}}</md-icon>
+          </md-list-item>
+        </md-list>
+        <div ng-show="showArchived">
+          <md-card ng-repeat="agenda in agendaList | archivedAgendaFilter:true | orderBy:'+'" ng-class="(selectedAgenda.name() == agenda) ? 'selected-agenda' : ''" ng-click="selectAgenda(agenda)">
+            <md-card-title>
+              <md-card-title-text>
+                <span class="md-headline">{{agenda}}</span>
+              </md-card-title-text>
+            </md-card-title>
+            <md-card-actions layout="row" layout-align="end center">
+              <md-button class="md-icon-button" ng-click="showAgendaEditor(agenda, $event)">
+                <md-icon>edit</md-icon>
+                <md-tooltip>Edit Agenda</md-tooltip>
+              </md-button>
+            </md-card-actions>
+          </md-card>
+        </div>
       </div>
       <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs && (screen != 'detail')">
         <md-tabs md-dynamic-height class="md-primary">
