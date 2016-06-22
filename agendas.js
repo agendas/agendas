@@ -1387,6 +1387,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                     console.log("Updating agenda " + agendaName);
                     var fileId = agenda.raw.properties.driveId;
                     delete agenda.raw.properties.driveId;
+                    delete agenda.raw.properties.archived;
                     var multipart = buildMultipart([
                       {
                         mimeType: "application/json",
@@ -1419,6 +1420,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else {
           // The agenda needs to be uploaded to Google Drive
           console.log("Uploading agenda " + name);
+          delete agenda.raw.properties.archived;
+          delete agenda.raw.properties.driveId;
           var multipart = buildMultipart([
             {
               mimeType: "application/json",
@@ -1605,6 +1608,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("pointTypeFilter", function() { return function(input, days) {
     var day = parseInt(input);
     return isNaN(day) ? "Free day" : days[day].name;
+  }})
+  .filter("archivedAgendaFilter", function($agendaParser) { return function(input, showArchived) {
+    return input.filter(function(value) {
+      var agenda = $agendaParser.getAgenda(value);
+      var archived = agenda.raw.properties.archived;
+      return (showArchived && archived) || (!showArchived && !archived);
+    });
   }})
   .value("quickAddSamples", [
     "Do work today",
