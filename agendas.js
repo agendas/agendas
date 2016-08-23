@@ -17,7 +17,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
 
     // Establish a connection to Google Drive.
-    var CLIENT_ID = "653971855682-j3042sr4ma74k0gs1kta76s1a9vdb68t.apps.googleusercontent.com";
+    var CLIENT_ID = "153820900287-94r8o59pghaud0grrvkfcs1foedkbc6g.apps.googleusercontent.com";
     var SCOPES    = ["https://www.googleapis.com/auth/drive.appfolder", "https://www.googleapis.com/auth/drive.metadata.readonly"];
 
     var scope = $scope;
@@ -1242,12 +1242,29 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else {
           var localArchiveModified = new Date(local.archiveModified);
           var onlineArchiveModified = new Date(online.archiveModified);
-          if (localArchiveModified >= onlineArchiveModified) {
+          if (localArchiveModified > onlineArchiveModified) {
             merged.archived = local.archived;
             merged.archiveModified = localArchiveModified;
             shouldUpload = true;
           } else {
             merged.archived = online.archived;
+            merged.archiveModified = onlineArchiveModified;
+          }
+        }
+      } else {
+        merged.archived = local.archived;
+        if (!local.archiveModified) {
+          merged.archiveModified = online.archiveModified;
+        } else if (!online.archiveModified) {
+          merged.archiveModified = local.archiveModified;
+          shouldUpload = true;
+        } else {
+          var localArchiveModified = new Date(local.archiveModified);
+          var onlineArchiveModified = new Date(online.archiveModified);
+          if (localArchiveModified > onlineArchiveModified) {
+            merged.archiveModified = localArchiveModified;
+            shouldUpload = true;
+          } else {
             merged.archiveModified = onlineArchiveModified;
           }
         }
