@@ -627,6 +627,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         };
       }
       $scope.scheduleModified = false;
+      $scope.archived = $scope.agenda.raw.properties.archived;
 
       $scope.refresh();
     };
@@ -682,6 +683,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       if ($scope.name && $scope.agenda.name() != $scope.name) {
         $scope.renameAgenda();
+      }
+      if ($scope.archived != $scope.agenda.raw.properties.archived) {
+        $scope.agenda.raw.properties.archiveModified = new Date();
       }
       $scope.agenda.saveAgenda();
       $mdDialog.hide();
@@ -1209,6 +1213,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     var mergeProperties = function(local, online) {
       var merged = {};
+      var shouldUpload = false;
       merged.name = local.name;
       merged.dateCreated = online.dateCreated;
       merged.dateModified = (new Date(online.dateModified) > new Date(local.dateModified)) ? online.dateModified : local.dateModified;
@@ -1226,7 +1231,45 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           merged.schedule = (new Date(online.schedule.modified) > new Date(local.schedule.modified)) ? online.schedule : local.schedule;
         }
       }
-      return merged;
+      if (local.archived != online.archived) {
+        if (!online.archiveModified) {
+          merged.archived = local.archived;
+          merged.archiveModified = local.archiveModified;
+          shouldUpload = true;
+        } else if (!local.archiveModified) {
+          merged.archived = online.archived;
+          merged.archiveModified = online.archiveModified;
+        } else {
+          var localArchiveModified = new Date(local.archiveModified);
+          var onlineArchiveModified = new Date(online.archiveModified);
+          if (localArchiveModified > onlineArchiveModified) {
+            merged.archived = local.archived;
+            merged.archiveModified = localArchiveModified;
+            shouldUpload = true;
+          } else {
+            merged.archived = online.archived;
+            merged.archiveModified = onlineArchiveModified;
+          }
+        }
+      } else {
+        merged.archived = local.archived;
+        if (!local.archiveModified) {
+          merged.archiveModified = online.archiveModified;
+        } else if (!online.archiveModified) {
+          merged.archiveModified = local.archiveModified;
+          shouldUpload = true;
+        } else {
+          var localArchiveModified = new Date(local.archiveModified);
+          var onlineArchiveModified = new Date(online.archiveModified);
+          if (localArchiveModified > onlineArchiveModified) {
+            merged.archiveModified = localArchiveModified;
+            shouldUpload = true;
+          } else {
+            merged.archiveModified = onlineArchiveModified;
+          }
+        }
+      }
+      return {properties: merged, shouldUpload: shouldUpload};
     };
 
     var mergeTasks = function(local, online) {
@@ -1340,7 +1383,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       var properties = mergeProperties(local.raw.properties, online.raw.properties);
       var categories = mergeTasks(local.raw.categories, online.raw.categories);
       var items      = mergeTasks(local.raw.items, online.raw.items);
-      var merged     = {agenda: {properties: properties, categories: categories.tasks, items: items.tasks}, shouldUpload: categories.shouldUpload || items.shouldUpload};
+      var merged     = {agenda: {properties: properties.properties, categories: categories.tasks, items: items.tasks}, shouldUpload: properties.shouldUpload || categories.shouldUpload || items.shouldUpload};
       return merged;
     };
 
@@ -1419,6 +1462,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else {
           // The agenda needs to be uploaded to Google Drive
           console.log("Uploading agenda " + name);
+          delete agenda.raw.properties.driveId;
           var multipart = buildMultipart([
             {
               mimeType: "application/json",
@@ -1605,6 +1649,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("pointTypeFilter", function() { return function(input, days) {
     var day = parseInt(input);
     return isNaN(day) ? "Free day" : days[day].name;
+  }})
+  .filter("archivedAgendaFilter", function($agendaParser) { return function(input, showArchived) {
+    return input.filter(function(value) {
+      var agenda = $agendaParser.getAgenda(value);
+      var archived = agenda.raw.properties.archived;
+      return (showArchived && archived) || (!showArchived && !archived);
+    });
   }})
   .value("quickAddSamples", [
     "Do work today",

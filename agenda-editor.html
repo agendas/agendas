@@ -33,11 +33,12 @@
               </md-list-item>
             </md-list>
           </div>
+          <md-switch ng-model="agenda.raw.properties.archived">Archived</md-switch>
           <md-button class="md-warn" ng-click="deleteAgenda($event)">Delete Agenda</md-button>
         </div>
       </md-tab>
       <md-tab ng-if="settings.useSchedule || schedule.use" label="Schedule">
-        <div class="md-dialog-content">
+        <div class="md-dialog-content schedule-div">
           <md-switch ng-model="schedule.use">Enable Schedule</md-switch>
           <div ng-show="schedule.use">
             <table>
