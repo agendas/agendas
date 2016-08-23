@@ -1242,12 +1242,29 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         } else {
           var localArchiveModified = new Date(local.archiveModified);
           var onlineArchiveModified = new Date(online.archiveModified);
-          if (localArchiveModified >= onlineArchiveModified) {
+          if (localArchiveModified > onlineArchiveModified) {
             merged.archived = local.archived;
             merged.archiveModified = localArchiveModified;
             shouldUpload = true;
           } else {
             merged.archived = online.archived;
+            merged.archiveModified = onlineArchiveModified;
+          }
+        }
+      } else {
+        merged.archived = local.archived;
+        if (!local.archiveModified) {
+          merged.archiveModified = online.archiveModified;
+        } else if (!online.archiveModified) {
+          merged.archiveModified = local.archiveModified;
+          shouldUpload = true;
+        } else {
+          var localArchiveModified = new Date(local.archiveModified);
+          var onlineArchiveModified = new Date(online.archiveModified);
+          if (localArchiveModified > onlineArchiveModified) {
+            merged.archiveModified = localArchiveModified;
+            shouldUpload = true;
+          } else {
             merged.archiveModified = onlineArchiveModified;
           }
         }
