@@ -263,3 +263,7 @@ time-picker md-input-container {
 .deadline-picker time-picker md-input-container {
   margin-left: 1em;
 }
+
+.schedule-div {
+  overflow-x: auto;
+}
