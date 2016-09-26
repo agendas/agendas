@@ -4,8 +4,12 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: black;
+}
+
 body {
-  background-color: #FFFFFF;
+  background-color: transparent;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -30,22 +34,18 @@ body {
 }
 
 .agendas-sidebar {
-  background-color: #EEEEEE;
   width: 33vw;
   height: 100vh;
   overflow: auto;
   position: fixed;
   top: 0;
   left: 0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .agendas-sidebar > md-toolbar {
   background-color: transparent;
-  color: black;
-}
-
-.agendas-sidebar > md-toolbar md-icon {
-  color: black;
+  color: white;
 }
 
 .agendas-sidebar md-card {
@@ -266,4 +266,21 @@ time-picker md-input-container {
 
 .schedule-div {
   overflow-x: auto;
+}
+
+.agendas-wallpaper {
+  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url("https://c1.staticflickr.com/7/6091/6285070575_1cfae9eb7d_b.jpg"), #EEEEEE;
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-size: cover;
+  background-position: auto;
+}
+
+.agendas-wallpaper.blur-effect {
+  transform: scale(1.1);
+  filter: blur(5px) saturate(125%);
 }
