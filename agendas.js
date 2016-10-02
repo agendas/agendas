@@ -439,7 +439,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           } else if (pointDate.getTime() == d.getTime()) {
             recentPoint = -1;
             break;
-          } else if (points[i].type == "none") {
+          } else if (points[i].type == "none" && pointDate < d) {
             freeDays++;
           }
         }
@@ -449,7 +449,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         // Calculate the number of weekends.
         var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
         // What day is today?
-        var day = days[(((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + parseInt(points[recentPoint].type)) % days.length];
+        var day = days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + parseInt(points[recentPoint].type)) % days.length)];
         // Find the blocks that the category occurs in.
         var blocks = [];
         var i = -1;
