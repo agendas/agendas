@@ -263,6 +263,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         task.selected = !task.selected;
         if (task.selected) {
           $scope.selectedTasks.push(task);
+          if (task.selected.length < 1) {
+            $scope.multipleDeadline = undefined;
+          }
         } else {
           $scope.selectedTasks.splice($scope.selectedTasks.indexOf(task), 1);
         }
@@ -272,6 +275,22 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     }
 
+    $scope.hideMultipleDeadlineChange = function() {
+      $scope.showingMultipleDeadlineChange = false;
+      $scope.multipleDeadline = undefined;
+    };
+    $scope.confirmMultipleDeadlineChange = function() {
+      for (var task of $scope.selectedTasks) {
+        var agenda = $scope.agendaForTask(task);
+        var t = agenda.getTask(task.id);
+        t.deadline = $scope.multipleDeadline;
+        t.deadlineTime = false;
+        agenda.saveAgenda();
+      }
+      $scope.selectedTasks = [];
+      $scope.refresh();
+      $scope.hideMultipleDeadlineChange();
+    }
 
     $scope.taskDetailIsOpen = function() {
       return false;
