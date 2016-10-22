@@ -10,6 +10,37 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                     "deep-orange": "FF5722", brown: "795548", grey: "9E9E9E",
                     "blue-grey": "607D8B", black: "000000"
   })
+  .value("wallpapers", [
+    {
+      id: "amazon-rainforest",
+      url: "https://c1.staticflickr.com/7/6091/6285070575_1cfae9eb7d_b.jpg",
+      name: "Amazon Rainforest"
+    },
+    {
+      id: "times-square",
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Times_Square,_New_York_City_(HDR).jpg",
+      name: "Times Square"
+    },
+    {
+      id: "sushi",
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Western_Sushi.jpg",
+      name: "Sushi"
+    },
+    {
+      id: "mlg",
+      url: "https://i.ytimg.com/vi/rosclr8QUqo/maxresdefault.jpg",
+      name: "MLG"
+    },
+    {
+      id: "doge",
+      url: "http://vignette1.wikia.nocookie.net/sanicsource/images/9/97/Doge.jpg/revision/latest?cb=20160112233015",
+      name: "Doge"
+    },
+    {
+      id: "custom",
+      name: "Custom"
+    }
+  ])
   .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
 
     $scope.agendaForTask = function(task) {
@@ -49,7 +80,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
 
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, quickAddSamples) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, quickAddSamples, wallpapers) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -562,8 +593,20 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }).then(function() {
         $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
         $scope.showCompleted = $scope.settings.showCompleted || false;
+        $scope.refreshWallpaper();
       });
-    }
+    };
+
+    $scope.refreshWallpaper = function() {
+      var wallpaper = $scope.settings.wallpaper || {id: "amazon-rainforest"};
+      for (var w of wallpapers) {
+        if (w.id == wallpaper.id) {
+          $scope.wallpaper = {"background-image": "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('" + (w.url || wallpaper.customURL) + "')"}
+          break;
+        }
+      }
+    };
+    $scope.refreshWallpaper();
 
     $scope.shouldShowCategoryCircle = function(task) {
       var category = task.category;
@@ -891,6 +934,18 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           }
         }
       };
+    }
+  }})
+  .directive("wallpaperPicker", function() { return {
+    templateUrl: "wallpaper-picker.html",
+    transclude: false,
+    restrict: "E",
+    scope: {
+      value: "=ngModel"
+    },
+    controller: function($scope, wallpapers) {
+      $scope.wallpapers = wallpapers;
+      $scope.value = $scope.value || {id: "amazon-rainforest", url: ""};
     }
   }})
   .controller("AgendasSettingsController", function($scope, $mdDialog) {
