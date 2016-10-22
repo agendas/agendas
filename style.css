@@ -4,8 +4,12 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: black;
+}
+
 body {
-  background-color: #FFFFFF;
+  background-color: transparent;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -20,7 +24,7 @@ body {
 }
 
 .agendas-detail {
-  background-color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.6);
   position: relative;
   width: 67vw;
   margin-left: 33vw;
@@ -29,23 +33,23 @@ body {
   overflow: auto;
 }
 
+.agendas-detail .md-whiteframe-2dp {
+  background-color: white;
+}
+
 .agendas-sidebar {
-  background-color: #EEEEEE;
   width: 33vw;
   height: 100vh;
   overflow: auto;
   position: fixed;
   top: 0;
   left: 0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .agendas-sidebar > md-toolbar {
   background-color: transparent;
-  color: black;
-}
-
-.agendas-sidebar > md-toolbar md-icon {
-  color: black;
+  color: white;
 }
 
 .agendas-sidebar md-card {
@@ -266,4 +270,54 @@ time-picker md-input-container {
 
 .schedule-div {
   overflow-x: auto;
+}
+
+.agendas-wallpaper {
+  background-color: #757575;
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-size: cover;
+  background-position: auto;
+}
+
+.agendas-wallpaper.blur-effect {
+  transform: scale(1.1);
+  filter: blur(5px) saturate(125%);
+}
+
+wallpaper-picker {
+  margin-top: 2em;
+  overflow-x: auto;
+  margin-bottom: 2em;
+}
+
+wallpaper-picker > div {
+  display: flex;
+  overflow-y: hidden;
+  padding-left: 2em;
+}
+
+wallpaper-picker > div > div {
+  margin-right: 2em;
+}
+
+wallpaper-picker img {
+  max-width: 20em;
+  max-height: 10em;
+}
+
+wallpaper-picker p {
+  width: 100%;
+  text-align: center;
+  padding: 0.5em;
+  border-radius: 25px;
+}
+
+wallpaper-picker .selected p {
+  color: white;
+  background-color: #43A047;
 }
