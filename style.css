@@ -321,3 +321,24 @@ wallpaper-picker .selected p {
   color: white;
   background-color: #43A047;
 }
+
+.agendas-welcome {
+  background-color: rgba(0, 0, 0, 0.65);
+  color: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(6px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.agendas-auth {
+  width: 90%;
+  max-width: 320px;
+}
+
+.agendas-auth .md-button.md-raised {
+  display: block;
+  width: 100%;
+}

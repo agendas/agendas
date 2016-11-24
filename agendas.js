@@ -42,7 +42,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
   ])
   .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
-
     $scope.agendaForTask = function(task) {
       return $agendaParser.getAgenda(task.agenda);
     }
@@ -78,9 +77,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.authorize = function() {
       $googleDrive.authorize(CLIENT_ID, SCOPES, handleAuthResult);
     };
-
   })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, quickAddSamples, wallpapers) {
+  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, $timeout, quickAddSamples, wallpapers) {
     angular.extend(this, $controller("AgendasController", {$scope: $scope}));
 
     $scope.toggleSidenav = function(sidenav) {
@@ -104,16 +102,87 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         .placeholder("Name")
         .cancel("Cancel").ok("Done")
       ).then(function(result) {
-        if ((typeof result == "string") && (result != "")) {
-          if ($agendaParser.newAgenda(result)) { // TODO: Error handling!!!
-            $scope.refresh();
-          }
+        if (result) {
+          var agendaRef = firebase.database().ref("/agendas/").push();
+          agendaRef.child("name").set(result).then(function() {
+            firebase.database().ref("/permissions/").child(agendaRef.key).child($scope.currentUser.uid).set("editor").then(function() {
+              $scope.agendasRef.child(agendaRef.key).set(true);
+            });
+          });
         }
       });
     };
 
-    $scope.agendaList = [];
-    $scope.refresh = function() {
+    $scope.agendas = Object.create(null);
+    $scope.agendasList = [];
+
+    $scope.$watch("currentUser", function() {
+      if ($scope.currentUser) {
+        $scope.agendasRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/agendas");
+
+        $scope.agendasRef.on("child_added", function(data) {
+          firebase.database().ref("/agendas/" + data.key).on("value", function(snapshot) {
+            $scope.agendas[snapshot.key] = snapshot.val();
+            $scope.$apply(function() {
+              $scope.agendasList = Object.keys($scope.agendas);
+            });
+          });
+        });
+      }
+    });
+
+    $scope.resetTasks = function() {
+      $scope.tasks = [];
+      $scope.taskGroups = [];
+    };
+
+    $scope.resetTasks();
+
+    $scope.selectAgenda = function(agenda) {
+      $scope.selectedAgenda = agenda;
+    };
+
+    $scope.$watch("selectedAgenda", function() {
+      $scope.resetTasks();
+      if ($scope.selectedAgenda) {
+        $scope.agendaRef = firebase.database().ref("/agendas/" + $scope.selectedAgenda);
+        $scope.permissionsRef = firebase.database().ref("/permissions/" + $scope.selectedAgenda);
+        $scope.categoriesRef = firebase.database().ref("/categories/" + $scope.selectedAgenda);
+        $scope.tasksRef = firebase.database().ref("/tasks/" + $scope.selectedAgenda);
+
+        $scope.tasksRef.on("child_added", function(data) {
+          var task = data.val();
+          task.key = data.key;
+
+          $scope.tasks.push(task);
+
+          $timeout(function() {
+            $scope.taskGroups = $agendaSorter.separateDeadlines($scope.tasks);
+          });
+        });
+
+        $scope.taskCreationAllowed = true;
+      } else {
+        $scope.agendaRef = null;
+        $scope.permissionsRef = null;
+        $scope.categoriesRef = null;
+        $scope.tasksRef = null;
+
+        $scope.taskCreationAllowed = false;
+      }
+    });
+
+    $scope.newTask = function() {
+      $scope.tasksRef.push().set({
+        name: "New task"
+      });
+    };
+
+    $scope.selectedTasks = [];
+
+    $scope.refresh = angular.noop;
+
+    /*$scope.refresh = function() {
       $scope.clearSelection();
       $scope.agendaList = $agendaParser.listAgendas();
       $scope.taskCreationAllowed = false;
@@ -427,7 +496,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           break;
         }
       }
-    };
+    }; */
 
     $scope.blocks = [];
     $scope.generateBlocks = function(category) {
@@ -671,6 +740,30 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       });
     };
+
+    $scope.googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+
+    var signInSuccess = function(result) {
+      $scope.isLoading = false;
+      $scope.$apply();
+    };
+
+    var signInFailure = function(error) {
+      console.log(error);
+
+      $scope.isLoading = false;
+      $scope.$apply();
+    };
+
+    $scope.signInWithGoogle = function() {
+      firebase.auth().signInWithPopup($scope.googleAuthProvider).then(signInSuccess).catch(signInFailure);
+      $scope.isLoading = true;
+    };
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      $scope.currentUser = user;
+      $scope.$apply();
+    });
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh, settings) {
     $scope.settings = settings;
@@ -1725,11 +1818,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return isNaN(day) ? "Free day" : days[day].name;
   }})
   .filter("archivedAgendaFilter", function($agendaParser) { return function(input, showArchived) {
-    return input.filter(function(value) {
-      var agenda = $agendaParser.getAgenda(value);
-      var archived = agenda.raw.properties.archived;
-      return (showArchived && archived) || (!showArchived && !archived);
-    });
+    /*return input.filter(function(value) {
+      return (showArchived && value.archived) || (!showArchived && !value.archived);
+    });*/
+    return input;
   }})
   .value("quickAddSamples", [
     "Do work today",
