@@ -88,7 +88,10 @@
                       <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
                       <div class="md-list-item-text task-selected-{{task.selected}}">
                         <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                        <!--<p><span class="category-circle" ng-if="shouldShowCategoryCircle(task)" style="background-color: #{{task.category | categoryColorFilter:agendaForTask(task)}}"></span>{{task.category | categoryNamingFilter:agendaForTask(task):selectedAgenda}}</p>-->
+                        <p>
+                          <span class="category-circle" ng-if="getColor(categories[task.category].color)" style="background-color: #{{getColor(categories[task.category].color)}}"></span>
+                          {{categories[task.category].name}}
+                        </p>
                       </div>
                       <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
                       <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
@@ -214,10 +217,10 @@
       <div>
         <md-input-container>
           <label>Category</label>
-          <md-select ng-model="category">
-            <md-option value="none">No category</md-option>
-            <md-option ng-repeat="category in categories" value="category-{{category.id}}"><span class="category-circle" ng-if="category.color" style="background-color: #{{category.color | categoryColorFilter}}"></span>{{category.name}}</md-option>
-            <md-option value="new"><md-icon>add</md-icon> New category</md-option>
+          <md-select ng-model="selectedTask.category">
+            <md-option>No category</md-option>
+            <md-option ng-repeat="category in categoryList" ng-value="category.key"><span class="category-circle" ng-if="getColor(category.color)" style="background-color: #{{getColor(category.color)}}"></span>{{category.name}}</md-option>
+            <md-option value="new" ng-click="newCategory()"><md-icon>add</md-icon> New category</md-option>
           </md-select>
         </md-input-container>
       </div>
