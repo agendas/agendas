@@ -123,7 +123,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.agendasRef.on("child_added", function(data) {
           firebase.database().ref("/agendas/" + data.key).on("value", function(snapshot) {
             $scope.agendas[snapshot.key] = snapshot.val();
-            $scope.$apply(function() {
+            $timeout(function() {
               $scope.agendasList = Object.keys($scope.agendas);
             });
           });
@@ -516,7 +516,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $mdDialog.show({
         controller: "AgendaEditorController",
         locals: {
-          agendaName: name,
+          agenda: name,
           refresh: function() {
             $scope.refresh();
           },
@@ -632,11 +632,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.$apply();
     });
   })
-  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh, settings) {
+  .controller("AgendaEditorController", function($scope, $agendaParser, agenda, colors, $mdDialog, refresh, settings, $timeout) {
     $scope.settings = settings;
     $scope.today = new Date();
     $scope.init = function() {
-      $scope.agenda = $agendaParser.getAgenda(agendaName);
+      /*$scope.agenda = $agendaParser.getAgenda(agendaName);
       $scope.name = agendaName;
 
       $scope.schedule = $scope.agenda.raw.properties.schedule || {type: "block"};
@@ -651,47 +651,61 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.scheduleModified = false;
       $scope.archived = $scope.agenda.raw.properties.archived;
 
-      $scope.refresh();
+      $scope.refresh();*/
+
+      $scope.categories = {};
+      $scope.categoryList = [];
+      $scope.name = "";
+
+      $scope.agendaRef = firebase.database().ref("/agendas/" + agenda);
+      $scope.nameRef = $scope.agendaRef.child("name");
+      // $scope.permissionsRef = firebase.database().ref("/permissions/" + agenda);
+      $scope.categoriesRef = firebase.database().ref("/categories/" + agenda);
+
+      $scope.nameRef.once("value").then(function(data) {
+        $scope.originalName = data.val();
+        $scope.name = data.val();
+      });
+
+      $scope.categoriesRef.on("child_added", function(data) {
+        $scope.categories[data.key] = data.val();
+        $timeout($scope.refresh);
+      });
+
+      $scope.categoriesRef.on("child_changed", function(data) {
+        if ($scope.categories[data.key]) {
+          $scope.categories[data.key] = data.val();
+          $timeout($scope.refresh);
+        }
+      });
+
+      $scope.categoriesRef.on("child_removed", function(data) {
+        delete $scope.categories[data.key];
+        $timeout($scope.refresh);
+      });
     };
     $scope.refresh = function() {
-      $scope.categories = $scope.agenda.categories();
+      $scope.categoryList = Object.keys($scope.categories);
     };
-    $scope.colors = [];
-    for (var color in colors) {
-      if (colors.hasOwnProperty(color)) {
-        $scope.colors.push({name: color, color: colors[color]});
-      }
-    }
-    $scope.saveCategory = function(category) {
-      var original = $scope.agenda.getCategory(category.id);
-      original.name = category.name;
-      if (category.color == "") {
-        original.color = undefined;
-        category.color = undefined;
-      } else {
-        original.color = category.color;
-      }
-      original.dateModified = new Date();
-    };
+    $scope.colors = Object.keys(colors).map(function(input) {
+      return {name: input, color: colors[input]};
+    });
     $scope.deleteCategory = function(category) {
-      $scope.categoriesDeleted = true;
-      $scope.agenda.deleteCategory(category.id);
+      delete $scope.categories[category];
       $scope.refresh();
     };
     $scope.addCategory = function() {
-      $scope.agenda.newCategory("Category");
+      $scope.categories[$scope.categoriesRef.push().key] = {
+        name: "Category"
+      }
       $scope.refresh();
     };
-    $scope.categoriesDeleted = false;
 
     $scope.cancel = function() {
       $mdDialog.cancel();
     };
     $scope.saveAndDismiss = function() {
-      if ($scope.categoriesDeleted) {
-        $scope.agenda.tasks();
-      }
-      if ($scope.schedule.use) {
+      /*if ($scope.schedule.use) {
         delete $scope.schedule.use;
         if ($scope.schedule.deleted) {
           delete $scope.schedule.deleted;
@@ -702,34 +716,25 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       } else if (!!$scope.agenda.raw.properties.schedule && !$scope.agenda.raw.properties.schedule.deleted) {
         $scope.agenda.raw.properties.schedule = {deleted: new Date()};
+      }*/
+      if ($scope.name && $scope.originalName != $scope.name) {
+        $scope.nameRef.set($scope.name);
       }
-      if ($scope.name && $scope.agenda.name() != $scope.name) {
-        $scope.renameAgenda();
-      }
-      if ($scope.archived != $scope.agenda.raw.properties.archived) {
+      /*if ($scope.archived != $scope.agenda.raw.properties.archived) {
         $scope.agenda.raw.properties.archiveModified = new Date();
       }
-      $scope.agenda.saveAgenda();
+      $scope.agenda.saveAgenda();*/
       $mdDialog.hide();
     };
 
-    $scope.renameAgenda = function() {
-      if (!$agendaParser.listAgendas().includes($scope.name)) {
-        $agendaParser.newAgenda($scope.name);
-        $scope.agenda.raw.properties.name = $scope.name;
-        $agendaParser.deleteAgenda(agendaName);
-      }
-    };
     $scope.deleteAgenda = function(event) {
-      var l = $scope.agenda.tasks().length;
       $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
         .title("Delete Agenda \"" + agendaName + "\"?!")
-        .textContent("You're about to delete \"" + agendaName + "\" and its " + l + " task" + ((l == 1) ? "" : "s") + ". This cannot be undone.")
+        .textContent("You're about to delete " + agendaName + ". This cannot be undone.")
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
-        $agendaParser.deleteAgenda(agendaName);
-        refresh();
+
       });
     };
 
