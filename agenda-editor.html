@@ -17,15 +17,15 @@
           <div>
             <md-list class="category-list">
               <md-subheader class="md-no-sticky">Categories</md-subheader>
-              <md-list-item ng-repeat="category in categories">
-                <md-select placeholder="Color" ng-change="saveCategory(category)" ng-model="category.color">
+              <md-list-item ng-repeat="c in categoryList">
+                <md-select placeholder="Color" ng-model="categories[c].color">
                   <md-option value="">None</md-option>
                   <md-option value="{{color.name}}" ng-repeat="color in colors"><div class="category-circle" style="background-color: #{{color.color}}"></div></md-option>
                 </md-select>
                 <md-input-container class="md-block" md-no-float>
-                  <input type="text" placeholder="Category" ng-change="saveCategory(category)" ng-model="category.name" />
+                  <input type="text" placeholder="Category" ng-model="categories[c].name" />
                 </md-input-container>
-                <md-icon class="md-secondary" ng-click="deleteCategory(category)">delete</md-icon>
+                <md-icon class="md-secondary" ng-click="deleteCategory(c)">delete</md-icon>
               </md-list-item>
               <md-list-item ng-click="addCategory()">
                 <md-icon>add</md-icon>

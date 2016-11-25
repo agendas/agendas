@@ -730,6 +730,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       if ($scope.name && $scope.originalName != $scope.name) {
         $scope.nameRef.set($scope.name);
       }
+
+      $scope.categoriesRef.set($scope.categories);
       /*if ($scope.archived != $scope.agenda.raw.properties.archived) {
         $scope.agenda.raw.properties.archiveModified = new Date();
       }
