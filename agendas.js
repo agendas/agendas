@@ -132,7 +132,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     });
 
     $scope.resetTasks = function() {
-      $scope.tasks = [];
+      $scope.tasks = {};
       $scope.taskGroups = [];
     };
 
@@ -151,14 +151,18 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.tasksRef = firebase.database().ref("/tasks/" + $scope.selectedAgenda);
 
         $scope.tasksRef.on("child_added", function(data) {
-          var task = data.val();
-          task.key = data.key;
+          $scope.tasks[data.key] = data.val();
+          $timeout($scope.refresh);
+        });
 
-          $scope.tasks.push(task);
+        $scope.tasksRef.on("child_changed", function(data) {
+          $scope.tasks[data.key] = data.val();
+          $timeout($scope.refresh);
+        });
 
-          $timeout(function() {
-            $scope.taskGroups = $agendaSorter.separateDeadlines($scope.tasks);
-          });
+        $scope.tasksRef.on("child_removed", function(data) {
+          delete $scope.tasks[data.key];
+          $timeout($scope.refresh);
         });
 
         $scope.taskCreationAllowed = true;
@@ -180,7 +184,17 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.selectedTasks = [];
 
-    $scope.refresh = angular.noop;
+    $scope.selectTask = function(task, event) {
+      $scope.viewTaskDetail(task);
+    };
+
+    $scope.refresh = function() {
+      $scope.taskGroups = $agendaSorter.separateDeadlines(Object.keys($scope.tasks).map(function(input) {
+        var task = $scope.tasks[input];
+        task.key = input;
+        return task;
+      }));
+    };
 
     /*$scope.refresh = function() {
       $scope.clearSelection();
@@ -326,7 +340,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       agenda.saveAgenda();
       $scope.refresh();
-    };
+    }; */
 
     $scope.category = undefined;
     $scope.selectedTask = null;
@@ -341,38 +355,22 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         $scope.selectedTask.time = undefined;
       }
-      $scope.categories = $scope.agendaForTask(task).categories();
-      $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
+      // $scope.categories = $scope.agendaForTask(task).categories();
+      // $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
       $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
-      $scope.selectedBlock = undefined;
-      if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
-        $scope.generateBlocks($scope.selectedTask.category);
-      }
+      // $scope.selectedBlock = undefined;
+      // if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
+        // $scope.generateBlocks($scope.selectedTask.category);
+      // }
       $scope.toggleSidenav("agendas-task-detail");
     };
 
-    $scope.selectedTasks = [];
+    /* $scope.selectedTasks = [];
     $scope.clearSelection = function() {
       for (var task of $scope.selectedTasks) {
         task.selected = false;
       }
       $scope.selectedTasks = [];
-    }
-    $scope.selectTask = function(task, event) {
-      if (event.shiftKey) {
-        task.selected = !task.selected;
-        if (task.selected) {
-          $scope.selectedTasks.push(task);
-          if (task.selected.length < 1) {
-            $scope.multipleDeadline = undefined;
-          }
-        } else {
-          $scope.selectedTasks.splice($scope.selectedTasks.indexOf(task), 1);
-        }
-      } else {
-        $scope.clearSelection();
-        $scope.viewTaskDetail(task);
-      }
     }
 
     $scope.hideMultipleDeadlineChange = function() {
@@ -390,15 +388,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.selectedTasks = [];
       $scope.refresh();
       $scope.hideMultipleDeadlineChange();
-    }
+    } */
 
     $scope.taskDetailIsOpen = function() {
       return false;
     };
     $scope.saveTaskDetail = function() {
       if ($scope.selectedTask) {
-        var agenda = $scope.agendaForTask($scope.selectedTask);
-        var task = agenda.getTask($scope.selectedTask.id)
+        var task = {};
         task.name = $scope.selectedTask.name;
         if ($scope.selectedTask.deadlineDate) {
           if ($scope.selectedTask.time == undefined) {
@@ -411,7 +408,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             $scope.selectedTask.deadlineTime = true;
           }
           console.log($scope.selectedTask.deadline);
-          task.deadline = new Date(
+          task.deadline = (new Date(
             $scope.selectedTask.deadlineDate.getFullYear(),
             $scope.selectedTask.deadlineDate.getMonth(),
             $scope.selectedTask.deadlineDate.getDate(),
@@ -419,30 +416,26 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             $scope.selectedTask.deadline.getMinutes(),
             0,
             0
-          );
+          )).toJSON();
           task.deadlineTime = $scope.selectedTask.deadlineTime;
-          task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : undefined;
-          task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : undefined;
-        } else {
-          task.deadline = undefined;
-          task.deadlineTime = false;
-          task.repeat = undefined;
-          task.repeatEnds = undefined;
+          task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : "";
+          task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : "";
         }
-        if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
+        /*if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
           task.category = parseInt($scope.category.slice(9));
-        } else {
-          task.category = undefined;
+        }*/
+        if ($scope.selectedTask.notes) {
+          task.notes = $scope.selectedTask.notes;
         }
-        task.notes = $scope.selectedTask.notes;
-        task.completed = $scope.selectedTask.completed;
+        task.completed = $scope.selectedTask.completed || false;
 
-        agenda.saveAgenda();
+        $scope.tasksRef.child($scope.selectedTask.key).set(task);
+        console.log($scope.selectedTask);
+        console.log(task);
+
         $scope.selectedTask = null;
       }
       $scope.category = undefined;
-      $scope.categories = [];
-      $scope.refresh();
     };
 
     $mdComponentRegistry.when("agendas-task-detail").then(function(sidenav) {
@@ -461,15 +454,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
-        var agenda = $scope.agendaForTask($scope.selectedTask);
-        agenda.deleteTask($scope.selectedTask.id);
-        $scope.selectedTask = null;
-        agenda.saveAgenda();
-        $scope.toggleSidenav("agendas-task-detail");
+        $scope.tasksRef.child($scope.selectedTask.key).remove().then(function() {
+          $scope.selectedTask = null;
+          $scope.toggleSidenav("agendas-task-detail");
+        });
       });
     };
 
-    $scope.deleteSelectedTasks = function(event) {
+    /* $scope.deleteSelectedTasks = function(event) {
       $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
         .title("Delete " + $scope.selectedTasks.length + " tasks?")
         .textContent("This action cannot be undone.")
@@ -1783,7 +1775,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return (new Date(input)).toDateString();
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() < 10) ? ("0" + input.getMinutes()) : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
+    if (input) {
+      var date = new Date(input);
+      return ((date.getHours() % 12 == 0) ? 12 : (date.getHours() % 12)) + ":" + ((date.getMinutes() < 10) ? ("0" + date.getMinutes()) : input.getMinutes()) + ((date.getHours() / 12 >= 1) ? "pm" : "am");
+    } else {
+      return "";
+    }
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
