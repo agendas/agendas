@@ -609,6 +609,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }
 
     $scope.googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+    $scope.githubAuthProvider = new firebase.auth.GithubAuthProvider();
 
     var signInSuccess = function(result) {
       $scope.isLoading = false;
@@ -627,10 +628,19 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.isLoading = true;
     };
 
+    $scope.signInWithGithub = function() {
+      firebase.auth().signInWithPopup($scope.githubAuthProvider).then(signInSuccess).catch(signInFailure);
+      $scope.isLoading = true;
+    };
+
     firebase.auth().onAuthStateChanged(function(user) {
       $scope.currentUser = user;
       $scope.$apply();
     });
+
+    $scope.signOut = function() {
+      firebase.auth().signOut();
+    }
   })
   .controller("AgendaEditorController", function($scope, $agendaParser, agenda, colors, $mdDialog, refresh, settings, $timeout) {
     $scope.settings = settings;

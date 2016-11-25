@@ -157,6 +157,10 @@
           <md-icon>settings</md-icon>
           <p>Settings</p>
         </md-list-item>
+        <md-list-item ng-click="signOut()">
+          <md-icon>exit_to_app</md-icon>
+          <p>Sign out</p>
+        </md-list-item>
       </md-list>
     </md-sidenav>
     <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="agendas-task-detail">
@@ -244,11 +248,12 @@
     <div class="agendas-welcome" ng-hide="currentUser" layout="column" layout-align="center center">
       <div class="agendas-auth" ng-hide="currentUser || isLoading" layout="column" layout-align="center center">
         <h2 class="md-headline">Sign in using:</h2>
-        <md-button class="md-raised" ng-click="signInWithGoogle()">Google</md-button>
+        <md-button class="md-raised" ng-click="signInWithGoogle()" md-colors="{background: 'red'}">Google</md-button>
         <!--
           <md-button class="md-raised" md-colors="{background: 'indigo'}">Facebook</md-button>
           <md-button class="md-raised" md-colors="{background: 'blue'}">Twitter</md-button>
         -->
+        <md-button class="md-raised" ng-click="signInWithGithub()" md-colors="{background: 'blue-grey'}">Github</md-button>
       </div>
       <md-progress-circular md-mode="indeterminate" ng-show="isLoading"></md-progress-circular>
     </div>
