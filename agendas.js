@@ -298,7 +298,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             0,
             0
           )).toJSON();
-          task.deadlineTime = $scope.selectedTask.deadlineTime;
+          if ($scope.selectedTask.deadlineTime) {
+            task.deadlineTime = true;
+          }
           task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : "";
           task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : "";
         }
@@ -364,8 +366,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       // Get the control points.
       var schedule = $scope.agendaForTask($scope.selectedTask).raw.properties.schedule;
-      var days = schedule.block.days;
-      var points = schedule.block.points;
+      var days = schedule.days;
+      var points = schedule.points;
       if (points.length <= 0) {
         return;
       }
@@ -415,7 +417,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           blocks.push(i);
         }
         for (var b of blocks) {
-          var block = schedule.block.blocks[b];
+          var block = schedule.blocks[b];
           if (block.start !== undefined) {
             $scope.blocks.push(new Date(d.getTime() + (block.start * 60 * 1000)));
           } else {
@@ -628,11 +630,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.categories = {};
       $scope.categoryList = [];
       $scope.name = "";
+      $scope.scheduleLoaded = false;
+      $scope.scheduleExists = false;
 
       $scope.agendaRef = firebase.database().ref("/agendas/" + agenda);
       $scope.nameRef = $scope.agendaRef.child("name");
       // $scope.permissionsRef = firebase.database().ref("/permissions/" + agenda);
       $scope.categoriesRef = firebase.database().ref("/categories/" + agenda);
+      $scope.scheduleRef = firebase.database().ref("/schedules/" + agenda);
 
       $scope.nameRef.once("value").then(function(data) {
         $scope.originalName = data.val();
@@ -654,6 +659,26 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.categoriesRef.on("child_removed", function(data) {
         delete $scope.categories[data.key];
         $timeout($scope.refresh);
+      });
+
+      $scope.scheduleRef.once("value").then(function(data) {
+        if (data.exists()) {
+          $scope.schedule = data.val();
+          $scope.schedule.use = true;
+          $scope.scheduleExists = true;
+        } else {
+          $scope.schedule = {
+            use: false,
+            blocks: {},
+            days: {},
+            points: {}
+          };
+        }
+        $timeout(function() {
+          $scope.scheduleLoaded = true;
+        });
+      }).catch(function(e) {
+        console.log(e);
       });
     };
     $scope.refresh = function() {
@@ -694,6 +719,19 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
 
       $scope.categoriesRef.set($scope.categories);
+
+      if ($scope.scheduleDirty) {
+        if ($scope.schedule.use) {
+          var s = $scope.schedule;
+          var r = $scope.scheduleRef;
+          r.child("days").set(s.days).then(function() {
+            r.child("blocks").set(s.blocks);
+            r.child("points").set(s.points);
+          });
+        } else if ($scope.scheduleExists) {
+          $scope.scheduleRef.remove();
+        }
+      }
       /*if ($scope.archived != $scope.agenda.raw.properties.archived) {
         $scope.agenda.raw.properties.archiveModified = new Date();
       }
@@ -712,59 +750,60 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       });
     };
 
+    $scope.setScheduleDirty = function(isDirty) {
+      $scope.scheduleDirty = isDirty;
+    }
+
     $scope.newBlock = function() {
-      $scope.schedule.block.blocks.push({});
+      $scope.schedule.blocks[$scope.scheduleRef.child("blocks").push().key] = {};
+      $scope.setScheduleDirty(true);
     };
     $scope.deleteBlock = function(index) {
-      $scope.schedule.block.blocks.splice(index, 1);
+      delete $scope.schedule.blocks[index];
+      $scope.setScheduleDirty(true);
     };
 
     $scope.newDay = function() {
-      $scope.schedule.block.days.push({name: "", categories: []});
+      $scope.schedule.days[$scope.scheduleRef.child("days").push().key] = "";
+      $scope.setScheduleDirty(true);
     };
     $scope.deleteDay = function(index) {
-      $scope.schedule.block.days.splice(index, 1);
+      delete $scope.schedule.days[index];
+      $scope.setScheduleDirty(true);
     };
 
     $scope.showPointCreation = function() {
       $scope.selectedPoint = {id: -1};
     };
     $scope.editPoint = function(point) {
-      $scope.selectedPoint = {id: point, date: new Date($scope.schedule.block.points[point].date), type: $scope.schedule.block.points[point].type};
+      $scope.selectedPoint = {id: point, date: new Date($scope.schedule.points[point].date), type: $scope.schedule.points[point].type};
     }
     $scope.cancelPoint = function() {
       $scope.selectedPoint.id = undefined;
     };
     $scope.savePoint = function() {
-      var point = {date: $scope.selectedPoint.date, type: $scope.selectedPoint.type};
+      var point = {date: $scope.selectedPoint.date.toJSON(), type: $scope.selectedPoint.type};
       if ($scope.selectedPoint.id === -1) {
-        $scope.schedule.block.points.push(point);
+        $scope.schedule.points[$scope.scheduleRef.child("points").push().key] = point;
       } else {
-        $scope.schedule.block.points[$scope.selectedPoint.id] = point;
+        $scope.schedule.points[$scope.selectedPoint.id] = point;
       }
       $scope.selectedPoint.id = undefined;
+      $scope.setScheduleDirty(true);
     };
     $scope.removePoint = function() {
-      $scope.schedule.block.points.splice($scope.selectedPoint.id, 1);
+      delete $scope.schedule.points[$scope.selectedPoint.id];
       $scope.selectedPoint.id = undefined;
-    }
-
-    $scope.$watch("schedule", function() {
-      $scope.scheduleModified = true;
-    });
+      $scope.setScheduleDirty(true);
+    };
 
     $scope.init();
-
-    $scope.$watch(function() {
-      return $scope.sdfsdfsdf + "_" + $scope.sdfsdf;
-    }, function(val) {
-      console.log(val);
-    });
   })
   .directive("scheduleCategoryChooser", function() { return {
     templateUrl: "category-chooser.html",
     scope: {
       value: "=ngModel",
+      change: "&ngChange"
     },
     restrict: "E",
     transclude: true,
@@ -784,6 +823,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             break;
           }
         }
+      });
+      $scope.$watch("value", function() {
+        $scope.change();
       });
     }
   }})
@@ -1057,8 +1099,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return input[Math.floor(Math.random() * input.length)];
   }})
   .filter("pointTypeFilter", function() { return function(input, days) {
-    var day = parseInt(input);
-    return isNaN(day) ? "Free day" : days[day].name;
+    return input == "free" ? "Free day" : days[input];
   }})
   .value("quickAddSamples", [
     "Do work today",

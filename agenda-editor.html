@@ -1,4 +1,4 @@
-<md-dialog ng-cloak>
+<md-dialog>
   <md-toolbar>
     <div class="md-toolbar-tools">
       <h2>Edit Agenda "{{name}}"</h2>
@@ -33,13 +33,12 @@
               </md-list-item>
             </md-list>
           </div>
-          <md-switch ng-model="agenda.raw.properties.archived">Archived</md-switch>
           <md-button class="md-warn" ng-click="deleteAgenda($event)">Delete Agenda</md-button>
         </div>
       </md-tab>
-      <md-tab ng-if="settings.useSchedule || schedule.use" label="Schedule">
+      <md-tab ng-show="(settings.useSchedule || schedule.use) && scheduleLoaded" label="Schedule">
         <div class="md-dialog-content schedule-div">
-          <md-switch ng-model="schedule.use">Enable Schedule</md-switch>
+          <md-switch ng-model="schedule.use" ng-change="setScheduleDirty(true)">Enable Schedule</md-switch>
           <div ng-show="schedule.use">
             <table>
               <thead>
@@ -47,13 +46,10 @@
                   <td>
                     <p class="md-title">Schedule</p>
                   </td>
-                  <td ng-repeat="block in schedule.block.blocks">
-                    <time-picker ng-model="block.start" use-24-hours="false">
+                  <td ng-repeat="(key, block) in schedule.blocks">
+                    <time-picker ng-model="block.time" ng-change="setScheduleDirty(true)" use-24-hours="false">
                     </time-picker>
-                    <p>to</p>
-                    <time-picker ng-model="block.end" use-24-hours="false">
-                    </time-picker>
-                    <md-button class="md-icon-button md-warn" ng-click="deleteBlock($index)"><md-icon>close</md-icon></md-button>
+                    <md-button class="md-icon-button md-warn" ng-click="deleteBlock(key)"><md-icon>close</md-icon></md-button>
                   </td>
                   <td ng-click="newBlock()">
                     <p class="md-title">New block</p>
@@ -61,17 +57,17 @@
                 </tr>
               </thead>
               <tbody>
-                <tr ng-repeat="day in schedule.block.days">
+                <tr ng-repeat="(day, dayName) in schedule.days">
                   <td layout="row">
                     <md-input-container md-no-float flex>
-                      <input placeholder="Name of day {{$index + 1}}" ng-model="day.name" />
+                      <input placeholder="Name of day {{$index + 1}}" ng-model="schedule.days[day]" ng-change="setScheduleDirty(true)" />
                     </md-input-container>
-                    <md-button class="md-icon-button md-warn" ng-click="deleteDay($index)"><md-icon>close</md-icon></md-button>
+                    <md-button class="md-icon-button md-warn" ng-click="deleteDay(day)"><md-icon>close</md-icon></md-button>
                   </td>
-                  <td ng-repeat="block in schedule.block.blocks">
-                    <schedule-category-chooser ng-model="day.categories[$index]">
+                  <td ng-repeat="(key, block) in schedule.blocks">
+                    <schedule-category-chooser ng-model="block[day]" ng-change="setScheduleDirty(true)">
                       <schedule-category-option name="None" disabled="false"></schedule-category-option>
-                      <schedule-category-option ng-repeat="category in categories track by category.id" color="{{category.color}}" name="{{category.name}}" value="category.id" disabled="false"></schedule-category-option>
+                      <schedule-category-option ng-repeat="c in categoryList" color="{{categories[c].color}}" name="{{categories[c].name}}" value="c" disabled="false"></schedule-category-option>
                     </schedule-category-chooser>
                   </td>
                 </tr>
@@ -82,9 +78,9 @@
             </table>
             <p class="md-title">Control points</p>
             <div class="control-points" layout="row" layout-align="start center">
-              <control-point icon="edit" selected="selectedPoint.id === $index" ng-click="editPoint($index)" ng-repeat="point in schedule.block.points">
+              <control-point icon="edit" selected="selectedPoint.id === $index" ng-click="editPoint($index)" ng-repeat="point in schedule.points">
                 <p>{{point.date | toDateString}}</p>
-                <p>{{point.type | pointTypeFilter:schedule.block.days}}</p>
+                <p>{{point.type | pointTypeFilter:schedule.days}}</p>
               </control-point>
               <control-point icon="add" selected="selectedPoint.id === -1" ng-click="showPointCreation()">
                 <p>New point</p>
@@ -95,8 +91,8 @@
               <md-input-container>
                 <label>Type</label>
                 <md-select ng-model="selectedPoint.type">
-                  <md-option value="none">Free</md-option>
-                  <md-option ng-repeat="day in schedule.block.days" value="{{$index}}">{{day.name}}</md-option>
+                  <md-option value="free">Free</md-option>
+                  <md-option ng-repeat="(day, name) in schedule.days" value="{{day}}">{{schedule.days[day]}}</md-option>
                 </md-select>
               </md-input-container>
               <md-button class="md-accent" ng-click="cancelPoint()">Cancel</md-button>
