@@ -1,0 +1,4 @@
+[submodule "beta"]
+	path = beta
+	url = https://github.com/anli5005/agendas
+	branch = 2.0
