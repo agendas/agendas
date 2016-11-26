@@ -99,6 +99,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
       $scope.categories = {};
       $scope.categoryList = [];
+
+      $scope.schedule = {};
     };
 
     $scope.resetTasks();
@@ -111,9 +113,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.resetTasks();
       if ($scope.selectedAgenda) {
         $scope.agendaRef = firebase.database().ref("/agendas/" + $scope.selectedAgenda);
-        $scope.permissionsRef = firebase.database().ref("/permissions/" + $scope.selectedAgenda);
         $scope.categoriesRef = firebase.database().ref("/categories/" + $scope.selectedAgenda);
         $scope.tasksRef = firebase.database().ref("/tasks/" + $scope.selectedAgenda);
+        $scope.scheduleRef = firebase.database().ref("/schedules/" + $scope.selectedAgenda);
 
         $scope.tasksRef.on("child_added", function(data) {
           $scope.tasks[data.key] = data.val();
@@ -145,12 +147,17 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           $timeout($scope.refreshCategories);
         });
 
+        $scope.scheduleRef.on("value", function(data) {
+          $scope.schedule = data.val();
+        });
+
         $scope.taskCreationAllowed = true;
       } else {
         $scope.agendaRef = null;
         $scope.permissionsRef = null;
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
+        $scope.scheduleRef = null;
 
         $scope.taskCreationAllowed = false;
       }
@@ -365,14 +372,19 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         return;
       }
       // Get the control points.
-      var schedule = $scope.agendaForTask($scope.selectedTask).raw.properties.schedule;
-      var days = schedule.days;
+      var schedule = $scope.schedule;
+      var days = Object.keys(schedule.days);
       var points = schedule.points;
-      if (points.length <= 0) {
+      var blocks = Object.keys(schedule.blocks).map(function(input) {
+        return schedule.blocks[input];
+      });
+      if (Object.keys(points).length <= 0) {
         return;
       }
       // Sort the control points.
-      points = $agendaSorter.sort(points.filter(function(v) {
+      points = $agendaSorter.sort(Object.keys(points).map(function(input) {
+        return points[input];
+      }).filter(function(v) {
         var d = (new Date(v.date)).getDay();
         return d > 0 || d < 6;
       }), function(a, b) {
@@ -393,13 +405,13 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         var freeDays = 0;
         for (var i = points.length - 1; i >= 0; i--) {
           var pointDate = new Date(points[i].date);
-          if (pointDate <= d && points[i].type !== "none" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
+          if (pointDate <= d && points[i].type !== "free" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
             recentPoint = i;
             break;
           } else if (pointDate.getTime() == d.getTime()) {
             recentPoint = -1;
             break;
-          } else if (points[i].type == "none" && pointDate < d) {
+          } else if (points[i].type == "free" && pointDate < d) {
             freeDays++;
           }
         }
@@ -409,33 +421,26 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         // Calculate the number of weekends.
         var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
         // What day is today?
-        var day = days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + parseInt(points[recentPoint].type)) % days.length)];
+        var day = days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + days.indexOf(points[recentPoint].type)) % days.length)];
         // Find the blocks that the category occurs in.
-        var blocks = [];
-        var i = -1;
-        while ((i = day.categories.indexOf(category, i + 1)) >= 0) {
-          blocks.push(i);
-        }
         for (var b of blocks) {
-          var block = schedule.blocks[b];
-          if (block.start !== undefined) {
-            $scope.blocks.push(new Date(d.getTime() + (block.start * 60 * 1000)));
-          } else {
-            $scope.blocks.push(new Date(d.getTime()));
+          if (b[day] == category) {
+            if (b.time !== undefined) {
+              $scope.blocks.push(new Date(d.getTime() + (b.time * 60 * 1000)));
+            } else {
+              $scope.blocks.push(new Date(d.getTime()));
+            }
           }
         }
       }
     };
     $scope.refreshBlocks = function() {
-      if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
-        var category = parseInt($scope.category.slice(9));
-        if (category !== $scope.selectedTask.category) {
-          return new Promise(function(resolve, reject) {
-            $scope.generateBlocks(parseInt($scope.category.slice(9)));
-            resolve();
-          });
-        }
-      } else if ($scope.selectedTask.category !== undefined) {
+      if ($scope.selectedTask.category) {
+        return new Promise(function(resolve, reject) {
+          $scope.generateBlocks($scope.selectedTask.category);
+          resolve();
+        });
+      } else {
         $scope.generateBlocks(undefined);
       }
     };
