@@ -80,6 +80,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.$watch("currentUser", function() {
       if ($scope.currentUser) {
+        $scope.fullScreenModal = false;
         $scope.agendasRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/agendas");
 
         $scope.agendasRef.on("child_added", function(data) {
@@ -90,6 +91,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             });
           });
         });
+      } else {
+        $scope.fullScreenModal = true;
       }
     });
 
@@ -609,7 +612,144 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.signOut = function() {
       firebase.auth().signOut();
-    }
+    };
+
+    $scope.migrateCallbacks = [];
+
+    $scope.migrate = function() {
+      $scope.fullScreenModal = true;
+      $scope.migration = true;
+      document.getElementById("migration-iframe").setAttribute("src", "http://anli5005.github.io/agendas/migrate.html");
+      window.onmessage = function(e) {
+        if (e.data.ready) {
+          e.source.postMessage({name: "Agendas 2.0"}, "http://anli5005.github.io");
+        } else if (e.data.agendas) {
+          $timeout(function() {
+            $scope.migration = false;
+            $scope.migrating = true;
+            $timeout(function() {
+              $scope.startMigrating(e.data.agendas);
+            }, 500);
+          });
+        }
+      };
+    };
+
+    $scope.cancelMigration = function() {
+      $scope.fullScreenModal = false;
+      $scope.migration = false;
+      document.getElementById("migration-iframe").setAttribute("src", "");
+    };
+
+    $scope.$watch("fullScreenModal", function() {
+      if ($scope.fullScreenModal) {
+        $mdSidenav("agendas-navigation-sidenav").close();
+      }
+    });
+
+    $scope.startMigrating = function(agendas) {
+      for (var agenda of agendas) {
+        (function() {
+          var agendaRef = firebase.database().ref("/agendas/").push();
+          var a = agenda;
+          agendaRef.child("name").set(agenda.properties.name).then(function() {
+            firebase.database().ref("/permissions/").child(agendaRef.key).child($scope.currentUser.uid).set("editor").then(function() {
+              var categories = {};
+              var categoryList = [];
+              var categoriesRef = firebase.database().ref("/categories/").child(agendaRef.key);
+              var i = 0;
+              for (var category of a.categories) {
+                if (!category.deleted) {
+                  var key = categoriesRef.push().key;
+                  categories[key] = {};
+                  if (category.name) {
+                    categories[key].name = category.name;
+                  }
+                  if (category.color) {
+                    categories[key].color = category.color;
+                  }
+                  categoryList[i] = key;
+                  i++;
+                }
+              }
+              categoriesRef.set(categories).then(function() {
+                var tasks = {};
+                var tasksRef = firebase.database().ref("/tasks/").child(agendaRef.key);
+                for (var task of a.items) {
+                  if (!task.deleted) {
+                    var t = {};
+                    for (var p of ["name", "deadlineTime", "repeat", "repeatEnds", "notes", "completed"]) {
+                      if (task[p]) {
+                        t[p] = task[p];
+                      }
+                    }
+                    if (task.category !== undefined) {
+                      t.category = categoryList[task.category];
+                    }
+                    if (task.deadline) {
+                      t.deadline = (new Date(task.deadline)).toJSON();
+                      console.log(task.deadline);
+                      console.log(t.deadline);
+                    }
+                    tasks[tasksRef.push().key] = t;
+                  }
+                }
+                tasksRef.set(tasks).then(function() {
+                  $scope.agendasRef.child(agendaRef.key).set(true);
+                });
+
+                if (a.properties.schedule && !a.properties.schedule.deleted) {
+                  var scheduleRef = firebase.database().ref("/schedules/").child(agendaRef.key);
+                  var daysRef = scheduleRef.child("days");
+                  var days = {};
+                  var daysArray = [];
+                  var i = 0;
+                  for (var day of a.properties.schedule.block.days) {
+                    var key = daysRef.push().key;
+                    days[key] = day.name;
+                    daysArray[i] = key;
+                    i++;
+                  }
+                  daysRef.set(days).then(function() {
+                    var blocksRef = scheduleRef.child("blocks");
+                    var blocks = {};
+                    var i = 0;
+                    for (var block of a.properties.schedule.block.blocks) {
+                      var b = {};
+                      if (block.start !== undefined) {
+                        b.time = block.start;
+                      }
+                      var j = 0;
+                      for (var day of a.properties.schedule.block.days) {
+                        if (day.categories[i] !== undefined) {
+                          b[daysArray[j]] = categoryList[day.categories[i]];
+                        }
+                        j++;
+                      }
+                      blocks[blocksRef.push().key] = b;
+                      i++;
+                    }
+                    blocksRef.set(blocks);
+
+                    var pointsRef = scheduleRef.child("points");
+                    var points = {};
+                    for (var point of a.properties.schedule.block.points) {
+                      points[pointsRef.push().key] = {
+                        date: point.date,
+                        type: (point.type == "none") ? "free" : daysArray[parseInt(point.type)]
+                      };
+                    }
+                    pointsRef.set(points);
+                  });
+                }
+              });
+            });
+          });
+        })();
+      }
+      $scope.migrating = false;
+      $scope.fullScreenModal = false;
+    };
   })
   .controller("AgendaEditorController", function($scope, agenda, colors, $mdDialog, refresh, settings, $timeout) {
     $scope.settings = settings;
@@ -1070,7 +1210,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
   .filter("timeFilter", function() { return function(input) {
     if (input) {
       var date = new Date(input);
-      return ((date.getHours() % 12 == 0) ? 12 : (date.getHours() % 12)) + ":" + ((date.getMinutes() < 10) ? ("0" + date.getMinutes()) : input.getMinutes()) + ((date.getHours() / 12 >= 1) ? "pm" : "am");
+      return ((date.getHours() % 12 == 0) ? 12 : (date.getHours() % 12)) + ":" + ((date.getMinutes() < 10) ? ("0" + date.getMinutes()) : date.getMinutes()) + ((date.getHours() / 12 >= 1) ? "pm" : "am");
     } else {
       return "";
     }

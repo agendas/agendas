@@ -152,6 +152,10 @@
           <md-icon>home</md-icon>
           <p>Home</p>
         </md-list-item>
+        <md-list-item ng-click="migrate()">
+          <md-icon>arrow_upward</md-icon>
+          <p>Migrate</p>
+        </md-list-item>
         <md-list-item ng-click="openSettings($event)">
           <md-icon>settings</md-icon>
           <p>Settings</p>
@@ -244,7 +248,14 @@
       <md-tooltip>{{settings.useQuickAdd ? "Quick Add" : "New Task"}}</md-tooltip>
     </md-button>
 
-    <div class="agendas-welcome" ng-hide="currentUser" layout="column" layout-align="center center">
+    <div class="agendas-welcome" ng-show="fullScreenModal" layout="column" layout-align="center center">
+      <div ng-show="migration" style="overflow: auto;">
+        <div layout="row" layout-align="start center">
+          <md-button class="md-icon-button" ng-click="cancelMigration()" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
+          <p class="md-headline">Migrate from Agendas 1.0</p>
+        </div>
+        <iframe src="" id="migration-iframe" style="border-color: white; border-style: solid; border-width: 10px; border-radius: 5px; background-color: white; width: 320px; height: 720px; margin: 0; padding: 0;"></iframe>
+      </div>
       <div class="agendas-auth" ng-hide="currentUser || isLoading" layout="column" layout-align="center center">
         <h2 class="md-headline">Sign in using:</h2>
         <md-button class="md-raised" ng-click="signInWithGoogle()" md-colors="{background: 'red'}">Google</md-button>
@@ -254,7 +265,7 @@
         -->
         <md-button class="md-raised" ng-click="signInWithGithub()" md-colors="{background: 'blue-grey'}">Github</md-button>
       </div>
-      <md-progress-circular md-mode="indeterminate" ng-show="isLoading"></md-progress-circular>
+      <md-progress-circular md-mode="indeterminate" ng-show="isLoading || migrating"></md-progress-circular>
     </div>
 
     <div class="agendas-wallpaper blur-effect" ng-style="wallpaper"></div>
