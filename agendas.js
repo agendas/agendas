@@ -780,7 +780,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
       $scope.agendaRef = firebase.database().ref("/agendas/" + agenda);
       $scope.nameRef = $scope.agendaRef.child("name");
-      // $scope.permissionsRef = firebase.database().ref("/permissions/" + agenda);
+      $scope.permissionsRef = firebase.database().ref("/permissions/" + agenda);
       $scope.categoriesRef = firebase.database().ref("/categories/" + agenda);
       $scope.scheduleRef = firebase.database().ref("/schedules/" + agenda);
 
@@ -886,12 +886,23 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.deleteAgenda = function(event) {
       $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
-        .title("Delete Agenda \"" + agendaName + "\"?!")
-        .textContent("You're about to delete " + agendaName + ". This cannot be undone.")
+        .title("Delete Agenda \"" + $scope.name + "\"?!")
+        .textContent("You're about to delete " + $scope.name + ". This cannot be undone.")
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
+        $scope.permissionsRef.once("value").then(function(data) {
+          for (var user of Object.keys(data.val())) {
+            firebase.database().ref("/users/").child(user).child("agendas").child(agenda).remove();
+          }
 
+          $scope.agendaRef.remove();
+          $scope.categoriesRef.remove();
+          firebase.database().ref("/tasks/").child(agenda).remove();
+          $scope.scheduleRef.remove();
+
+          $scope.permissionsRef.remove();
+        });
       });
     };
 
