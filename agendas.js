@@ -91,10 +91,50 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             });
           });
         });
+
+        $scope.usernameRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/username");
+        $scope.usernameRef.on("value", function(data) {
+          $scope.username = data.val();
+          if (!$scope.username) {
+            $scope.changeUsername();
+          }
+        });
       } else {
         $scope.fullScreenModal = true;
+        $scope.usernameRef = null;
       }
     });
+
+    $scope.changeUsername = function() {
+      $scope.changingUsername = true;
+      $scope.fullScreenModal = true;
+      $scope.newUsername = $scope.username;
+    };
+
+    $scope.removeOldUsername = function() {
+      return new Promise(function(resolve, reject) {
+        if ($scope.username) {
+          firebase.database().ref("/usernames/" + $scope.username).remove().then(resolve).catch(resolve);
+        } else {
+          resolve();
+        }
+      });
+    };
+
+    $scope.confirmUsernameChange = function() {
+      $scope.removeOldUsername().then(function() {
+        $scope.usernameRef.set($scope.newUsername).then(function() {
+          firebase.database().ref("/usernames/" + $scope.newUsername).set($scope.currentUser.uid);
+        })
+      });
+      $scope.fullScreenModal = false;
+      $scope.changingUsername = false;
+    };
+
+    $scope.cancelUsernameChange = function() {
+      $scope.fullScreenModal = false;
+      $scope.changingUsername = false;
+    };
 
     $scope.resetTasks = function() {
       $scope.tasks = {};
@@ -155,14 +195,17 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         });
 
         $scope.taskCreationAllowed = true;
+
+        $scope.screen = "detail";
       } else {
         $scope.agendaRef = null;
-        $scope.permissionsRef = null;
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
         $scope.scheduleRef = null;
 
         $scope.taskCreationAllowed = false;
+
+        $scope.screen = "sidebar";
       }
     });
 
@@ -308,7 +351,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             0,
             0
           )).toJSON();
-          if ($scope.selectedTask.deadlineTime) {
+          if ($scope.selectedTask.time !== undefined) {
             task.deadlineTime = true;
           }
           task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : "";
@@ -326,6 +369,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.tasksRef.child($scope.selectedTask.key).set(task);
 
         $scope.selectedTask = null;
+        $scope.selectedBlock = null;
       }
     };
 
@@ -747,8 +791,58 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
           });
         })();
       }
+
       $scope.migrating = false;
       $scope.fullScreenModal = false;
+    };
+
+    $scope.shareAgenda = function(agenda) {
+      $scope.permissionsRef = firebase.database().ref("permissions").child(agenda);
+      $scope.sharedAgenda = agenda;
+      $scope.fullScreenModal = true;
+      $scope.users = {};
+      $scope.newUser = "";
+
+      $scope.permissionsRef.on("child_added", function(data) {
+        $timeout(function() {
+          $scope.users[data.key] = {};
+        });
+        firebase.database().ref("/users").child(data.key).child("username").once("value").then(function(d) {
+          $timeout(function() {
+            $scope.users[data.key].name = d.val();
+          });
+        });
+      });
+
+      $scope.permissionsRef.on("child_removed", function(data) {
+        $timeout(function() {
+          delete $scope.users[data.key];
+        });
+      });
+    };
+
+    $scope.cancelSharing = function() {
+      $scope.fullScreenModal = false;
+      $scope.permissionsRef = null;
+      $scope.users = null;
+      $scope.newUser = null;
+      $scope.sharedAgenda = null;
+    };
+
+    $scope.removeUser = function(uid) {
+      firebase.database().ref("/users").child(uid).child("agendas").child($scope.sharedAgenda).remove().then(function() {
+        $scope.permissionsRef.child(uid).remove();
+      });
+    };
+
+    $scope.addUser = function() {
+      firebase.database().ref("/usernames").child($scope.newUser).once("value").then(function(data) {
+        if (data.exists()) {
+          $scope.permissionsRef.child(data.val()).set("editor").then(function() {
+            firebase.database().ref("/users").child(data.val()).child("agendas").child($scope.sharedAgenda).set(true);
+          });
+        }
+      });
     };
   })
   .controller("AgendaEditorController", function($scope, agenda, colors, $mdDialog, refresh, settings, $timeout) {

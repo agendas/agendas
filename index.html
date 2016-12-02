@@ -61,6 +61,10 @@
               <md-icon>edit</md-icon>
               <md-tooltip>Edit Agenda</md-tooltip>
             </md-button>
+            <md-button class="md-icon-button" ng-click="shareAgenda(agenda)">
+              <md-icon>person_add</md-icon>
+              <md-tooltip>Share Agenda</md-tooltip>
+            </md-button>
           </md-card-actions>
         </md-card>
         <md-card ng-click="showAgendaCreationDialog($event)">
@@ -255,6 +259,40 @@
           <p class="md-headline">Migrate from Agendas 1.0</p>
         </div>
         <iframe src="" id="migration-iframe" style="border-color: white; border-style: solid; border-width: 10px; border-radius: 5px; background-color: white; width: 320px; height: 720px; margin: 0; padding: 0;"></iframe>
+      </div>
+      <div ng-show="changingUsername">
+        <div layout="row" layout-align="start center">
+          <md-button class="md-icon-button" ng-click="cancelUsernameChange()" ng-show="username" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
+          <p class="md-headline">Pick a Username</p>
+        </div>
+        <p>Your username will be used for sharing agendas.</p>
+        <md-input-container class="md-block">
+          <label>Username</label>
+          <input type="text" ng-model="newUsername" />
+        </md-input-container>
+        <md-button class="md-raised md-accent" ng-click="confirmUsernameChange()" ng-disabled="!newUsername">Save</md-button>
+      </div>
+      <div ng-show="permissionsRef" style="overflow: auto;">
+        <div layout="row" layout-align="start center">
+          <md-button class="md-icon-button" ng-click="cancelSharing()" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
+          <p class="md-headline">Share Agenda</p>
+        </div>
+        <md-list>
+          <md-list-item ng-repeat="(uid, user) in users">
+            <p ng-show="user.name">{{user.name}}</p>
+            <md-progress-circular md-mode="indeterminate" md-diameter="20px" ng-hide="user.name"></md-progress-circular>
+            <p class="md-secondary">Can edit</p>
+            <md-icon class="md-secondary md-warn" ng-click="removeUser(uid)" ng-disabled="uid == currentUser.uid">delete</md-icon>
+          </md-list-item>
+          <md-list-item>
+            <md-input-container layout="row" layout-align="start center">
+              <label style="color: rgba(255, 255, 255, 0.5);">Username</label>
+              <input type="text" ng-model="newUser" style="color: white;" />
+            </md-input-container>
+            <p class="md-secondary">Can edit</p>
+            <md-icon class="md-secondary md-accent" ng-click="addUser()">add</md-icon>
+          </md-list-item>
+        </md-list>
       </div>
       <div class="agendas-auth" ng-hide="currentUser || isLoading" layout="column" layout-align="center center">
         <h2 class="md-headline">Sign in using:</h2>
