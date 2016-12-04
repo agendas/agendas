@@ -343,3 +343,11 @@ wallpaper-picker .selected p {
   display: block;
   width: 100%;
 }
+
+md-tabs.hide-tab-bar > md-tabs-wrapper {
+  display: none;
+}
+
+.agendas-schedule md-card {
+  padding: 0.5em;
+}

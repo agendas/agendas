@@ -143,7 +143,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.categories = {};
       $scope.categoryList = [];
 
-      $scope.schedule = {};
+      $scope.schedule = null;
     };
 
     $scope.resetTasks();
@@ -191,7 +191,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         });
 
         $scope.scheduleRef.on("value", function(data) {
-          $scope.schedule = data.val();
+          $timeout(function() {
+            $scope.schedule = data.val();
+          });
         });
 
         $scope.taskCreationAllowed = true;
@@ -413,6 +415,46 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     }; */
 
     $scope.blocks = [];
+
+    $scope.findScheduleDay = function(d) {
+      var schedule = $scope.schedule;
+      var days = Object.keys(schedule.days);
+      var points = $agendaSorter.sort(Object.keys(schedule.points).map(function(input) {
+        return schedule.points[input];
+      }).filter(function(v) {
+        var d = (new Date(v.date)).getDay();
+        return d > 0 || d < 6;
+      }), function(a, b) {
+        return new Date(a.date) > new Date(b.date);
+      });
+
+      if (d.getDay() == 0 || d.getDay() == 6) {
+        return null;
+      }
+
+      var recentPoint = -1;
+      var freeDays = 0;
+      for (var i = points.length - 1; i >= 0; i--) {
+        var pointDate = new Date(points[i].date);
+        if (pointDate <= d && points[i].type !== "free" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
+          recentPoint = i;
+          break;
+        } else if (pointDate.getTime() == d.getTime()) {
+          recentPoint = -1;
+          break;
+        } else if (points[i].type == "free" && pointDate < d) {
+          freeDays++;
+        }
+      }
+      if (recentPoint === -1) {
+        return null;
+      }
+      // Calculate the number of weekends.
+      var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
+      // What day is today?
+      return days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + days.indexOf(points[recentPoint].type)) % days.length)];
+    };
+
     $scope.generateBlocks = function(category) {
       $scope.blocks = [];
       if (category === undefined) {
@@ -420,24 +462,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
       // Get the control points.
       var schedule = $scope.schedule;
-      var days = Object.keys(schedule.days);
-      var points = schedule.points;
       var blocks = Object.keys(schedule.blocks).map(function(input) {
         return schedule.blocks[input];
       });
-      if (Object.keys(points).length <= 0) {
-        return;
-      }
       // Sort the control points.
-      points = $agendaSorter.sort(Object.keys(points).map(function(input) {
-        return points[input];
-      }).filter(function(v) {
-        var d = (new Date(v.date)).getDay();
-        return d > 0 || d < 6;
-      }), function(a, b) {
-        return new Date(a.date) > new Date(b.date);
-      });
-      // Select the most recent control point.
+
       var now = new Date();
       now.setHours(0);
       now.setMinutes(0);
@@ -445,30 +474,12 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       now.setMilliseconds(0);
       for (var j = 0; j < 7; j++) {
         var d = new Date(now.getTime() + (j * 24 * 60 * 60 * 1000));
-        if (d.getDay() == 0 || d.getDay() == 6) {
+        var day = $scope.findScheduleDay(d);
+
+        if (day === null) {
           continue;
         }
-        var recentPoint = -1;
-        var freeDays = 0;
-        for (var i = points.length - 1; i >= 0; i--) {
-          var pointDate = new Date(points[i].date);
-          if (pointDate <= d && points[i].type !== "free" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
-            recentPoint = i;
-            break;
-          } else if (pointDate.getTime() == d.getTime()) {
-            recentPoint = -1;
-            break;
-          } else if (points[i].type == "free" && pointDate < d) {
-            freeDays++;
-          }
-        }
-        if (recentPoint == -1) {
-          continue;
-        }
-        // Calculate the number of weekends.
-        var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
-        // What day is today?
-        var day = days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + days.indexOf(points[recentPoint].type)) % days.length)];
+
         // Find the blocks that the category occurs in.
         for (var b of blocks) {
           if (b[day] == category) {
@@ -505,6 +516,21 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       }
     });
+
+    $scope.scheduleView = {};
+    $scope.prepareScheduleView = function() {
+      $scope.scheduleView.date = new Date();
+    };
+
+    $scope.$watch("scheduleView.date", function() {
+      if ($scope.scheduleView.date && $scope.schedule) {
+        $scope.scheduleView.date.setHours(0);
+        $scope.scheduleView.date.setMinutes(0);
+        $scope.scheduleView.date.setSeconds(0);
+        $scope.scheduleView.date.setMilliseconds(0);
+        $scope.scheduleView.day = $scope.findScheduleDay($scope.scheduleView.date);
+      }
+    })
 
     $scope.newCategory = function() {
       $scope.selectedTask.category = undefined;
@@ -1316,6 +1342,15 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     if (input) {
       var date = new Date(input);
       return ((date.getHours() % 12 == 0) ? 12 : (date.getHours() % 12)) + ":" + ((date.getMinutes() < 10) ? ("0" + date.getMinutes()) : date.getMinutes()) + ((date.getHours() / 12 >= 1) ? "pm" : "am");
+    } else {
+      return "";
+    }
+  }})
+  .filter("numericTimeFilter", function() { return function(input) {
+    if (input) {
+      var hours = Math.floor(input / 60);
+      var minutes = input % 60;
+      return ((hours % 12 == 0) ? 12 : (hours % 12)) + ":" + ((minutes < 10) ? ("0" + minutes) : minutes) + ((hours / 12 >= 1) ? "pm" : "am");
     } else {
       return "";
     }

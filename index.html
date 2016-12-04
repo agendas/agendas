@@ -76,48 +76,48 @@
         </md-card>
       </div>
       <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs && (screen != 'detail')">
-        <md-tabs md-dynamic-height class="md-primary">
-          <md-tab id="agendas-list-tab">
-            <md-tab-label>List</md-tab-label>
-            <md-tab-body>
-              <div class="agendas-list" ng-if="selectedAgenda">
+        <md-tabs md-dynamic-height class="md-primary" ng-class="schedule ? '' : 'hide-tab-bar'">
+          <md-tab id="agendas-list-tab" label="List">
+            <div class="agendas-list" ng-if="selectedAgenda">
 
-                <md-switch ng-model="showCompleted">Show Completed</md-switch>
+              <md-switch ng-model="showCompleted">Show Completed</md-switch>
 
-                <div class="task-group" ng-repeat="taskGroup in taskGroups | tasksListFilter:showCompleted">
-                  <p>{{taskGroup.deadline | dateFilter}}</p>
-                  <md-list class="md-whiteframe-2dp">
-                    <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="selectTask(task, $event)">
-                      <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
-                      <div class="md-list-item-text task-selected-{{task.selected}}">
-                        <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                        <p>
-                          <span class="category-circle" ng-if="getColor(categories[task.category].color)" style="background-color: #{{getColor(categories[task.category].color)}}"></span>
-                          {{categories[task.category].name}}
-                        </p>
-                      </div>
-                      <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
-                      <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
-                    </md-list-item>
-                  </md-list>
-                </div>
-
-                <md-list class="md-whiteframe-2dp new-task" ng-if="taskCreationAllowed">
-                  <md-list-item ng-click="newTask()">
-                    <md-icon>add</md-icon>
-                    <p>New task</p>
+              <div class="task-group" ng-repeat="taskGroup in taskGroups | tasksListFilter:showCompleted">
+                <p>{{taskGroup.deadline | dateFilter}}</p>
+                <md-list class="md-whiteframe-2dp">
+                  <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="selectTask(task, $event)">
+                    <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
+                    <div class="md-list-item-text task-selected-{{task.selected}}">
+                      <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
+                      <p>
+                        <span class="category-circle" ng-if="getColor(categories[task.category].color)" style="background-color: #{{getColor(categories[task.category].color)}}"></span>
+                        {{categories[task.category].name}}
+                      </p>
+                    </div>
+                    <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
+                    <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
                   </md-list-item>
                 </md-list>
-
               </div>
 
-            </md-tab-body>
+              <md-list class="md-whiteframe-2dp new-task" ng-if="taskCreationAllowed">
+                <md-list-item ng-click="newTask()">
+                  <md-icon>add</md-icon>
+                  <p>New task</p>
+                </md-list-item>
+              </md-list>
+
+            </div>
           </md-tab>
-          <md-tab id="agendas-calendar-tab" ng-disabled="settings.useCalendar !== true">
-            <md-tab-label>Calendar</md-tab-label>
-            <md-tab-body class="agendas-calendar">
-              <h2 layout-margin class="md-display-4">Coming soon.</h2>
-            </md-tab-body>
+          <md-tab id="agendas-schedule-tab" ng-if="schedule" ng-click="prepareScheduleView()" label="Schedule">
+            <div class="agendas-schedule" layout="column" layout-align="start center" layout-margin>
+              <md-datepicker ng-model="scheduleView.date"></md-datepicker>
+              <div ng-if="scheduleView.date && scheduleView.day">
+                <md-card ng-repeat="(key, block) in schedule.blocks" md-colors="(categories[block[scheduleView.day]] && categories[block[scheduleView.day]].color) ? {background: categories[block[scheduleView.day]].color} : {background: 'grey-500-0'}">
+                  <strong>{{categories[block[scheduleView.day]].name}}</strong> {{block.time | numericTimeFilter}}
+                </md-card>
+              </div>
+            </div>
           </md-tab>
         </md-tabs>
         <md-button class="md-icon-button agendas-detail-back" hide-gt-xs ng-click="selectedAgenda = undefined; refresh()"><md-icon>arrow_back</md-icon></md-button>
