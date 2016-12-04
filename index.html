@@ -75,8 +75,9 @@
           </md-card-title>
         </md-card>
       </div>
-      <div class="agendas-detail md-whiteframe-7dp" ng-hide="xs && (screen != 'detail')">
-        <md-tabs md-dynamic-height class="md-primary" ng-class="schedule ? '' : 'hide-tab-bar'">
+      <div class="agendas-detail" ng-hide="xs && (screen != 'detail')">
+        <h2 class="md-display-3">{{agendas[selectedAgenda].name}}</h2>
+        <md-tabs md-dynamic-height ng-class="schedule ? '' : 'hide-tab-bar'">
           <md-tab id="agendas-list-tab" label="List">
             <div class="agendas-list" ng-if="selectedAgenda">
 
@@ -111,7 +112,7 @@
           </md-tab>
           <md-tab id="agendas-schedule-tab" ng-if="schedule" ng-click="prepareScheduleView()" label="Schedule">
             <div class="agendas-schedule" layout="column" layout-align="start center" layout-margin>
-              <md-datepicker ng-model="scheduleView.date"></md-datepicker>
+              <md-card><md-datepicker ng-model="scheduleView.date"></md-datepicker></md-card>
               <div ng-if="scheduleView.date && scheduleView.day">
                 <md-card ng-repeat="(key, block) in schedule.blocks" md-colors="(categories[block[scheduleView.day]] && categories[block[scheduleView.day]].color) ? {background: categories[block[scheduleView.day]].color} : {background: 'grey-500-0'}">
                   <strong>{{categories[block[scheduleView.day]].name}}</strong> {{block.time | numericTimeFilter}}

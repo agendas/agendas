@@ -24,13 +24,14 @@ body {
 }
 
 .agendas-detail {
-  background-color: rgba(255, 255, 255, 0.6);
   position: relative;
   width: 67vw;
   margin-left: 33vw;
   left: 0;
   height: 100vh;
   overflow: auto;
+  color: white;
+  padding: 3rem 100px;
 }
 
 .agendas-detail .md-whiteframe-2dp {
@@ -64,10 +65,11 @@ body {
 }
 
 .agendas-list {
-  margin: 3rem auto 3rem auto;
-  padding: 0 1rem 0 1rem;
   width: 100%;
   max-width: 640px;
+  padding: 8px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .agendas-list .md-whiteframe-2dp {
@@ -77,6 +79,10 @@ body {
 .task-group,
 .agendas-list .new-task {
   margin-top: 2rem;
+}
+
+.agendas-list .new-task {
+  color: black;
 }
 
 .task-group p {
@@ -176,6 +182,10 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   .agendas-detail {
     width: 100%;
     margin: 0;
+  }
+
+  .agendas-detail {
+    padding: 3rem 0;
   }
 
   .agendas-sidebar {
@@ -350,4 +360,14 @@ md-tabs.hide-tab-bar > md-tabs-wrapper {
 
 .agendas-schedule md-card {
   padding: 0.5em;
+}
+
+div.agendas-detail > md-tabs > md-tabs-wrapper {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+}
+
+div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item,
+div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item.md-active {
+  color: white;
 }
