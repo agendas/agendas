@@ -598,11 +598,11 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     };
     $scope.refreshWallpaper();
 
-    $scope.xs = $mdMedia("xs");
+    $scope.md = $mdMedia("gt-md");
     $scope.$watch(function() {
-      return $mdMedia("xs");
+      return $mdMedia("gt-md");
     }, function(newValue) {
-      $scope.xs = newValue;
+      $scope.md = newValue;
     });
 
     $scope.quickAdd = function(event) {

@@ -26,31 +26,16 @@ body {
 .agendas-detail {
   position: relative;
   width: 67vw;
-  margin-left: 33vw;
+  margin-left: 50%;
   left: 0;
-  height: 100vh;
-  overflow: auto;
   color: white;
   padding: 3rem 100px;
+  transform: translateX(-50%);
 }
 
 .agendas-detail .md-whiteframe-2dp {
   background-color: white;
-}
-
-.agendas-sidebar {
-  width: 33vw;
-  height: 100vh;
-  overflow: auto;
-  position: fixed;
-  top: 0;
-  left: 0;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.agendas-sidebar > md-toolbar {
-  background-color: transparent;
-  color: white;
+  color: black;
 }
 
 .agendas-sidebar md-card {
@@ -142,15 +127,15 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
   min-height: 0;
 }
 
-.agendas-detail-back {
+.agendas-menu-button {
   position: absolute;
   top: 5px;
   left: 5px;
-  z-index: 50;
+  z-index: 1;
   color: white;
 }
 
-.agendas-detail-back md-icon {
+.agendas-menu-button md-icon {
   color: white;
 }
 
@@ -171,75 +156,6 @@ md-sidenav[md-component-id="agendas-task-detail"] > div {
 
 .selected-tasks-actions md-card-actions > .selected-tasks-actions-title:hover {
   background-color: transparent;
-}
-
-@media (max-width: 599px) {
-  md-tabs md-pagination-wrapper {
-    left: calc(10px + 2rem);
-  }
-
-  .agendas-sidebar,
-  .agendas-detail {
-    width: 100%;
-    margin: 0;
-  }
-
-  .agendas-detail {
-    padding: 3rem 0;
-  }
-
-  .agendas-sidebar {
-    position: static;
-  }
-
-  .category-list md-list-item {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .category-list md-select-value {
-    min-width: initial;
-    text-overflow: clip;
-  }
-
-  .category-list .category-circle {
-    width: 0.8em;
-    height: 0.8em;
-  }
-
-  .category-list .md-icon-button {
-    margin: 0;
-  }
-
-  .agendas-sidebar {
-    transition: opacity 0.25s;
-    opacity: 1;
-    transition-timing-function: cubic-bezier(0.35, 0, 0.25, 1), cubic-bezier(0.35, 0, 0.25, 1), cubic-bezier(0.35, 0, 0.25, 1);
-  }
-
-  .agendas-sidebar.ng-hide-animate {
-    display: block !important;
-  }
-
-  .agendas-sidebar.ng-hide {
-    opacity: 0;
-  }
-
-  .agendas-detail {
-    transition: left 0.25s;
-    transition-timing-function: cubic-bezier(0.35, 0, 0.25, 1), cubic-bezier(0.35, 0, 0.25, 1), cubic-bezier(0.35, 0, 0.25, 1);
-  }
-
-  .agendas-detail.ng-hide {
-    left: 100%;
-  }
-
-  .agendas-detail.ng-hide-animate {
-    display: block !important;
-    position: absolute;
-    z-index: 3;
-    top: 0;
-  }
 }
 
 .selected-agenda {
@@ -370,4 +286,17 @@ div.agendas-detail > md-tabs > md-tabs-wrapper {
 div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item,
 div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item.md-active {
   color: white;
+}
+
+md-sidenav.md-locked-open.md-closed.md-sidenav-left {
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  overflow: auto;
+  height: 100vh;
+}
+
+md-sidenav.md-locked-open + .agendas-detail {
+  margin-left: calc(50% + 160px);
 }
