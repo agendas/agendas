@@ -77,6 +77,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     $scope.agendas = Object.create(null);
     $scope.agendasList = [];
+    $scope.agendaRefs = {};
 
     $scope.$watch("currentUser", function() {
       if ($scope.currentUser) {
@@ -84,11 +85,24 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         $scope.agendasRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/agendas");
 
         $scope.agendasRef.on("child_added", function(data) {
-          firebase.database().ref("/agendas/" + data.key).on("value", function(snapshot) {
+          $scope.agendaRefs[data.key] = firebase.database().ref("/agendas/" + data.key);
+          $scope.agendaRefs[data.key].on("value", function(snapshot) {
             $scope.agendas[snapshot.key] = snapshot.val();
             $timeout(function() {
               $scope.agendasList = Object.keys($scope.agendas);
             });
+          });
+        });
+
+        $scope.agendasRef.on("child_removed", function(data) {
+          $timeout(function() {
+            delete $scope.agendaRefs[data.key];
+            delete $scope.agendas[data.key];
+            $scope.agendasList = Object.keys($scope.agendas);
+
+            if ($scope.selectedAgenda === data.key) {
+              $scope.selectedAgenda = null;
+            }
           });
         });
 
@@ -102,6 +116,10 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         $scope.fullScreenModal = true;
         $scope.usernameRef = null;
+        $scope.agendas = Object.create(null);
+        $scope.agendasList = [];
+        $scope.agendaRefs = {};
+        $scope.selectedAgenda = null;
       }
     });
 
@@ -472,7 +490,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       now.setMinutes(0);
       now.setSeconds(0);
       now.setMilliseconds(0);
-      for (var j = 0; j < 7; j++) {
+      for (var j = 0; j < 30; j++) {
         var d = new Date(now.getTime() + (j * 24 * 60 * 60 * 1000));
         var day = $scope.findScheduleDay(d);
 
@@ -858,7 +876,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     $scope.removeUser = function(uid) {
       firebase.database().ref("/users").child(uid).child("agendas").child($scope.sharedAgenda).remove().then(function() {
         $scope.permissionsRef.child(uid).remove();
+        if (uid === $scope.currentUser.uid) {
+          $scope.cancelSharing();
+        }
       });
+    };
+
+    $scope.numberOfUsers = function() {
+      return Object.keys($scope.users).length;
     };
 
     $scope.addUser = function() {

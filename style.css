@@ -25,11 +25,10 @@ body {
 
 .agendas-detail {
   position: relative;
-  width: 67vw;
+  width: 100%;
   margin-left: 50%;
   left: 0;
   color: white;
-  padding: 3rem 100px;
   transform: translateX(-50%);
 }
 

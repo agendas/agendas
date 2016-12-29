@@ -29,7 +29,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
 
     <script src="agendas.js"></script>
   </head>
@@ -42,6 +42,13 @@
             <div class="md-list-item-text">
               <h3>Agendas</h3>
               <p><em>by anli5005</em></p>
+            </div>
+          </md-list-item>
+          <md-list-item class="md-2-line">
+            <md-icon>person</md-icon>
+            <div class="md-list-item-text">
+              <h3>Account</h3>
+              <p>{{username || currentUser.email || "You haven't signed in yet."}}</p>
             </div>
           </md-list-item>
           <md-divider></md-divider>
@@ -247,8 +254,8 @@
         </div>
         <p>Your username will be used for sharing agendas.</p>
         <md-input-container class="md-block">
-          <label>Username</label>
-          <input type="text" ng-model="newUsername" />
+          <label style="color: rgba(255, 255, 255, 0.5);">Username</label>
+          <input type="text" ng-model="newUsername" style="color: white;"/>
         </md-input-container>
         <md-button class="md-raised md-accent" ng-click="confirmUsernameChange()" ng-disabled="!newUsername">Save</md-button>
       </div>
@@ -262,7 +269,7 @@
             <p ng-show="user.name">{{user.name}}</p>
             <md-progress-circular md-mode="indeterminate" md-diameter="20px" ng-hide="user.name"></md-progress-circular>
             <p class="md-secondary">Can edit</p>
-            <md-icon class="md-secondary md-warn" ng-click="removeUser(uid)" ng-disabled="uid == currentUser.uid">delete</md-icon>
+            <md-icon class="md-secondary md-warn" ng-click="removeUser(uid)" ng-disabled="uid == currentUser.uid && numberOfUsers() <= 1">delete</md-icon>
           </md-list-item>
           <md-list-item>
             <md-input-container layout="row" layout-align="start center">
