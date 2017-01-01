@@ -46,7 +46,8 @@
             </div>
           </md-list-item>
           <md-list-item class="md-2-line">
-            <md-icon>person</md-icon>
+            <md-icon ng-hide="currentUser.photoURL">person</md-icon>
+            <img ng-src="{{currentUser.photoURL}}" ng-show="currentUser.photoURL" class="md-avatar" />
             <div class="md-list-item-text">
               <h3>Account</h3>
               <p>{{username || currentUser.email || "You haven't signed in yet."}}</p>
@@ -64,6 +65,9 @@
               <md-icon>person_add</md-icon>
               <md-tooltip>Share Agenda</md-tooltip>
             </md-button>
+          </md-list-item>
+          <md-list-item ng-show="agendasList.length < 1" layout="column" layout-align="center center">
+            <md-button class="md-primary" ng-click="migrate()">Don't see your agendas?</md-button>
           </md-list-item>
           <md-list-item ng-click="showAgendaCreationDialog($event)">
               <md-icon>add</md-icon>

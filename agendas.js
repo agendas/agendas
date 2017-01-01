@@ -116,6 +116,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         $scope.fullScreenModal = true;
         $scope.usernameRef = null;
+        $scope.username = null;
         $scope.agendas = Object.create(null);
         $scope.agendasList = [];
         $scope.agendaRefs = {};
@@ -710,7 +711,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       document.getElementById("migration-iframe").setAttribute("src", "http://anli5005.github.io/agendas/migrate.html");
       window.onmessage = function(e) {
         if (e.data.ready) {
-          e.source.postMessage({name: "Agendas 2.0"}, "http://anli5005.github.io");
+          e.source.postMessage({name: "Agendas 2.0"}, "*");
         } else if (e.data.agendas) {
           $timeout(function() {
             $scope.migration = false;
