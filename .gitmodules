@@ -1,4 +1,0 @@
-[submodule "beta"]
-	path = beta
-	url = https://github.com/agendas/agendas
-	branch = 2.0
