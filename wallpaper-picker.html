@@ -1,0 +1,9 @@
+<div>
+  <div ng-repeat="wallpaper in wallpapers" ng-class="wallpaper.id == value.id ? 'selected' : ''" ng-click="value.id = wallpaper.id">
+    <img ng-src="{{wallpaper.url || value.customURL}}" />
+    <p>{{wallpaper.name}}</p>
+    <md-input-container ng-if="!wallpaper.url" class="md-block">
+      <input placeholder="Wallpaper URL" ng-model="value.customURL" />
+    </md-input-container>
+  </div>
+</div>

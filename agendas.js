@@ -10,47 +10,38 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
                     "deep-orange": "FF5722", brown: "795548", grey: "9E9E9E",
                     "blue-grey": "607D8B", black: "000000"
   })
-  .controller("AgendasController", function($scope, $agendaParser, $googleDrive) {
-
-    $scope.agendaForTask = function(task) {
-      return $agendaParser.getAgenda(task.agenda);
+  .value("wallpapers", [
+    {
+      id: "amazon-rainforest",
+      url: "https://c1.staticflickr.com/7/6091/6285070575_1cfae9eb7d_b.jpg",
+      name: "Amazon Rainforest"
+    },
+    {
+      id: "times-square",
+      url: "https://upload.wikimedia.org/wikipedia/commons/1/19/Times_Square,_New_York_City_(HDR).jpg",
+      name: "Times Square"
+    },
+    {
+      id: "sushi",
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Western_Sushi.jpg",
+      name: "Sushi"
+    },
+    {
+      id: "mlg",
+      url: "https://i.ytimg.com/vi/rosclr8QUqo/maxresdefault.jpg",
+      name: "MLG"
+    },
+    {
+      id: "doge",
+      url: "http://vignette1.wikia.nocookie.net/sanicsource/images/9/97/Doge.jpg/revision/latest?cb=20160112233015",
+      name: "Doge"
+    },
+    {
+      id: "custom",
+      name: "Custom"
     }
-
-    // Establish a connection to Google Drive.
-    var CLIENT_ID = "153820900287-94r8o59pghaud0grrvkfcs1foedkbc6g.apps.googleusercontent.com";
-    var SCOPES    = ["https://www.googleapis.com/auth/drive.appfolder", "https://www.googleapis.com/auth/drive.metadata.readonly"];
-
-    var scope = $scope;
-
-    function handleAuthResult(authResult) {
-      if (authResult && !authResult.error) {
-        scope.$apply(function($scope) {
-          $scope.isAuthenticated = 1;
-        });
-        $googleDrive.loadApis(function() {
-          scope.$apply(function($scope) {
-            $scope.apiLoaded = true;
-          });
-        });
-      } else {
-        scope.$apply(function($scope) {
-          $scope.isAuthenticated = 0;
-        });
-      }
-    }
-
-    $scope.isAuthenticated = 2;
-    $scope.apiLoaded = false;
-    $scope.checkAuth = function() {
-      $googleDrive.checkAuth(CLIENT_ID, SCOPES, handleAuthResult);
-    };
-    $scope.authorize = function() {
-      $googleDrive.authorize(CLIENT_ID, SCOPES, handleAuthResult);
-    };
-
-  })
-  .controller("AgendasUIController", function($scope, $agendaParser, $agendaSorter, $googleDrive, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, quickAddSamples) {
-    angular.extend(this, $controller("AgendasController", {$scope: $scope}));
+  ])
+  .controller("AgendasUIController", function($scope, $agendaSorter, $mdSidenav, $controller, $mdDialog, $mdComponentRegistry, $filter, $rootScope, $mdMedia, $timeout, quickAddSamples, wallpapers, colors) {
 
     $scope.toggleSidenav = function(sidenav) {
       return $mdSidenav(sidenav).toggle();
@@ -73,136 +64,221 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         .placeholder("Name")
         .cancel("Cancel").ok("Done")
       ).then(function(result) {
-        if ((typeof result == "string") && (result != "")) {
-          if ($agendaParser.newAgenda(result)) { // TODO: Error handling!!!
-            $scope.refresh();
+        if (result) {
+          var agendaRef = firebase.database().ref("/agendas/").push();
+          agendaRef.child("name").set(result).then(function() {
+            firebase.database().ref("/permissions/").child(agendaRef.key).child($scope.currentUser.uid).set("editor").then(function() {
+              $scope.agendasRef.child(agendaRef.key).set(true);
+            });
+          });
+        }
+      });
+    };
+
+    $scope.agendas = Object.create(null);
+    $scope.agendasList = [];
+    $scope.agendaRefs = {};
+
+    $scope.$watch("currentUser", function() {
+      if ($scope.currentUser) {
+        $scope.fullScreenModal = false;
+        $scope.agendasRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/agendas");
+
+        $scope.agendasRef.on("child_added", function(data) {
+          $scope.agendaRefs[data.key] = firebase.database().ref("/agendas/" + data.key);
+          $scope.agendaRefs[data.key].on("value", function(snapshot) {
+            $scope.agendas[snapshot.key] = snapshot.val();
+            $timeout(function() {
+              $scope.agendasList = Object.keys($scope.agendas);
+            });
+          });
+        });
+
+        $scope.agendasRef.on("child_removed", function(data) {
+          $timeout(function() {
+            delete $scope.agendaRefs[data.key];
+            delete $scope.agendas[data.key];
+            $scope.agendasList = Object.keys($scope.agendas);
+
+            if ($scope.selectedAgenda === data.key) {
+              $scope.selectedAgenda = null;
+            }
+          });
+        });
+
+        $scope.usernameRef = firebase.database().ref("/users/" + $scope.currentUser.uid + "/username");
+        $scope.usernameRef.on("value", function(data) {
+          $scope.username = data.val();
+          if (!$scope.username) {
+            $scope.changeUsername();
           }
-        }
-      });
-    };
-
-    $scope.agendaList = [];
-    $scope.refresh = function() {
-      $scope.clearSelection();
-      $scope.agendaList = $agendaParser.listAgendas();
-      $scope.taskCreationAllowed = false;
-      if ((typeof $scope.selectedAgenda != "string") && $scope.selectedAgenda) {
-        $scope.selectedAgenda = $agendaParser.getAgenda($scope.selectedAgenda.name());
-        if ($scope.selectedAgenda.error == "Agenda does not exist") {
-          $scope.selectedAgenda = undefined;
-        } else if (!$scope.selectedAgenda.error) {
-          $scope.tasks = $agendaSorter.separateDeadlines($scope.selectedAgenda.tasks());
-          $scope.taskCreationAllowed = true;
-          $rootScope.agenda = $scope.selectedAgenda.name();
-        } else {
-          console.warn($scope.selectedAgenda.error);
-        }
-      } else if ($scope.selectedAgenda == "today") {
-        $scope.populateToday();
-        $rootScope.agenda = "Today";
-      } else if ($scope.selectedAgenda == "week") {
-        $scope.populateWeek();
-        $rootScope.agenda = "Week";
-      } else if ($scope.selectedAgenda == "all") {
-        $scope.populateAll();
-        $rootScope.agenda = "All";
-      }
-      if (!$scope.selectedAgenda) {
-        $scope.tasks = [];
-        $rootScope.agenda = "None";
-        $scope.screen = "sidebar";
+        });
       } else {
-        $scope.screen = "detail";
+        $scope.fullScreenModal = true;
+        $scope.usernameRef = null;
+        $scope.username = null;
+        $scope.agendas = Object.create(null);
+        $scope.agendasList = [];
+        $scope.agendaRefs = {};
+        $scope.selectedAgenda = null;
       }
-    };
-
-    $scope.$on("driveSyncFinished", function() {
-      $scope.$apply(function($scope) {
-        $scope.refresh();
-      });
     });
 
-    $scope.selectedAgenda = null;
-    $scope.tasks = [];
-    $scope.categories = [];
+    $scope.changeUsername = function() {
+      $scope.changingUsername = true;
+      $scope.fullScreenModal = true;
+      $scope.newUsername = $scope.username;
+    };
+
+    $scope.removeOldUsername = function() {
+      return new Promise(function(resolve, reject) {
+        if ($scope.username) {
+          firebase.database().ref("/usernames/" + $scope.username).remove().then(resolve).catch(resolve);
+        } else {
+          resolve();
+        }
+      });
+    };
+
+    $scope.confirmUsernameChange = function() {
+      $scope.removeOldUsername().then(function() {
+        $scope.usernameRef.set($scope.newUsername).then(function() {
+          firebase.database().ref("/usernames/" + $scope.newUsername).set($scope.currentUser.uid);
+        })
+      });
+      $scope.fullScreenModal = false;
+      $scope.changingUsername = false;
+    };
+
+    $scope.cancelUsernameChange = function() {
+      $scope.fullScreenModal = false;
+      $scope.changingUsername = false;
+    };
+
+    $scope.resetTasks = function() {
+      $scope.tasks = {};
+      $scope.taskGroups = [];
+
+      $scope.categories = {};
+      $scope.categoryList = [];
+
+      $scope.schedule = null;
+    };
+
+    $scope.resetTasks();
 
     $scope.selectAgenda = function(agenda) {
-      if ($agendaParser.listAgendas().includes(agenda)) {
-        // Select the agenda
-        $scope.selectedAgenda = {name:function(){return agenda;}};
-        $scope.refresh();
-      }
-    };
-    $scope.selectToday = function() {
-      $scope.selectedAgenda = "today";
-      $scope.refresh();
-    };
-    $scope.selectWeek = function() {
-      $scope.selectedAgenda = "week";
-      $scope.refresh();
-    };
-    $scope.selectAllTasks = function() {
-      $scope.selectedAgenda = "all";
-      $scope.refresh();
+      $scope.selectedAgenda = agenda;
     };
 
-    $scope.populateToday = function() {
-      $scope.populateAll();
-      var now = new Date();
-      now.setHours(0);
-      now.setMinutes(0);
-      now.setSeconds(0);
-      now.setMilliseconds(0);
-      var tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
-      $scope.tasks = $scope.tasks.filter(function(group) {
-        return (new Date(group.deadline)) <= tomorrow;
-      });
-    };
-    $scope.populateWeek = function() {
-      $scope.populateAll();
-      var now = new Date();
-      now.setHours(0);
-      now.setMinutes(0);
-      now.setSeconds(0);
-      now.setMilliseconds(0);
-      var nextWeek = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
-      $scope.tasks = $scope.tasks.filter(function(group) {
-        return (new Date(group.deadline)) < nextWeek;
-      });
-    };
-    $scope.populateAll = function() {
-      var agendas = $agendaParser.listAgendas();
-      var tasks = [];
-      var categories = [];
-      for (var agenda of agendas) {
-        for (var task of $agendaParser.getAgenda(agenda).tasks()) {
-          tasks.push(task);
-        }
+    $scope.$watch("selectedAgenda", function() {
+      $scope.resetTasks();
+      if ($scope.selectedAgenda) {
+        $scope.agendaRef = firebase.database().ref("/agendas/" + $scope.selectedAgenda);
+        $scope.categoriesRef = firebase.database().ref("/categories/" + $scope.selectedAgenda);
+        $scope.tasksRef = firebase.database().ref("/tasks/" + $scope.selectedAgenda);
+        $scope.scheduleRef = firebase.database().ref("/schedules/" + $scope.selectedAgenda);
+
+        $scope.tasksRef.on("child_added", function(data) {
+          $scope.tasks[data.key] = data.val();
+          $timeout($scope.refreshTasks);
+        });
+
+        $scope.tasksRef.on("child_changed", function(data) {
+          $scope.tasks[data.key] = data.val();
+          $timeout($scope.refreshTasks);
+        });
+
+        $scope.tasksRef.on("child_removed", function(data) {
+          delete $scope.tasks[data.key];
+          $timeout($scope.refreshTasks);
+        });
+
+        $scope.categoriesRef.on("child_added", function(data) {
+          $scope.categories[data.key] = data.val();
+          $timeout($scope.refreshCategories);
+        });
+
+        $scope.categoriesRef.on("child_changed", function(data) {
+          $scope.categories[data.key] = data.val();
+          $timeout($scope.refreshCategories);
+        });
+
+        $scope.categoriesRef.on("child_removed", function(data) {
+          delete $scope.categories[data.key];
+          $timeout($scope.refreshCategories);
+        });
+
+        $scope.scheduleRef.on("value", function(data) {
+          $timeout(function() {
+            $scope.schedule = data.val();
+          });
+        });
+
+        $scope.taskCreationAllowed = true;
+
+        $scope.screen = "detail";
+      } else {
+        $scope.agendaRef = null;
+        $scope.categoriesRef = null;
+        $scope.tasksRef = null;
+        $scope.scheduleRef = null;
+
+        $scope.taskCreationAllowed = false;
+
+        $scope.screen = "sidebar";
       }
-      $scope.tasks = $agendaSorter.separateDeadlines(tasks);
-      $scope.categories = [];
+    });
+
+    $scope.newTask = function() {
+      $scope.tasksRef.push().set({
+        name: "New task"
+      });
+    };
+
+    $scope.selectedTasks = [];
+
+    $scope.selectTask = function(task, event) {
+      $scope.viewTaskDetail(task);
+    };
+
+    $scope.refresh = angular.noop;
+
+    $scope.refreshTasks = function() {
+      $scope.taskGroups = $agendaSorter.separateDeadlines(Object.keys($scope.tasks).map(function(input) {
+        var task = $scope.tasks[input];
+        task.key = input;
+        return task;
+      }));
+    };
+
+    $scope.refreshCategories = function() {
+      $scope.categoryList = Object.keys($scope.categories).map(function(input) {
+        var category = $scope.categories[input];
+        category.key = input;
+        return category;
+      });
     };
 
     $scope.completeTask = function(task) {
-      var agenda = $scope.agendaForTask(task);
-      var now = new Date();
       var next = undefined;
+      var deadline = new Date(task.deadline);
       if (task.deadline) {
         if (task.repeat == "day") {
-          next = new Date(task.deadline.getTime() + (24 * 60 * 60 * 1000));
+          next = new Date(deadline.getTime() + (24 * 60 * 60 * 1000));
         } else if (task.repeat == "weekday") {
-          next = new Date(task.deadline.getTime() + (24 * 60 * 60 * 1000));
+          next = new Date(deadline.getTime() + (24 * 60 * 60 * 1000));
           while ((next.getDay() == 0) || (next.getDay() == 6)) {
             next = new Date(next.getTime() + (24 * 60 * 60 * 1000));
           }
         } else if (task.repeat == "week") {
-          next = new Date(task.deadline.getTime() + (7 * 24 * 60 * 60 * 1000));
+          next = new Date(deadline.getTime() + (7 * 24 * 60 * 60 * 1000));
         } else if (task.repeat == "2-weeks") {
-          next = new Date(task.deadline.getTime() + (14 * 24 * 60 * 60 * 1000));
+          next = new Date(deadline.getTime() + (14 * 24 * 60 * 60 * 1000));
         } else if (task.repeat == "month") {
-          next = new Date(task.deadline.getTime() + (30 * 24 * 60 * 60 * 1000));
+          next = new Date(deadline.getTime() + (30 * 24 * 60 * 60 * 1000));
         } else if (task.repeat == "year") {
-          next = new Date(task.deadline.getFullYear() + 1, task.deadline.getMonth(), task.deadline.getDate(), 0, 0, 0, 0);
+          next = new Date(deadline.getFullYear() + 1, deadline.getMonth(), deadline.getDate(), 0, 0, 0, 0);
         }
       }
       if (next) {
@@ -211,29 +287,28 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         next.setSeconds(0);
         next.setMilliseconds(0);
       }
-      if (task.completed && next && (!task.repeatEnds || (next <= task.repeatEnds))) {
-        agenda.getTask(task.id).deadline = new Date(
+      if (task.completed && next && (!task.repeatEnds || (next <= new Date(task.repeatEnds)))) {
+        $scope.tasksRef.child(task.key).child("deadline").set((new Date(
           next.getFullYear(),
           next.getMonth(),
           next.getDate(),
-          task.deadline.getHours(),
-          task.deadline.getMinutes(),
-          task.deadline.getSeconds(),
-          task.deadline.getMilliseconds()
-        );
+          deadline.getHours(),
+          deadline.getMinutes(),
+          deadline.getSeconds(),
+          deadline.getMilliseconds()
+        )).toJSON());
       } else {
-        agenda.getTask(task.id).completed = task.completed;
+        $scope.tasksRef.child(task.key).child("completed").set(task.completed);
       }
-      agenda.saveAgenda();
-      $scope.refresh();
     };
 
     $scope.category = undefined;
     $scope.selectedTask = null;
-    $scope.detailTheme = "default";
     $scope.viewTaskDetail = function(task) {
       $scope.selectedTask = task;
       $scope.selectedTask.deadlineDate = task.deadline ? new Date(task.deadline) : undefined;
+      console.log(task);
+      console.log(deadline);
       if ($scope.selectedTask.deadline && $scope.selectedTask.deadlineTime) {
         var deadline = new Date($scope.selectedTask.deadline);
         $scope.selectedTask.time = deadline.getHours() * 60 + deadline.getMinutes();
@@ -241,38 +316,20 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       } else {
         $scope.selectedTask.time = undefined;
       }
-      $scope.categories = $scope.agendaForTask(task).categories();
-      $scope.category = (typeof $scope.selectedTask.category == "undefined") ? undefined : ("category-" + $scope.selectedTask.category);
       $scope.selectedTask.repeat = task.repeat ? task.repeat : "";
-      $scope.selectedBlock = undefined;
-      if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
-        $scope.generateBlocks($scope.selectedTask.category);
-      }
+      // $scope.selectedBlock = undefined;
+      // if ($scope.selectedTask.category !== undefined && $scope.agendaForTask(task).raw.properties.schedule && !$scope.agendaForTask(task).raw.properties.schedule.deleted) {
+        // $scope.generateBlocks($scope.selectedTask.category);
+      // }
       $scope.toggleSidenav("agendas-task-detail");
     };
 
-    $scope.selectedTasks = [];
+    /* $scope.selectedTasks = [];
     $scope.clearSelection = function() {
       for (var task of $scope.selectedTasks) {
         task.selected = false;
       }
       $scope.selectedTasks = [];
-    }
-    $scope.selectTask = function(task, event) {
-      if (event.shiftKey) {
-        task.selected = !task.selected;
-        if (task.selected) {
-          $scope.selectedTasks.push(task);
-          if (task.selected.length < 1) {
-            $scope.multipleDeadline = undefined;
-          }
-        } else {
-          $scope.selectedTasks.splice($scope.selectedTasks.indexOf(task), 1);
-        }
-      } else {
-        $scope.clearSelection();
-        $scope.viewTaskDetail(task);
-      }
     }
 
     $scope.hideMultipleDeadlineChange = function() {
@@ -290,59 +347,51 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.selectedTasks = [];
       $scope.refresh();
       $scope.hideMultipleDeadlineChange();
-    }
+    } */
 
     $scope.taskDetailIsOpen = function() {
       return false;
     };
     $scope.saveTaskDetail = function() {
       if ($scope.selectedTask) {
-        var agenda = $scope.agendaForTask($scope.selectedTask);
-        var task = agenda.getTask($scope.selectedTask.id)
+        var task = {};
         task.name = $scope.selectedTask.name;
         if ($scope.selectedTask.deadlineDate) {
-          if ($scope.selectedTask.time == undefined) {
-            $scope.selectedTask.deadline = new Date(1970, 0, 1, 0, 0, 0, 0);
-            $scope.selectedTask.deadlineTime = false;
-          } else {
-            var hours = Math.floor($scope.selectedTask.time / 60);
-            var minutes = $scope.selectedTask.time - (hours * 60)
-            $scope.selectedTask.deadline = new Date(1970, 0, 1, hours, minutes, 0, 0);
-            $scope.selectedTask.deadlineTime = true;
+          var hours = 0;
+          var minutes = 0;
+          if ($scope.selectedTask.time !== undefined) {
+            hours = Math.floor($scope.selectedTask.time / 60);
+            minutes = $scope.selectedTask.time - (hours * 60)
           }
-          console.log($scope.selectedTask.deadline);
-          task.deadline = new Date(
+          task.deadline = (new Date(
             $scope.selectedTask.deadlineDate.getFullYear(),
             $scope.selectedTask.deadlineDate.getMonth(),
             $scope.selectedTask.deadlineDate.getDate(),
-            $scope.selectedTask.deadline.getHours(),
-            $scope.selectedTask.deadline.getMinutes(),
+            hours,
+            minutes,
             0,
             0
-          );
-          task.deadlineTime = $scope.selectedTask.deadlineTime;
-          task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : undefined;
-          task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : undefined;
-        } else {
-          task.deadline = undefined;
-          task.deadlineTime = false;
-          task.repeat = undefined;
-          task.repeatEnds = undefined;
+          )).toJSON();
+          if ($scope.selectedTask.time !== undefined) {
+            task.deadlineTime = true;
+          }
+          task.repeat = $scope.selectedTask.repeat ? $scope.selectedTask.repeat : "";
+          task.repeatEnds = (task.repeat && $scope.selectedTask.repeatEnds) ? $scope.selectedTask.repeatEnds : "";
         }
-        if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
-          task.category = parseInt($scope.category.slice(9));
-        } else {
-          task.category = undefined;
+        if ($scope.selectedTask.category) {
+          task.category = $scope.selectedTask.category;
         }
-        task.notes = $scope.selectedTask.notes;
-        task.completed = $scope.selectedTask.completed;
 
-        agenda.saveAgenda();
+        if ($scope.selectedTask.notes) {
+          task.notes = $scope.selectedTask.notes;
+        }
+        task.completed = $scope.selectedTask.completed || false;
+
+        $scope.tasksRef.child($scope.selectedTask.key).set(task);
+
         $scope.selectedTask = null;
+        $scope.selectedBlock = null;
       }
-      $scope.category = undefined;
-      $scope.categories = [];
-      $scope.refresh();
     };
 
     $mdComponentRegistry.when("agendas-task-detail").then(function(sidenav) {
@@ -361,15 +410,14 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
-        var agenda = $scope.agendaForTask($scope.selectedTask);
-        agenda.deleteTask($scope.selectedTask.id);
-        $scope.selectedTask = null;
-        agenda.saveAgenda();
-        $scope.toggleSidenav("agendas-task-detail");
+        $scope.tasksRef.child($scope.selectedTask.key).remove().then(function() {
+          $scope.selectedTask = null;
+          $scope.toggleSidenav("agendas-task-detail");
+        });
       });
     };
 
-    $scope.deleteSelectedTasks = function(event) {
+    /* $scope.deleteSelectedTasks = function(event) {
       $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
         .title("Delete " + $scope.selectedTasks.length + " tasks?")
         .textContent("This action cannot be undone.")
@@ -383,99 +431,93 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
         $scope.refresh();
       });
-    };
-
-    $scope.newTask = function() {
-      var id = $scope.selectedAgenda.newTask("New Task");
-      $scope.selectedAgenda.saveAgenda();
-      $scope.refresh();
-      var tasks = $scope.selectedAgenda.tasks();
-      for (var i = tasks.length - 1; i >= 0; i--) {
-        if (tasks[i].id == id) {
-          $scope.viewTaskDetail(tasks[i]);
-          break;
-        }
-      }
-    };
+    }; */
 
     $scope.blocks = [];
+
+    $scope.findScheduleDay = function(d) {
+      var schedule = $scope.schedule;
+      var days = Object.keys(schedule.days);
+      var points = $agendaSorter.sort(Object.keys(schedule.points).map(function(input) {
+        return schedule.points[input];
+      }).filter(function(v) {
+        var d = (new Date(v.date)).getDay();
+        return d > 0 || d < 6;
+      }), function(a, b) {
+        return new Date(a.date) > new Date(b.date);
+      });
+
+      if (d.getDay() == 0 || d.getDay() == 6) {
+        return null;
+      }
+
+      var recentPoint = -1;
+      var freeDays = 0;
+      for (var i = points.length - 1; i >= 0; i--) {
+        var pointDate = new Date(points[i].date);
+        if (pointDate <= d && points[i].type !== "free" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
+          recentPoint = i;
+          break;
+        } else if (pointDate.getTime() == d.getTime()) {
+          recentPoint = -1;
+          break;
+        } else if (points[i].type == "free" && pointDate < d) {
+          freeDays++;
+        }
+      }
+      if (recentPoint === -1) {
+        return null;
+      }
+      // Calculate the number of weekends.
+      var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
+      // What day is today?
+      return days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + days.indexOf(points[recentPoint].type)) % days.length)];
+    };
+
     $scope.generateBlocks = function(category) {
       $scope.blocks = [];
       if (category === undefined) {
         return;
       }
       // Get the control points.
-      var schedule = $scope.agendaForTask($scope.selectedTask).raw.properties.schedule;
-      var days = schedule.block.days;
-      var points = schedule.block.points;
-      if (points.length <= 0) {
-        return;
-      }
-      // Sort the control points.
-      points = $agendaSorter.sort(points.filter(function(v) {
-        var d = (new Date(v.date)).getDay();
-        return d > 0 || d < 6;
-      }), function(a, b) {
-        return new Date(a.date) > new Date(b.date);
+      var schedule = $scope.schedule;
+      var blocks = Object.keys(schedule.blocks).map(function(input) {
+        return schedule.blocks[input];
       });
-      // Select the most recent control point.
+      // Sort the control points.
+
       var now = new Date();
       now.setHours(0);
       now.setMinutes(0);
       now.setSeconds(0);
       now.setMilliseconds(0);
-      for (var j = 0; j < 7; j++) {
+      for (var j = 0; j < 30; j++) {
         var d = new Date(now.getTime() + (j * 24 * 60 * 60 * 1000));
-        if (d.getDay() == 0 || d.getDay() == 6) {
+        var day = $scope.findScheduleDay(d);
+
+        if (day === null) {
           continue;
         }
-        var recentPoint = -1;
-        var freeDays = 0;
-        for (var i = points.length - 1; i >= 0; i--) {
-          var pointDate = new Date(points[i].date);
-          if (pointDate <= d && points[i].type !== "none" && pointDate.getDay() > 0 && pointDate.getDay() < 6) {
-            recentPoint = i;
-            break;
-          } else if (pointDate.getTime() == d.getTime()) {
-            recentPoint = -1;
-            break;
-          } else if (points[i].type == "none" && pointDate < d) {
-            freeDays++;
-          }
-        }
-        if (recentPoint == -1) {
-          continue;
-        }
-        // Calculate the number of weekends.
-        var weekends = Math.floor((d.getTime() - pointDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + ((pointDate.getDay() > d.getDay()) ? 1 : 0);
-        // What day is today?
-        var day = days[Math.round((((d.getTime() - pointDate.getTime()) / (24 * 60 * 60 * 1000)) - (freeDays + (2 * weekends)) + parseInt(points[recentPoint].type)) % days.length)];
+
         // Find the blocks that the category occurs in.
-        var blocks = [];
-        var i = -1;
-        while ((i = day.categories.indexOf(category, i + 1)) >= 0) {
-          blocks.push(i);
-        }
         for (var b of blocks) {
-          var block = schedule.block.blocks[b];
-          if (block.start !== undefined) {
-            $scope.blocks.push(new Date(d.getTime() + (block.start * 60 * 1000)));
-          } else {
-            $scope.blocks.push(new Date(d.getTime()));
+          if (b[day] == category) {
+            if (b.time !== undefined) {
+              $scope.blocks.push(new Date(d.getTime() + (b.time * 60 * 1000)));
+            } else {
+              $scope.blocks.push(new Date(d.getTime()));
+            }
           }
         }
       }
     };
     $scope.refreshBlocks = function() {
-      if ($scope.category && ($scope.category.slice(0, 9) == "category-")) {
-        var category = parseInt($scope.category.slice(9));
-        if (category !== $scope.selectedTask.category) {
-          return new Promise(function(resolve, reject) {
-            $scope.generateBlocks(parseInt($scope.category.slice(9)));
-            resolve();
-          });
-        }
-      } else if ($scope.selectedTask.category !== undefined) {
+      if ($scope.selectedTask.category) {
+        return new Promise(function(resolve, reject) {
+          $scope.generateBlocks($scope.selectedTask.category);
+          resolve();
+        });
+      } else {
         $scope.generateBlocks(undefined);
       }
     };
@@ -494,50 +536,48 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }
     });
 
-    $scope.$watch("category", function(newValue) {
-      if (newValue) {
-        if (newValue == "none") {
-          $scope.category = undefined;
-        } else if (newValue == "new") {
-          var agenda = $scope.agendaForTask($scope.selectedTask);
-          $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true)
-            .title("New Category in \"" + agenda.name() + "\"")
-            .textContent("Give your category a name.")
-            .placeholder("Name")
-            .cancel("Cancel")
-            .ok("Done")
-          ).then(function(name) {
-            if (name) {
-              var categoryExists = false;
-              for (var category in $scope.categories) {
-                if (category.name == name) {
-                  categoryExists = true;
-                  break;
-                }
-              }
-              if (!categoryExists) {
-                var category = agenda.newCategory(name);
-                $scope.categories.push({name: name, color: undefined, id: category});
-                $scope.category = "category-" + category;
-                agenda.saveAgenda();
-              } else {
-                $scope.category = undefined;
-              }
-            } else {
-              $scope.category = undefined;
-            }
-          }, function() {
-            $scope.category = undefined;
+    $scope.scheduleView = {};
+    $scope.prepareScheduleView = function() {
+      $scope.scheduleView.date = new Date();
+    };
+
+    $scope.$watch("scheduleView.date", function() {
+      if ($scope.scheduleView.date && $scope.schedule) {
+        $scope.scheduleView.date.setHours(0);
+        $scope.scheduleView.date.setMinutes(0);
+        $scope.scheduleView.date.setSeconds(0);
+        $scope.scheduleView.date.setMilliseconds(0);
+        $scope.scheduleView.day = $scope.findScheduleDay($scope.scheduleView.date);
+      }
+    })
+
+    $scope.newCategory = function() {
+      $scope.selectedTask.category = undefined;
+      $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true)
+        .title("New Category in \"" + $scope.agendas[$scope.selectedAgenda].name + "\"")
+        .textContent("Give your category a name.")
+        .placeholder("Name")
+        .cancel("Cancel")
+        .ok("Done")
+      ).then(function(name) {
+        if (name) {
+          var category = $scope.categoriesRef.push();
+
+          category.set({name: name}).then(function() {
+            $timeout(function() {
+              $scope.refreshCategories();
+              $scope.selectedTask.category = category.key;
+            });
           });
         }
-      }
-    });
+      });
+    };
 
     $scope.showAgendaEditor = function(name, event) {
       $mdDialog.show({
         controller: "AgendaEditorController",
         locals: {
-          agendaName: name,
+          agenda: name,
           refresh: function() {
             $scope.refresh();
           },
@@ -562,31 +602,27 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       }).then(function() {
         $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
         $scope.showCompleted = $scope.settings.showCompleted || false;
+        $scope.refreshWallpaper();
       });
-    }
-
-    $scope.shouldShowCategoryCircle = function(task) {
-      var category = task.category;
-      var agenda = $scope.agendaForTask(task);
-      return (category != undefined && agenda.categoryExists(category)) && agenda.getCategory(category).color;
     };
 
-    $scope.refresh();
+    $scope.refreshWallpaper = function() {
+      var wallpaper = $scope.settings.wallpaper || {id: "amazon-rainforest"};
+      for (var w of wallpapers) {
+        if (w.id == wallpaper.id) {
+          $scope.wallpaper = {"background-image": "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('" + (w.url || wallpaper.customURL) + "')"}
+          break;
+        }
+      }
+    };
+    $scope.refreshWallpaper();
 
-    $scope.$watch("isAuthenticated", function() {
-      ($scope.isAuthenticated == 0) ? $scope.showGoogleDriveDialog() : "";
-    });
-
-    $scope.xs = $mdMedia("xs");
+    $scope.md = $mdMedia("gt-md");
     $scope.$watch(function() {
-      return $mdMedia("xs");
+      return $mdMedia("gt-md");
     }, function(newValue) {
-      $scope.xs = newValue;
+      $scope.md = newValue;
     });
-
-    $scope.sync = function() {
-      $googleDrive.sync();
-    };
 
     $scope.quickAdd = function(event) {
       $mdDialog.show($mdDialog.prompt().clickOutsideToClose(true).targetEvent(event)
@@ -628,12 +664,244 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       });
     };
+
+    $scope.getColor = function(color) {
+      return colors[color];
+    }
+
+    $scope.googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+    $scope.githubAuthProvider = new firebase.auth.GithubAuthProvider();
+
+    var signInSuccess = function(result) {
+      $scope.isLoading = false;
+      $scope.$apply();
+    };
+
+    var signInFailure = function(error) {
+      console.log(error);
+
+      $scope.isLoading = false;
+      $scope.$apply();
+    };
+
+    $scope.signInWithGoogle = function() {
+      firebase.auth().signInWithPopup($scope.googleAuthProvider).then(signInSuccess).catch(signInFailure);
+      $scope.isLoading = true;
+    };
+
+    $scope.signInWithGithub = function() {
+      firebase.auth().signInWithPopup($scope.githubAuthProvider).then(signInSuccess).catch(signInFailure);
+      $scope.isLoading = true;
+    };
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      $scope.currentUser = user;
+      $scope.$apply();
+    });
+
+    $scope.signOut = function() {
+      firebase.auth().signOut();
+    };
+
+    $scope.migrateCallbacks = [];
+
+    $scope.migrate = function() {
+      $scope.fullScreenModal = true;
+      $scope.migration = true;
+      document.getElementById("migration-iframe").setAttribute("src", "http://anli5005.github.io/agendas/migrate.html");
+      window.onmessage = function(e) {
+        if (e.data.ready) {
+          e.source.postMessage({name: "Agendas 2.0"}, "*");
+        } else if (e.data.agendas) {
+          $timeout(function() {
+            $scope.migration = false;
+            $scope.migrating = true;
+            $timeout(function() {
+              $scope.startMigrating(e.data.agendas);
+            }, 500);
+          });
+        }
+      };
+    };
+
+    $scope.cancelMigration = function() {
+      $scope.fullScreenModal = false;
+      $scope.migration = false;
+      document.getElementById("migration-iframe").setAttribute("src", "");
+    };
+
+    $scope.$watch("fullScreenModal", function() {
+      if ($scope.fullScreenModal) {
+        $mdSidenav("agendas-navigation-sidenav").close();
+      }
+    });
+
+    $scope.startMigrating = function(agendas) {
+      for (var agenda of agendas) {
+        (function() {
+          var agendaRef = firebase.database().ref("/agendas/").push();
+          var a = agenda;
+          agendaRef.child("name").set(agenda.properties.name).then(function() {
+            firebase.database().ref("/permissions/").child(agendaRef.key).child($scope.currentUser.uid).set("editor").then(function() {
+              var categories = {};
+              var categoryList = [];
+              var categoriesRef = firebase.database().ref("/categories/").child(agendaRef.key);
+              var i = 0;
+              for (var category of a.categories) {
+                if (!category.deleted) {
+                  var key = categoriesRef.push().key;
+                  categories[key] = {};
+                  if (category.name) {
+                    categories[key].name = category.name;
+                  }
+                  if (category.color) {
+                    categories[key].color = category.color;
+                  }
+                  categoryList[i] = key;
+                  i++;
+                }
+              }
+              categoriesRef.set(categories).then(function() {
+                var tasks = {};
+                var tasksRef = firebase.database().ref("/tasks/").child(agendaRef.key);
+                for (var task of a.items) {
+                  if (!task.deleted) {
+                    var t = {};
+                    for (var p of ["name", "deadlineTime", "repeat", "repeatEnds", "notes", "completed"]) {
+                      if (task[p]) {
+                        t[p] = task[p];
+                      }
+                    }
+                    if (task.category !== undefined) {
+                      t.category = categoryList[task.category];
+                    }
+                    if (task.deadline) {
+                      t.deadline = (new Date(task.deadline)).toJSON();
+                      console.log(task.deadline);
+                      console.log(t.deadline);
+                    }
+                    tasks[tasksRef.push().key] = t;
+                  }
+                }
+                tasksRef.set(tasks).then(function() {
+                  $scope.agendasRef.child(agendaRef.key).set(true);
+                });
+
+                if (a.properties.schedule && !a.properties.schedule.deleted) {
+                  var scheduleRef = firebase.database().ref("/schedules/").child(agendaRef.key);
+                  var daysRef = scheduleRef.child("days");
+                  var days = {};
+                  var daysArray = [];
+                  var i = 0;
+                  for (var day of a.properties.schedule.block.days) {
+                    var key = daysRef.push().key;
+                    days[key] = day.name;
+                    daysArray[i] = key;
+                    i++;
+                  }
+                  daysRef.set(days).then(function() {
+                    var blocksRef = scheduleRef.child("blocks");
+                    var blocks = {};
+                    var i = 0;
+                    for (var block of a.properties.schedule.block.blocks) {
+                      var b = {};
+                      if (block.start !== undefined) {
+                        b.time = block.start;
+                      }
+                      var j = 0;
+                      for (var day of a.properties.schedule.block.days) {
+                        if (day.categories[i] !== undefined) {
+                          b[daysArray[j]] = categoryList[day.categories[i]];
+                        }
+                        j++;
+                      }
+                      blocks[blocksRef.push().key] = b;
+                      i++;
+                    }
+                    blocksRef.set(blocks);
+
+                    var pointsRef = scheduleRef.child("points");
+                    var points = {};
+                    for (var point of a.properties.schedule.block.points) {
+                      points[pointsRef.push().key] = {
+                        date: point.date,
+                        type: (point.type == "none") ? "free" : daysArray[parseInt(point.type)]
+                      };
+                    }
+                    pointsRef.set(points);
+                  });
+                }
+              });
+            });
+          });
+        })();
+      }
+
+      $scope.migrating = false;
+      $scope.fullScreenModal = false;
+    };
+
+    $scope.shareAgenda = function(agenda) {
+      $scope.permissionsRef = firebase.database().ref("permissions").child(agenda);
+      $scope.sharedAgenda = agenda;
+      $scope.fullScreenModal = true;
+      $scope.users = {};
+      $scope.newUser = "";
+
+      $scope.permissionsRef.on("child_added", function(data) {
+        $timeout(function() {
+          $scope.users[data.key] = {};
+        });
+        firebase.database().ref("/users").child(data.key).child("username").once("value").then(function(d) {
+          $timeout(function() {
+            $scope.users[data.key].name = d.val();
+          });
+        });
+      });
+
+      $scope.permissionsRef.on("child_removed", function(data) {
+        $timeout(function() {
+          delete $scope.users[data.key];
+        });
+      });
+    };
+
+    $scope.cancelSharing = function() {
+      $scope.fullScreenModal = false;
+      $scope.permissionsRef = null;
+      $scope.users = null;
+      $scope.newUser = null;
+      $scope.sharedAgenda = null;
+    };
+
+    $scope.removeUser = function(uid) {
+      firebase.database().ref("/users").child(uid).child("agendas").child($scope.sharedAgenda).remove().then(function() {
+        $scope.permissionsRef.child(uid).remove();
+        if (uid === $scope.currentUser.uid) {
+          $scope.cancelSharing();
+        }
+      });
+    };
+
+    $scope.numberOfUsers = function() {
+      return Object.keys($scope.users).length;
+    };
+
+    $scope.addUser = function() {
+      firebase.database().ref("/usernames").child($scope.newUser).once("value").then(function(data) {
+        if (data.exists()) {
+          $scope.permissionsRef.child(data.val()).set("editor").then(function() {
+            firebase.database().ref("/users").child(data.val()).child("agendas").child($scope.sharedAgenda).set(true);
+          });
+        }
+      });
+    };
   })
-  .controller("AgendaEditorController", function($scope, $agendaParser, agendaName, colors, $mdDialog, refresh, settings) {
+  .controller("AgendaEditorController", function($scope, agenda, colors, $mdDialog, refresh, settings, $timeout) {
     $scope.settings = settings;
     $scope.today = new Date();
     $scope.init = function() {
-      $scope.agenda = $agendaParser.getAgenda(agendaName);
+      /*$scope.agenda = $agendaParser.getAgenda(agendaName);
       $scope.name = agendaName;
 
       $scope.schedule = $scope.agenda.raw.properties.schedule || {type: "block"};
@@ -648,47 +916,84 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       $scope.scheduleModified = false;
       $scope.archived = $scope.agenda.raw.properties.archived;
 
-      $scope.refresh();
+      $scope.refresh();*/
+
+      $scope.categories = {};
+      $scope.categoryList = [];
+      $scope.name = "";
+      $scope.scheduleLoaded = false;
+      $scope.scheduleExists = false;
+
+      $scope.agendaRef = firebase.database().ref("/agendas/" + agenda);
+      $scope.nameRef = $scope.agendaRef.child("name");
+      $scope.permissionsRef = firebase.database().ref("/permissions/" + agenda);
+      $scope.categoriesRef = firebase.database().ref("/categories/" + agenda);
+      $scope.scheduleRef = firebase.database().ref("/schedules/" + agenda);
+
+      $scope.nameRef.once("value").then(function(data) {
+        $scope.originalName = data.val();
+        $scope.name = data.val();
+      });
+
+      $scope.categoriesRef.on("child_added", function(data) {
+        $scope.categories[data.key] = data.val();
+        $timeout($scope.refresh);
+      });
+
+      $scope.categoriesRef.on("child_changed", function(data) {
+        if ($scope.categories[data.key]) {
+          $scope.categories[data.key] = data.val();
+          $timeout($scope.refresh);
+        }
+      });
+
+      $scope.categoriesRef.on("child_removed", function(data) {
+        delete $scope.categories[data.key];
+        $timeout($scope.refresh);
+      });
+
+      $scope.scheduleRef.once("value").then(function(data) {
+        if (data.exists()) {
+          $scope.schedule = data.val();
+          $scope.schedule.use = true;
+          $scope.scheduleExists = true;
+        } else {
+          $scope.schedule = {
+            use: false,
+            blocks: {},
+            days: {},
+            points: {}
+          };
+        }
+        $timeout(function() {
+          $scope.scheduleLoaded = true;
+        });
+      }).catch(function(e) {
+        console.log(e);
+      });
     };
     $scope.refresh = function() {
-      $scope.categories = $scope.agenda.categories();
+      $scope.categoryList = Object.keys($scope.categories);
     };
-    $scope.colors = [];
-    for (var color in colors) {
-      if (colors.hasOwnProperty(color)) {
-        $scope.colors.push({name: color, color: colors[color]});
-      }
-    }
-    $scope.saveCategory = function(category) {
-      var original = $scope.agenda.getCategory(category.id);
-      original.name = category.name;
-      if (category.color == "") {
-        original.color = undefined;
-        category.color = undefined;
-      } else {
-        original.color = category.color;
-      }
-      original.dateModified = new Date();
-    };
+    $scope.colors = Object.keys(colors).map(function(input) {
+      return {name: input, color: colors[input]};
+    });
     $scope.deleteCategory = function(category) {
-      $scope.categoriesDeleted = true;
-      $scope.agenda.deleteCategory(category.id);
+      delete $scope.categories[category];
       $scope.refresh();
     };
     $scope.addCategory = function() {
-      $scope.agenda.newCategory("Category");
+      $scope.categories[$scope.categoriesRef.push().key] = {
+        name: "Category"
+      }
       $scope.refresh();
     };
-    $scope.categoriesDeleted = false;
 
     $scope.cancel = function() {
       $mdDialog.cancel();
     };
     $scope.saveAndDismiss = function() {
-      if ($scope.categoriesDeleted) {
-        $scope.agenda.tasks();
-      }
-      if ($scope.schedule.use) {
+      /*if ($scope.schedule.use) {
         delete $scope.schedule.use;
         if ($scope.schedule.deleted) {
           delete $scope.schedule.deleted;
@@ -699,90 +1004,108 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         }
       } else if (!!$scope.agenda.raw.properties.schedule && !$scope.agenda.raw.properties.schedule.deleted) {
         $scope.agenda.raw.properties.schedule = {deleted: new Date()};
+      }*/
+      if ($scope.name && $scope.originalName != $scope.name) {
+        $scope.nameRef.set($scope.name);
       }
-      if ($scope.name && $scope.agenda.name() != $scope.name) {
-        $scope.renameAgenda();
+
+      $scope.categoriesRef.set($scope.categories);
+
+      if ($scope.scheduleDirty) {
+        if ($scope.schedule.use) {
+          var s = $scope.schedule;
+          var r = $scope.scheduleRef;
+          r.child("days").set(s.days).then(function() {
+            r.child("blocks").set(s.blocks);
+            r.child("points").set(s.points);
+          });
+        } else if ($scope.scheduleExists) {
+          $scope.scheduleRef.remove();
+        }
       }
-      if ($scope.archived != $scope.agenda.raw.properties.archived) {
+      /*if ($scope.archived != $scope.agenda.raw.properties.archived) {
         $scope.agenda.raw.properties.archiveModified = new Date();
       }
-      $scope.agenda.saveAgenda();
+      $scope.agenda.saveAgenda();*/
       $mdDialog.hide();
     };
 
-    $scope.renameAgenda = function() {
-      if (!$agendaParser.listAgendas().includes($scope.name)) {
-        $agendaParser.newAgenda($scope.name);
-        $scope.agenda.raw.properties.name = $scope.name;
-        $agendaParser.deleteAgenda(agendaName);
-      }
-    };
     $scope.deleteAgenda = function(event) {
-      var l = $scope.agenda.tasks().length;
       $mdDialog.show($mdDialog.confirm().clickOutsideToClose(true).targetEvent(event)
-        .title("Delete Agenda \"" + agendaName + "\"?!")
-        .textContent("You're about to delete \"" + agendaName + "\" and its " + l + " task" + ((l == 1) ? "" : "s") + ". This cannot be undone.")
+        .title("Delete Agenda \"" + $scope.name + "\"?!")
+        .textContent("You're about to delete " + $scope.name + ". This cannot be undone.")
         .cancel("Cancel")
         .ok("Delete")
       ).then(function() {
-        $agendaParser.deleteAgenda(agendaName);
-        refresh();
+        $scope.permissionsRef.once("value").then(function(data) {
+          for (var user of Object.keys(data.val())) {
+            firebase.database().ref("/users/").child(user).child("agendas").child(agenda).remove();
+          }
+
+          $scope.agendaRef.remove();
+          $scope.categoriesRef.remove();
+          firebase.database().ref("/tasks/").child(agenda).remove();
+          $scope.scheduleRef.remove();
+
+          $scope.permissionsRef.remove();
+        });
       });
     };
 
+    $scope.setScheduleDirty = function(isDirty) {
+      $scope.scheduleDirty = isDirty;
+    }
+
     $scope.newBlock = function() {
-      $scope.schedule.block.blocks.push({});
+      $scope.schedule.blocks[$scope.scheduleRef.child("blocks").push().key] = {};
+      $scope.setScheduleDirty(true);
     };
     $scope.deleteBlock = function(index) {
-      $scope.schedule.block.blocks.splice(index, 1);
+      delete $scope.schedule.blocks[index];
+      $scope.setScheduleDirty(true);
     };
 
     $scope.newDay = function() {
-      $scope.schedule.block.days.push({name: "", categories: []});
+      $scope.schedule.days[$scope.scheduleRef.child("days").push().key] = "";
+      $scope.setScheduleDirty(true);
     };
     $scope.deleteDay = function(index) {
-      $scope.schedule.block.days.splice(index, 1);
+      delete $scope.schedule.days[index];
+      $scope.setScheduleDirty(true);
     };
 
     $scope.showPointCreation = function() {
       $scope.selectedPoint = {id: -1};
     };
     $scope.editPoint = function(point) {
-      $scope.selectedPoint = {id: point, date: new Date($scope.schedule.block.points[point].date), type: $scope.schedule.block.points[point].type};
+      $scope.selectedPoint = {id: point, date: new Date($scope.schedule.points[point].date), type: $scope.schedule.points[point].type};
     }
     $scope.cancelPoint = function() {
       $scope.selectedPoint.id = undefined;
     };
     $scope.savePoint = function() {
-      var point = {date: $scope.selectedPoint.date, type: $scope.selectedPoint.type};
+      var point = {date: $scope.selectedPoint.date.toJSON(), type: $scope.selectedPoint.type};
       if ($scope.selectedPoint.id === -1) {
-        $scope.schedule.block.points.push(point);
+        $scope.schedule.points[$scope.scheduleRef.child("points").push().key] = point;
       } else {
-        $scope.schedule.block.points[$scope.selectedPoint.id] = point;
+        $scope.schedule.points[$scope.selectedPoint.id] = point;
       }
       $scope.selectedPoint.id = undefined;
+      $scope.setScheduleDirty(true);
     };
     $scope.removePoint = function() {
-      $scope.schedule.block.points.splice($scope.selectedPoint.id, 1);
+      delete $scope.schedule.points[$scope.selectedPoint.id];
       $scope.selectedPoint.id = undefined;
-    }
-
-    $scope.$watch("schedule", function() {
-      $scope.scheduleModified = true;
-    });
+      $scope.setScheduleDirty(true);
+    };
 
     $scope.init();
-
-    $scope.$watch(function() {
-      return $scope.sdfsdfsdf + "_" + $scope.sdfsdf;
-    }, function(val) {
-      console.log(val);
-    });
   })
   .directive("scheduleCategoryChooser", function() { return {
     templateUrl: "category-chooser.html",
     scope: {
       value: "=ngModel",
+      change: "&ngChange"
     },
     restrict: "E",
     transclude: true,
@@ -802,6 +1125,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
             break;
           }
         }
+      });
+      $scope.$watch("value", function() {
+        $scope.change();
       });
     }
   }})
@@ -893,6 +1219,18 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       };
     }
   }})
+  .directive("wallpaperPicker", function() { return {
+    templateUrl: "wallpaper-picker.html",
+    transclude: false,
+    restrict: "E",
+    scope: {
+      value: "=ngModel"
+    },
+    controller: function($scope, wallpapers) {
+      $scope.wallpapers = wallpapers;
+      $scope.value = $scope.value || {id: "amazon-rainforest", url: ""};
+    }
+  }})
   .controller("AgendasSettingsController", function($scope, $mdDialog) {
     $scope.settings = JSON.parse(localStorage.getItem("agendas-settings") || "{}");
     $scope.cancel = $mdDialog.cancel;
@@ -900,222 +1238,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       localStorage.setItem("agendas-settings", JSON.stringify($scope.settings));
       $mdDialog.hide();
     }
-  })
-  .factory("$agendaParser", function() {
-    var agendaParser = {};
-
-    function Agenda(agenda) {
-      this.raw = agenda;
-    }
-
-    Agenda.prototype = {
-      tasks: function() {
-        var tasks = [];
-        var i = 0;
-        for (var task of this.raw.items) {
-          if (!task.deleted) {
-            var object = {};
-            for (var property in task) {
-              if (property == "deadline" || property == "dateCreated" || property == "repeatEnds") {
-                object[property] = (typeof task[property] == "undefined") ? task[property] : new Date(task[property]);
-              } else if (property == "category" && typeof task.category == "number") {
-                object[property] = this.categoryExists(task[property]) ? task[property] : undefined;
-              } else if (task.hasOwnProperty(property)) {
-                object[property] = task[property];
-              }
-            }
-            object.agenda = this.name();
-            object.id = i;
-            tasks.push(object);
-          }
-          i++;
-        }
-        return tasks;
-      },
-      categories: function() {
-        var categories = [];
-        var i = 0;
-        for (var category of this.raw.categories) {
-          if (!category.deleted) {
-            var object = {};
-            for (var property in category) {
-              if (property == "dateCreated") {
-                object[property] = (typeof category[property] == "date") ? category[property] : new Date(category[property]);
-              } else if (category.hasOwnProperty(property)) {
-                object[property] = category[property];
-              }
-            }
-            object.id = i;
-            categories.push(object);
-          }
-          i++;
-        }
-        return categories;
-      },
-      name: function() {
-        return this.raw.properties.name;
-      },
-      dates: function() {
-        var dates = {};
-        for (var item of [["modified", "dateModified"], ["created", "dateCreated"]]) {
-          var date = this.raw.properties[item[1]];
-          dates[item[0]] = (typeof date == "date") ? date : new Date(date);
-        }
-        return dates;
-      },
-
-      modified: function() {
-        this.raw.properties.dateModified = new Date();
-      },
-
-      taskExists: function(id) {
-        return (((id >= 0) && (id < this.raw.items.length)) && !(this.raw.items[id].deleted));
-      },
-
-      newTask: function(name, deadline, deadlineTime, category) {
-        var task = {name: name};
-        if (deadline) {
-          task.deadline = deadline;
-          task.deadlineTime = deadlineTime;
-        }
-        if (category !== undefined) {
-          task.category = category;
-        }
-        task.dateCreated = new Date();
-        task.dateModified = new Date();
-        task.completed = false;
-        this.raw.items.push(task);
-        return this.raw.items.length - 1;
-      },
-
-      getTask: function(id) {
-        if (this.taskExists(id)) {
-          var task = this.raw.items[id];
-          task.dateCreated = (typeof task.dateCreated != "date") ? new Date(task.dateCreated) : task.dateCreated;
-          if (task.category != undefined && !this.categoryExists(task.category)) {
-            task.category = undefined;
-          }
-          task.dateModified = new Date();
-          return task;
-        }
-      },
-
-      deleteTask: function(id) {
-        if (this.taskExists(id)) {
-          this.raw.items[id] = {deleted: new Date()};
-        }
-      },
-
-      newCategory: function(name, color) {
-        var category = {name: name, color: color, dateCreated: new Date(), dateModified: new Date()};
-        this.raw.categories.push(category);
-        return this.raw.categories.length - 1;
-      },
-
-      categoryExists: function(id) {
-        return (((id >= 0) && (id < this.raw.categories.length)) && !(this.raw.categories[id].deleted));
-      },
-
-      deleteCategory: function(id) {
-        if (this.categoryExists(id)) {
-          this.raw.categories[id] = {deleted: new Date()};
-        }
-      },
-
-      getCategory: function(id) {
-        if (this.categoryExists(id)) {
-          var category = this.raw.categories[id];
-          category.dateCreated = (typeof category.dateCreated != "date") ? new Date(category.dateCreated) : category.dateCreated;
-          return category;
-        }
-      },
-
-      saveAgenda: function() {
-        this.modified();
-        localStorage.setItem(agendaParser.agendaKey(this.name()), JSON.stringify(this.raw));
-      }
-
-    };
-
-    agendaParser.listAgendas = function() {
-      var list = localStorage.getItem("agendas");
-      return list ? JSON.parse(list) : [];
-    };
-
-    agendaParser.emptyAgenda = function(agendaName) { return new Agenda({
-      properties: {
-        name: agendaName,
-        dateModified: new Date(),
-        dateCreated: new Date()
-      },
-      categories: [],
-      items: []
-    });};
-
-    agendaParser.agendaKey = function(agendaName) {
-      return "agendas_" + agendaName;
-    }
-
-    agendaParser.newAgenda = function(agendaName) {
-      var list = agendaParser.listAgendas();
-      var actualName = agendaName;
-      while (list.includes(actualName)) {
-        actualName += "-";
-      }
-
-      localStorage.setItem(agendaParser.agendaKey(actualName), JSON.stringify(agendaParser.emptyAgenda(agendaName).raw));
-
-      list.push(actualName);
-      localStorage.setItem("agendas", JSON.stringify(list));
-      return agendaParser.getAgenda(actualName);
-    };
-
-    agendaParser.parseAgenda = function(agendaJSON) {
-      var agenda = {};
-      try {
-        agenda = JSON.parse(agendaJSON);
-      } catch (jsonError) {
-        return {error: "Agenda is invalid."};
-      }
-
-      return new Agenda(agenda);
-    };
-
-    agendaParser.getAgenda = function(agendaName) {
-      var list = agendaParser.listAgendas();
-      if (!list.includes(agendaName)) {
-        return {error: "Agenda does not exist"};
-      }
-
-      var agendaJSON = localStorage.getItem(agendaParser.agendaKey(agendaName));
-      if (!agendaJSON) {
-        return {error: "Agenda is corrupted."};
-      }
-
-      return agendaParser.parseAgenda(agendaJSON);
-    };
-
-    agendaParser.deleteAgenda = function(agenda) {
-      if (agendaParser.listAgendas().includes(agenda)) {
-        var agendas = agendaParser.listAgendas();
-        var index = agendas.indexOf(agenda);
-        if (index >= 0) {
-          try {
-            var driveId = agendaParser.getAgenda(agenda).raw.properties.driveId;
-            if (driveId) {
-              var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
-              deletedAgendas.push(driveId);
-              localStorage.setItem("agendas-deleted", JSON.stringify(deletedAgendas));
-            }
-          } catch(e) {console.warn(e);}
-          agendas.splice(agendas.indexOf(agenda), 1);
-          localStorage.setItem("agendas", JSON.stringify(agendas));
-          localStorage.removeItem(agendaParser.agendaKey(agenda));
-        }
-      }
-    };
-
-    return agendaParser;
   })
   .factory("$agendaSorter", function() {
     var agendaSorter = {};
@@ -1213,398 +1335,6 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
 
     return agendaSorter;
   })
-  .factory("$googleDrive", function($rootScope, $agendaParser, $agendaSorter) {
-    var buildMultipart = function(parts) {
-      var boundary = Math.random().toString(36).slice(2);
-      var mime = "multipart/mixed; boundary=\"" + boundary + "\"";
-      var body = [];
-      for (var part of parts) {
-        body.push("\r\n--" + boundary + "\r\n");
-        body.push("Content-Type: " + part.mimeType + "\r\n\r\n");
-        body.push(part.content);
-      }
-      body.push("\r\n--" + boundary + "--");
-      return {
-        mimeType: mime,
-        body: body.join("")
-      };
-    };
-
-    var mergeProperties = function(local, online) {
-      var merged = {};
-      var shouldUpload = false;
-      merged.name = local.name;
-      merged.dateCreated = online.dateCreated;
-      merged.dateModified = (new Date(online.dateModified) > new Date(local.dateModified)) ? online.dateModified : local.dateModified;
-      merged.driveId = local.driveId;
-      if ((local.schedule && !local.schedule.deleted) || (online.schedule && !online.schedule.deleted)) {
-        if (!local.schedule) {
-          merged.schedule = online.schedule;
-        } else if (!online.schedule) {
-          merged.schedule = local.schedule;
-        } else if (online.schedule.deleted) {
-          merged.schedule = (new Date(online.schedule.deleted) > new Date(local.schedule.modified)) ? online.schedule : local.schedule;
-        } else if (local.schedule.deleted) {
-          merged.schedule = (new Date(local.schedule.deleted) > new Date(online.schedule.modified)) ? local.schedule : online.schedule;
-        } else {
-          merged.schedule = (new Date(online.schedule.modified) > new Date(local.schedule.modified)) ? online.schedule : local.schedule;
-        }
-      }
-      if (local.archived != online.archived) {
-        if (!online.archiveModified) {
-          merged.archived = local.archived;
-          merged.archiveModified = local.archiveModified;
-          shouldUpload = true;
-        } else if (!local.archiveModified) {
-          merged.archived = online.archived;
-          merged.archiveModified = online.archiveModified;
-        } else {
-          var localArchiveModified = new Date(local.archiveModified);
-          var onlineArchiveModified = new Date(online.archiveModified);
-          if (localArchiveModified > onlineArchiveModified) {
-            merged.archived = local.archived;
-            merged.archiveModified = localArchiveModified;
-            shouldUpload = true;
-          } else {
-            merged.archived = online.archived;
-            merged.archiveModified = onlineArchiveModified;
-          }
-        }
-      } else {
-        merged.archived = local.archived;
-        if (!local.archiveModified) {
-          merged.archiveModified = online.archiveModified;
-        } else if (!online.archiveModified) {
-          merged.archiveModified = local.archiveModified;
-          shouldUpload = true;
-        } else {
-          var localArchiveModified = new Date(local.archiveModified);
-          var onlineArchiveModified = new Date(online.archiveModified);
-          if (localArchiveModified > onlineArchiveModified) {
-            merged.archiveModified = localArchiveModified;
-            shouldUpload = true;
-          } else {
-            merged.archiveModified = onlineArchiveModified;
-          }
-        }
-      }
-      return {properties: merged, shouldUpload: shouldUpload};
-    };
-
-    var mergeTasks = function(local, online) {
-      // Decide if each task needs to be merged
-      var needsMerge   = [];
-      var newOnline    = [];
-      var newLocal     = [];
-      var deletedTasks = [];
-
-      var deleted = 0;
-      for (var i = 0; i < local.length; i++) {
-        var task = local[i];
-        task.id = i - deleted;
-        // Try to obtain a task's online counterpart
-        if (online.length > i) {
-          var onlineTask = online[i];
-          onlineTask.id = i;
-          // Is the local task deleted?
-          if (task.deleted) {
-            // Is the online task deleted?
-            if (onlineTask.deleted) {
-              // Delete this task.
-              task.deleted = ((new Date(task.deleted)) < (new Date(onlineTask.deleted))) ? new Date(task.deleted) : new Date(onlineTask.deleted);
-              deletedTasks.push(task);
-            } else if ((new Date(task.deleted)) > (new Date(onlineTask.dateCreated))) {
-              // Delete this task.
-              deletedTasks.push(task);
-            } else {
-              // This task was created online.
-              newOnline.push(onlineTask);
-            }
-          } else if (onlineTask.deleted) {
-            // When was the local task created?
-            if ((new Date(task.dateCreated)) > (new Date(onlineTask.created))) {
-              // This task was created locally.
-              newLocal.push(task);
-            } else {
-              // Delete this task.
-              deletedTasks.push(onlineTask);
-            }
-          } else {
-            // Are these tasks the same?
-            if ((new Date(task.dateCreated)).getTime() == (new Date(onlineTask.dateCreated)).getTime()) {
-              // These tasks need to be merged.
-              needsMerge.push({local: task, online: onlineTask});
-            } else {
-              // This task was created both locally and online.
-              newLocal.push(task);
-              newOnline.push(onlineTask);
-            }
-          }
-        } else {
-          // Has the task been deleted?
-          if (task.deleted) {
-            // Exclude the task
-            deleted++;
-          } else {
-            // This task was created locally.
-            newLocal.push(task);
-          }
-        }
-      }
-      // Add the rest of the tasks
-      for (var i = 0; i < online.length; i++) {
-        var task = online[i];
-        if (typeof task.id != "number") {
-          task.id = i;
-          newOnline.push(task);
-        }
-      }
-      var shouldUpload = (newLocal.length > 0) || (deletedTasks.length > 0);
-      // Merge tasks
-      var mergedTasks = [];
-      for (var task of needsMerge) {
-        // Merge a single task.
-        if (!task.local.dateModified && !task.online.dateModified) {
-          mergedTasks.push(task.online);
-        } else if (!task.online.dateModified) {
-          shouldUpload = true;
-          mergedTasks.push(task.local);
-        } else {
-          var localDate = new Date(task.local.dateModified);
-          var onlineDate = new Date(task.online.dateModified);
-          mergedTasks.push((localDate > onlineDate) ? task.local : task.online);
-          if (localDate > onlineDate) {
-            shouldUpload = true;
-          }
-        }
-      }
-      // Assign new IDs to locally created tasks
-      var totalLength = needsMerge.length + newOnline.length + deletedTasks.length;
-      for (var i = 0; i < newLocal; i++) {
-        var task = newLocal[i];
-        task.id = totalLength + i;
-      }
-      // Combine everything
-      var unsorted = mergedTasks.concat(newOnline, newLocal, deletedTasks);
-      // Sort the tasks by ID
-      var merged = $agendaSorter.sort(unsorted, function(a, b) {
-        return a.id > b.id;
-      });
-      // Remove id properties
-      for (var task of merged) {
-        delete task.id;
-      }
-      // We're done! Phew.
-      return {tasks: merged, shouldUpload: shouldUpload};
-    };
-
-    var mergeAgendas = function(local, online) {
-      var properties = mergeProperties(local.raw.properties, online.raw.properties);
-      var categories = mergeTasks(local.raw.categories, online.raw.categories);
-      var items      = mergeTasks(local.raw.items, online.raw.items);
-      var merged     = {agenda: {properties: properties.properties, categories: categories.tasks, items: items.tasks}, shouldUpload: properties.shouldUpload || categories.shouldUpload || items.shouldUpload};
-      return merged;
-    };
-
-    var finalizeSyncing = function(folder, response) {
-      var list = response.result.files;
-      var localList = $agendaParser.listAgendas();
-      var localDriveIds = [];
-      for (var name of localList) {
-        var agenda = $agendaParser.getAgenda(name);
-        if (agenda.raw.properties.driveId) {
-          // The agenda is already in Google Drive
-          var deleted = true;
-          for (var file of list) {
-            if (file.id == agenda.raw.properties.driveId) {
-              localDriveIds.push(file.id);
-              deleted = false;
-              break;
-            }
-          }
-          if (deleted) {
-            // Delete the agenda locally
-            console.log("Deleting local copy of agenda " + name);
-            $agendaParser.deleteAgenda(name);
-            $rootScope.$broadcast("driveSyncFinished");
-          } else {
-            var downloadRequest = gapi.client.drive.files.get({
-              fileId: agenda.raw.properties.driveId,
-              alt: "media"
-            });
-            (function() {
-              var agendaName = name;
-              var local = agenda;
-              console.log("Fetching agenda " + agendaName);
-              downloadRequest.then(function(response) {
-                if (response.status == 200) {
-                  console.log("Merging agenda " + agendaName);
-                  var merged = mergeAgendas(local, $agendaParser.parseAgenda(response.body));
-                  var agenda = $agendaParser.getAgenda(agendaName);
-                  agenda.raw = merged.agenda;
-                  agenda.saveAgenda();
-                  $rootScope.$broadcast("driveSyncFinished");
-                  // Update the agenda
-                  if (merged.shouldUpload) {
-                    console.log("Updating agenda " + agendaName);
-                    var fileId = agenda.raw.properties.driveId;
-                    delete agenda.raw.properties.driveId;
-                    var multipart = buildMultipart([
-                      {
-                        mimeType: "application/json",
-                        content: JSON.stringify({
-                          name: agenda.name(),
-                          mimeType: "application/json"
-                        })
-                      },
-                      {
-                        mimeType: "application/json",
-                        content: JSON.stringify(agenda.raw)
-                      }
-                    ]);
-                    gapi.client.request({
-                      path: "/upload/drive/v3/files/" + fileId,
-                      method: "PATCH",
-                      params: {
-                        uploadType: "multipart"
-                      },
-                      headers: {"Content-Type": multipart.mimeType},
-                      body: multipart.body
-                    }).then(function(response) {
-                      console.log("Synced agenda " + agendaName);
-                    });
-                  }
-                }
-              });
-            })();
-          }
-        } else {
-          // The agenda needs to be uploaded to Google Drive
-          console.log("Uploading agenda " + name);
-          delete agenda.raw.properties.driveId;
-          var multipart = buildMultipart([
-            {
-              mimeType: "application/json",
-              content: JSON.stringify({
-                name: agenda.name(),
-                mimeType: "application/json",
-                parents: [folder.id]
-              })
-            },
-            {
-              mimeType: "application/json",
-              content: JSON.stringify(agenda.raw)
-            }
-          ]);
-          var request = gapi.client.request({
-            path: "/upload/drive/v3/files",
-            method: "POST",
-            params: {
-              uploadType: "multipart"
-            },
-            headers: {"Content-Type": multipart.mimeType},
-            body: multipart.body
-          });
-          (function() {
-            var agendaName = name;
-            request.then(function(response) {
-              if (response.result.id) {
-                var agenda = $agendaParser.getAgenda(agendaName);
-                agenda.raw.properties.driveId = response.result.id;
-                agenda.saveAgenda();
-                $rootScope.$broadcast("driveSyncFinished");
-              }
-            });
-          })();
-        }
-      }
-      var deletedAgendas = JSON.parse(localStorage.getItem("agendas-deleted")) || [];
-      for (var file of list) {
-        if (!localDriveIds.includes(file.id) && file.parents.includes(folder.id)) {
-          // Has the agenda been deleted locally?
-          if (deletedAgendas.includes(file.id)) {
-            console.log("Deleting agenda " + file.name);
-            gapi.client.drive.files.delete({
-              fileId: file.id
-            }).then(function(){});
-          } else {
-            // Download the agenda.
-            console.log("Downloading agenda " + file.name);
-            var downloadRequest = gapi.client.drive.files.get({
-              fileId: file.id,
-              alt: "media"
-            });
-            (function() {
-              var metadata = file;
-              downloadRequest.then(function(response) {
-                console.log("Downloaded agenda " + metadata.name);
-                if (response.status == 200) {
-                  var agenda = $agendaParser.newAgenda(metadata.name);
-                  agenda.raw = response.result;
-                  agenda.raw.properties.driveId = metadata.id;
-                  agenda.saveAgenda();
-                  $rootScope.$broadcast("driveSyncFinished");
-                }
-              });
-            })();
-          }
-        }
-      }
-      localStorage.removeItem("agendas-deleted");
-    };
-
-    return {
-      checkAuth: function(CLIENT_ID, SCOPES, handler) {
-        gapi.auth.authorize({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          immediate: true
-        }, handler);
-      },
-      authorize: function(CLIENT_ID, SCOPES, handler) {
-        gapi.auth.authorize({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          immediate: false
-        }, handler);
-      },
-      loadApis: function(callback) {
-        gapi.client.load("drive", "v3", callback);
-      },
-
-      buildMultipart: buildMultipart,
-      mergeAgendas: mergeAgendas,
-
-      sync: function() {
-        gapi.client.drive.files.list({
-          spaces: "appDataFolder",
-          fields: "files(id,name,parents,mimeType)"
-        }).then(function(response) {
-          var agendaFolderFound = false;
-          for (var file of response.result.files) {
-            if (file.mimeType == "application/vnd.google-apps.folder" && file.name == "agendas") {
-              agendaFolderFound = true;
-              finalizeSyncing(file, response);
-              break;
-            }
-          }
-          if (!agendaFolderFound) {
-            var list = response;
-            gapi.client.drive.files.create({
-              resource: {
-                name: "agendas",
-                mimeType: "application/vnd.google-apps.folder",
-                parents: ["appDataFolder"]
-              }
-            }).then(function(response) {
-              finalizeSyncing(file, list);
-            });
-          }
-        });
-        console.log("Syncing with Google Drive...");
-      }
-    };
-  })
   .filter("dateFilter", function() { return function(input) {
     if (!input) {
       return "No deadline";
@@ -1635,7 +1365,21 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return (new Date(input)).toDateString();
   }})
   .filter("timeFilter", function() { return function(input) {
-    return input ? (((input.getHours() % 12) == 0) ? 12 : (input.getHours() % 12)) + ":" + ((input.getMinutes() < 10) ? ("0" + input.getMinutes()) : input.getMinutes()) + ((input.getHours() / 12 >= 1) ? "pm" : "am") : "";
+    if (input) {
+      var date = new Date(input);
+      return ((date.getHours() % 12 == 0) ? 12 : (date.getHours() % 12)) + ":" + ((date.getMinutes() < 10) ? ("0" + date.getMinutes()) : date.getMinutes()) + ((date.getHours() / 12 >= 1) ? "pm" : "am");
+    } else {
+      return "";
+    }
+  }})
+  .filter("numericTimeFilter", function() { return function(input) {
+    if (input) {
+      var hours = Math.floor(input / 60);
+      var minutes = input % 60;
+      return ((hours % 12 == 0) ? 12 : (hours % 12)) + ":" + ((minutes < 10) ? ("0" + minutes) : minutes) + ((hours / 12 >= 1) ? "pm" : "am");
+    } else {
+      return "";
+    }
   }})
   .filter("tasksListFilter", function() { return function(input, showCompleted) {
     return showCompleted ? input : input.filter(function(value) {
@@ -1666,15 +1410,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     return input[Math.floor(Math.random() * input.length)];
   }})
   .filter("pointTypeFilter", function() { return function(input, days) {
-    var day = parseInt(input);
-    return isNaN(day) ? "Free day" : days[day].name;
-  }})
-  .filter("archivedAgendaFilter", function($agendaParser) { return function(input, showArchived) {
-    return input.filter(function(value) {
-      var agenda = $agendaParser.getAgenda(value);
-      var archived = agenda.raw.properties.archived;
-      return (showArchived && archived) || (!showArchived && !archived);
-    });
+    return input == "free" ? "Free day" : days[input];
   }})
   .value("quickAddSamples", [
     "Do work today",
