@@ -1243,21 +1243,9 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     var agendaSorter = {};
 
     agendaSorter.sort = function(a, test) { // TODO: Replace with native sort()
-      var array = a.slice();
-      var swaps = 0;
-      for (var passes = 0; (swaps > 0) || (passes < 1); passes++) {
-        swaps = 0;
-        for (var i = 1; i < (array.length - passes); i++) {
-          var a = array[i - 1];
-          var b = array[i];
-          if (test(a, b)) {
-            array[i - 1] = b;
-            array[i]     = a;
-            swaps++;
-          }
-        }
-      }
-      return array;
+      return a.slice.sort(function(a, b) {
+        return test(a, b) ? -1 : 1;
+      });
     };
 
     agendaSorter.deadlineSort = function(a, b) {
