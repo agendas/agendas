@@ -185,8 +185,16 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         });
 
         $scope.tasksRef.on("child_changed", function(data) {
+          var shouldRefreshTasks = (
+            ($scope.tasks[data.key].deadline && (!data.val().deadline)) ||
+            ((!$scope.tasks[data.key].deadline) && data.val().deadline) ||
+            (new Date($scope.tasks[data.key].deadline).getTime() !== new Date(data.val().deadline).getTime()) ||
+            ($scope.tasks[data.key].deadlineTime && (!data.val().deadlineTime)) ||
+            ((!$scope.tasks[data.key].deadlineTime) && data.val().deadlineTime)
+          );
           $scope.tasks[data.key] = data.val();
           $timeout($scope.refreshTasks);
+          $timeout(shouldRefreshTasks ? $scope.refreshTasks : undefined)
         });
 
         $scope.tasksRef.on("child_removed", function(data) {
@@ -1243,8 +1251,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
     var agendaSorter = {};
 
     agendaSorter.sort = function(a, test) { // TODO: Replace with native sort()
-      return a.slice.sort(function(a, b) {
-        return test(a, b) ? -1 : 1;
+      return a.sort(function(a, b) {
+        return test(a, b) ? 1 : -1;
       });
     };
 
