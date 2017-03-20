@@ -618,7 +618,7 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
       var wallpaper = $scope.settings.wallpaper || {id: "amazon-rainforest"};
       for (var w of wallpapers) {
         if (w.id == wallpaper.id) {
-          $scope.wallpaper = {"background-image": "linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('" + (w.url || wallpaper.customURL) + "')"}
+          $scope.wallpaper = {"background-image": "linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5)), url('" + (w.url || wallpaper.customURL) + "')"}
           break;
         }
       }
