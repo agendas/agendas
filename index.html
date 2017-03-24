@@ -123,7 +123,7 @@
 
             </div>
           </md-tab>
-          <md-tab id="agendas-schedule-tab" ng-if="schedule" ng-click="prepareScheduleView()" label="Schedule">
+          <md-tab id="agendas-schedule-tab" ng-click="prepareScheduleView()" ng-disabled="!schedule" label="Schedule">
             <div class="agendas-schedule" layout="column" layout-align="start center" layout-margin>
               <md-card><md-datepicker ng-model="scheduleView.date"></md-datepicker></md-card>
               <div ng-if="scheduleView.date && scheduleView.day">

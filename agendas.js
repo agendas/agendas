@@ -218,9 +218,8 @@ angular.module("agendasApp", ["ngMaterial", "ngMessages"])
         });
 
         $scope.scheduleRef.on("value", function(data) {
-          $timeout(function() {
-            $scope.schedule = data.val();
-          });
+          $scope.schedule = data.val();
+          $timeout();
         });
 
         $scope.taskCreationAllowed = true;
