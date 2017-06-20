@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html ng-app="agendasApp">
+  <head>
+    <meta charset="utf-8">
+    <title>Agendas</title>
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+    <script src="https://unpkg.com/angular-ui-router/release/angular-ui-router.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyDwuw68Y0BSCD4nQkD-jxPhA5_nVGu_VVs",
+        authDomain: "agendas-development.firebaseapp.com",
+        databaseURL: "https://agendas-development.firebaseio.com",
+        projectId: "agendas-development",
+        storageBucket: "agendas-development.appspot.com",
+        messagingSenderId: "170829740534"
+      };
+      firebase.initializeApp(config);
+    </script>
+
+    <script src="agendas.js"></script>
+    <script src="home/home.js"></script>
+    <script src="auth/auth.js"></script>
+    <script src="agenda/agenda.js"></script>
+    <script src="settings/settings.js"></script>
+  </head>
+  <body>
+    <ui-view></ui-view>
+  </body>
+</html>
