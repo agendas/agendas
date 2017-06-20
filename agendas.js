@@ -2,8 +2,12 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
   .config(($stateProvider) => {
     $stateProvider.state({
       name: "home",
-      url: "",
+      url: "/",
       component: "home"
+    });
+    $stateProvider.state({
+      name: "home.index",
+      url: ""
     });
     $stateProvider.state({
       name: "login",
@@ -26,3 +30,14 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "settings"
     });
   })
+  .controller("AgendasController", ($scope, $rootScope, $state) => {
+    firebase.auth().onAuthStateChanged(function(user) {
+      $rootScope.user = user;
+
+      if (!$rootScope.user) {
+        $state.go("login", {redirect: $state.current.name});
+      }
+
+      $scope.$apply();
+    })
+  });

@@ -5,6 +5,7 @@
     <title>Agendas</title>
 
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+    <link rel="stylesheet" href="style.css">
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
@@ -28,12 +29,14 @@
     </script>
 
     <script src="agendas.js"></script>
+    <script src="auth-providers.js"></script>
+
     <script src="home/home.js"></script>
     <script src="auth/auth.js"></script>
     <script src="agenda/agenda.js"></script>
     <script src="settings/settings.js"></script>
   </head>
-  <body>
+  <body ng-controller="AgendasController">
     <ui-view></ui-view>
   </body>
 </html>
