@@ -14,10 +14,13 @@ angular.module("agendasApp")
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
 
+        $scope.agenda = {};
+        $scope.categories = [];
+
         $scope.tasks = {};
         $scope.tasksArray = [];
         $scope.completed = {};
-        $scope.completedTasks = [];
+        //$scope.completedTasks = [];
 
         $scope.selectedTask = null;
       };
@@ -31,10 +34,44 @@ angular.module("agendasApp")
         $scope.agenda = value.val();
       });
 
+      $scope.categories = [];
+
+      $scope.categoriesRef.on("child_added", function(data) {
+        var category = data.val();
+        category.key = data.key;
+        $scope.categories.push(category);
+        $timeout();
+      });
+
+      $scope.categoriesRef.on("child_changed", function(data) {
+        for (var category of $scope.categories) {
+          if (category.key === data.key) {
+            category.name  = data.child("name").val();
+            category.color = data.child("color").val();
+            break;
+          }
+        }
+
+        $timeout();
+      });
+
+      $scope.categoriesRef.on("child_removed", function(data) {
+        var i = 0;
+        for (var category of $scope.categories) {
+          if (category.key === data.key) {
+            $scope.categories.splice(i, 1);
+            break;
+          }
+          i++;
+        }
+
+        $timeout();
+      });
+
       $scope.tasks = {};
       $scope.tasksArray = [];
       $scope.completed = {};
-      $scope.completedTasks = [];
+      //$scope.completedTasks = [];
 
       $scope.refreshCompletedTasks = function() {
         /*$scope.completedTasks = $scope.tasksArray.filter(function(task) {

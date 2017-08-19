@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html, body {
+  background-color: #F5F5F5;
+}
+
 html, body, body > div:first-child, ui-view, auth, agenda, .full {
   width: 100%;
   height: 100%;
@@ -99,7 +103,11 @@ task-creator {
   width: 100%;
 }
 
-agenda md-list:not(.md-dense) {
+agenda div[md-whiteframe] {
+  background-color: #FAFAFA;
+}
+
+agenda md-list.task-list {
   padding-bottom: 72px;
 }
 
@@ -185,6 +193,15 @@ task-creator div.task-input > .md-fab {
   width: auto;
   white-space: nowrap;
   top: 100px;
+}
+
+tag-editor md-input-container,
+tag-editor md-select {
+  margin: 0;
+}
+
+tag-editor .md-errors-spacer {
+  display: none;
 }
 
 @media (min-width: 600px) and (max-width: 959px) {

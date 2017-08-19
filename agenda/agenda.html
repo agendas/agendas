@@ -8,7 +8,7 @@
         <md-nav-item md-nav-click="goto('categories')" name="categories"><md-icon>local_offer</md-icon> Tags</md-nav-item>
         <md-nav-item md-nav-click="goto('settings')" name="settings"><md-icon>settings</md-icon> Settings</md-nav-item>
       </md-nav-bar>
-      <md-list ng-show="screen == 'tasks'">
+      <md-list class="task-list" ng-show="screen == 'tasks'">
         <md-list-item>
           <md-switch ng-model="showCompleted" ng-disabled="selectedTask"></md-switch>
           <p>Show completed tasks</p>
@@ -36,6 +36,7 @@
           </md-list-item>
         </div>
       </md-list>
+      <tag-editor categories="categories" ng-show="screen === 'categories'"></tag-editor>
     </div>
   </div>
 </div>
