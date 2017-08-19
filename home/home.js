@@ -1,2 +1,4 @@
 angular.module("agendasApp")
-  .component("home", {})
+  .component("home", {
+    templateUrl: "home/home.html"
+  })

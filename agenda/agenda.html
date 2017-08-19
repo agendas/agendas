@@ -1,0 +1,41 @@
+<agendas-menu-toolbar></agendas-menu-toolbar>
+<div ng-style="{height: mdMedia('md') ? 'calc(100% - 64px)' : '100%'}" layout="row" layout-align="center center">
+  <div style="height: 100%;" layout="column" flex-gt-md="60" flex-md="80" flex-sm="90" flex-xs="95">
+    <h1 class="md-display-3" style="margin-top: 0.5em; margin-bottom: 1.5em;">{{agenda.name}}</h1>
+    <div md-whiteframe="4" flex="grow">
+      <md-nav-bar md-selected-nav-item="screen">
+        <md-nav-item md-nav-click="goto('tasks')" name="tasks"><md-icon>list</md-icon> Tasks</md-nav-item>
+        <md-nav-item md-nav-click="goto('categories')" name="categories"><md-icon>local_offer</md-icon> Tags</md-nav-item>
+        <md-nav-item md-nav-click="goto('settings')" name="settings"><md-icon>settings</md-icon> Settings</md-nav-item>
+      </md-nav-bar>
+      <md-list ng-show="screen == 'tasks'">
+        <md-list-item>
+          <md-switch ng-model="showCompleted" ng-disabled="selectedTask"></md-switch>
+          <p>Show completed tasks</p>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item ng-show="showCompleted || (!completed[task])" ng-disabled="selectedTask" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="md-2-line">
+          <md-checkbox ng-disabled="selectedTask" class="md-primary" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
+          <div class="md-list-item-text">
+            <h3>{{tasks[task].name}}</h3>
+            <p>
+              <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline)}}</span>
+              <span ng-if="tasks[task].deadline && tasks[task].deadlineTime"><md-icon>access_time</md-icon> {{tasks[task].deadline | date:"shortTime"}}</span>
+            </p>
+          </div>
+          <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
+        </md-list-item>
+        <div ng-repeat-end>
+          <task-editor ng-if="selectedTask === task" task="tasks[task]" task-key="task" on-finish="hideTaskEditor()"></task-editor>
+          <md-divider ng-if="selectedTask === task"></md-divider>
+        </div>
+        <div class="add-task">
+          <md-divider></md-divider>
+          <md-list-item class="add-task">
+            <task-creator on-add-task="addTask(task)"></task-creator>
+          </md-list-item>
+        </div>
+      </md-list>
+    </div>
+  </div>
+</div>

@@ -7,36 +7,48 @@
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
     <link rel="stylesheet" href="style.css">
 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
-    <script src="https://unpkg.com/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script src="node_modules/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/chrono/latest/chrono.min.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/4.1.2/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
     <script>
       // Initialize Firebase
       var config = {
-        apiKey: "AIzaSyDwuw68Y0BSCD4nQkD-jxPhA5_nVGu_VVs",
-        authDomain: "agendas-development.firebaseapp.com",
-        databaseURL: "https://agendas-development.firebaseio.com",
-        projectId: "agendas-development",
-        storageBucket: "agendas-development.appspot.com",
-        messagingSenderId: "170829740534"
+        apiKey: "AIzaSyCKVrro03usV3StlEq5Hu7FAdSOoSM9RVg",
+        authDomain: "agendas-1293.firebaseapp.com",
+        databaseURL: "https://agendas-1293.firebaseio.com",
+        projectId: "agendas-1293",
+        storageBucket: "agendas-1293.appspot.com",
+        messagingSenderId: "153820900287"
       };
       firebase.initializeApp(config);
     </script>
 
     <script src="agendas.js"></script>
+    <script src="utils.js"></script>
     <script src="auth-providers.js"></script>
 
     <script src="home/home.js"></script>
     <script src="auth/auth.js"></script>
     <script src="agenda/agenda.js"></script>
     <script src="settings/settings.js"></script>
+    <script src="sidenav/sidenav.js"></script>
+    <script src="toolbar/toolbar.js"></script>
+    <script src="editor/editor.js"></script>
+    <script src="timepicker/timepicker.js"></script>
+    <script src="creator/creator.js"></script>
   </head>
-  <body ng-controller="AgendasController">
-    <ui-view></ui-view>
+  <body ng-controller="AgendasController" ng-style="$root.bodyStyle">
+    <div layout="row">
+      <agendas-sidenav ng-if="$root.user"></agendas-sidenav>
+      <ui-view flex></ui-view>
+    </div>
   </body>
 </html>

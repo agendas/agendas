@@ -1,0 +1,36 @@
+<div layout="row" layout-align="start center">
+  <md-checkbox class="md-primary" ng-model="completed"></md-checkbox>
+  <md-input-container class="md-headline" flex md-no-float>
+    <input type="text" placeholder="Name" ng-model="name" />
+  </md-input-container>
+</div>
+<div layout="row" layout-align="start center">
+  <span>Deadline: </span>
+  <md-datepicker ng-model="deadlineDate" md-placeholder="Date"></md-datepicker>
+  <time-picker ng-model="deadlineTime" placeholder="Time" use-24-hours="false"></time-picker>
+</div>
+<div layout="row" layout-align="start center">
+  <span>Repeat: </span>
+  <md-select ng-model="repeat" style="padding-left: 1em;">
+    <md-optgroup label="Repeat Every" ng-disabled="!deadlineDate">
+      <md-option value="">None</md-option>
+      <md-option value="day">Day</md-option>
+      <md-option value="weekday">Weekday</md-option>
+      <md-option value="week">Week</md-option>
+      <md-option value="2-weeks">Other Week</md-option>
+      <md-option value="month">Month</md-option>
+      <md-option value="year">Year</md-option>
+    </md-optgroup>
+  </md-select>
+  <md-datepicker ng-model="repeatEnd" md-placeholder="End Repeat" ng-if="deadlineDate && repeat"></md-datepicker>
+</div>
+<md-input-container class="md-block">
+  <label>Notes</label>
+  <textarea ng-model="notes"></textarea>
+</md-input-container>
+<div layout="row">
+  <md-button class="md-warn" ng-click="delete($event)">Delete</md-button>
+  <span flex></span>
+  <md-button class="md-accent" ng-click="cancel()">Cancel</md-button>
+  <md-button class="md-raised md-accent" ng-click="save()">Save</md-button>
+</div>

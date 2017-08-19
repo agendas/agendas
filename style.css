@@ -1,9 +1,186 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-html, body, ui-view, auth, .full {
+html, body, body > div:first-child, ui-view, auth, agenda, .full {
   width: 100%;
   height: 100%;
+}
+
+body, input, textarea {
+    font-family: -apple-system, BlinkMacSystemFont,
+      "Segoe UI", "Roboto", "Oxygen",
+      "Ubuntu", "Cantarell", "Fira Sans",
+      "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] {
+  height: 100%;
+  overflow: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+md-sidenav md-list-item md-card {
+  width: 100%;
+  box-shadow: none;
+  margin: 0.5rem;
+  border-radius: 5px;
+}
+
+md-sidenav md-list-item md-card > md-card-content {
+  padding: 0.5rem;
+}
+
+md-sidenav md-list-item md-card md-progress-circular svg > path {
+  stroke: white;
+}
+
+agendas-menu-toolbar > md-toolbar.md-menu-toolbar {
+  background-color: rgba(255, 255, 255, 0);
+}
+
+md-list-item.selected {
+  background-color: #388E3C;
+  color: white;
+}
+
+agenda div[md-whiteframe="4"] {
+  border-top-left-radius:  10px;
+  border-top-right-radius: 10px;
+}
+
+agenda md-tabs md-tabs-canvas {
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+.agendas-sidenav-placeholder {
+  width: 320px;
+  height: 100%;
+}
+
+task-editor {
+  padding: 1em;
+  /*width: 100%;*/
+  display: block;
+}
+
+time-picker md-input-container {
+  margin: 0;
+  padding-bottom: 6px;
+}
+
+time-picker .md-errors-spacer {
+  display: none;
+}
+
+.md-nav-item .md-button._md-nav-button:not([disabled]) md-icon {
+  color: inherit;
+}
+
+md-nav-bar ul._md-nav-bar-list {
+  display: flex;
+  justify-content: center;
+}
+
+.add-task {
+  position: fixed;
+  bottom: 0;
+  background-color: white;
+}
+
+.add-task > md-list-item,
+task-creator {
+  width: 100%;
+}
+
+agenda md-list:not(.md-dense) {
+  padding-bottom: 72px;
+}
+
+agenda md-nav-bar > .md-nav-bar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  z-index: 2;
+}
+
+task-creator > div.autocomplete {
+  position: absolute;
+  z-index: 3;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border-radius: 0;
+}
+
+task-creator span.chip {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  padding: 0.5em;
+  background-color: #E0E0E0;
+  color: #424242;
+  border-radius: 1em;
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+task-creator span.chip:focus {
+  background-color: #43A047;
+  color: white;
+}
+
+task-creator input {
+  border: none;
+  line-height: 2em;
+}
+
+@media (max-width: 599px) {
+  .add-task {
+    width: 95%;
+  }
+}
+
+.add-task > md-list-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+task-creator > div.task-input {
+  overflow: auto;
+  height: 64px;
+  padding: 16px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+task-creator div.task-input > span:first-child > input:empty {
+  /* min-width: 11rem; */
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  .add-task {
+    width: 90%;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .add-task {
+    width: 80%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .add-task {
+    width: calc(0.6 * (100% - 320px));
+  }
 }

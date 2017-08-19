@@ -6,10 +6,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "home"
     });
     $stateProvider.state({
-      name: "home.index",
-      url: ""
-    });
-    $stateProvider.state({
       name: "login",
       url: "/login",
       component: "auth"
@@ -20,24 +16,31 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "agenda"
     });
     $stateProvider.state({
-      name: "agenda.settings",
-      url: "/:agenda/settings",
-      component: "agendaSettings"
-    });
-    $stateProvider.state({
       name: "settings",
       url: "/settings",
       component: "settings"
     });
   })
-  .controller("AgendasController", ($scope, $rootScope, $state) => {
+  .config(($mdThemingProvider) => {
+    $mdThemingProvider.theme("default")
+      .primaryPalette("green")
+      .accentPalette("blue")
+      .warnPalette("red")
+  })
+  .controller("AgendasController", ($scope, $rootScope, $state, $timeout, $mdMedia) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
 
-      if (!$rootScope.user) {
+      if ($rootScope.user) {
+        if ($state.current.name == "login") {
+          $state.go("home");
+        }
+      } else {
         $state.go("login", {redirect: $state.current.name});
       }
 
-      $scope.$apply();
-    })
+      $timeout();
+    });
+
+    $rootScope.bodyStyle = {};
   });
