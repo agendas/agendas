@@ -157,14 +157,34 @@ task-creator input {
 
 task-creator > div.task-input {
   overflow: auto;
-  height: 64px;
   padding: 16px;
+  padding-right: 46px;
   white-space: nowrap;
   vertical-align: middle;
 }
 
 task-creator div.task-input > span:first-child > input:empty {
   /* min-width: 11rem; */
+}
+
+task-creator div.task-input > p {
+  line-height: 2em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+task-creator div.task-input > .md-fab {
+  position: absolute;
+  right: 0;
+  top: 6px;
+}
+
+.measuring-div {
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+  width: auto;
+  white-space: nowrap;
+  top: 100px;
 }
 
 @media (min-width: 600px) and (max-width: 959px) {

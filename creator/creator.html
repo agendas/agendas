@@ -5,13 +5,15 @@
     </md-list-item>
   </md-list>
 </div>
-<div class="task-input">
-  <span ng-repeat="item in items track by $index">
-    <input ng-if="item.type === 'text'" ng-change="refreshMatches(item.text)" ng-model="item.text" ng-focus="refreshMatches(item.text)" ng-blur="" ng-keydown="keyEvent(item, $index, $event)" ng-style="{width: 0.5 * (item.text.length + 1) + 'rem'}" />
-    <span layout="row" layout-align="center center" class="chip" ng-if="item.type !== 'text'" ng-keydown="keyEvent(item, $index, $event)" tabindex="0">
+<div class="task-input" ng-click="clickEvent($event)">
+  <span ng-repeat="item in items track by $index" ng-click="$event.stopPropagation()">
+    <input ng-if="item.type === 'text'" ng-change="refreshMatches(item.text)" ng-model="item.text" ng-focus="refreshMatches(item.text)" ng-blur="removeIfEmpty(item, $index)" ng-keydown="keyEvent(item, $index, $event)" ng-style="{width: getTextWidth(item.text) + 'px'}" />
+    <span layout="row" layout-align="center center" class="chip" ng-if="item.type !== 'text'" ng-keydown="keyEvent(item, $index, $event)" ng-keypress="keypressEvent($index, $event)" tabindex="0">
       <span>{{item.text}}</span>
       <md-button class="md-icon-button" md-no-ink ng-click="removeItem($index)" style="margin: 0; padding: 0; height: auto; min-height: 0; width: auto;"><md-icon style="margin: 0;">close</md-icon></md-button>
     </span>
   </span>
-  <md-button class="md-icon-button md-accent" ng-click="$ctrl.addTask()"><md-icon>add</md-icon></md-button>
+  <p ng-if="items.length < 1">Add a task</p>
+  <md-button class="md-fab md-mini" ng-disabled="items.length < 1" ng-click="$ctrl.addTask()"><md-icon>add</md-icon></md-button>
 </div>
+<div class="measuring-div"></div>
