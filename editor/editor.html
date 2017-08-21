@@ -24,6 +24,15 @@
   </md-select>
   <md-datepicker ng-model="repeatEnd" md-placeholder="End Repeat" ng-if="deadlineDate && repeat"></md-datepicker>
 </div>
+<md-chips ng-model="tags" md-transform-chip="angular.noop()" md-autocomplete-snap md-require-match="true">
+  <md-autocomplete md-search-text="tagSearchText" md-items="item in getMatchingTags(tagSearchText)" placeholder="Add tag">
+    <span><md-icon md-colors="getMdColor(item.color)">local_offer</md-icon> {{item.name}}</span>
+  </md-autocomplete>
+  <md-chip-template>
+    <md-icon md-colors="getMdColor($chip.color)">local_offer</md-icon>
+    {{$chip.name}}
+  </md-chip-template>
+</md-chips>
 <md-input-container class="md-block">
   <label>Notes</label>
   <textarea ng-model="notes"></textarea>

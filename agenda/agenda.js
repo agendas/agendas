@@ -1,14 +1,14 @@
 angular.module("agendasApp")
   .component("agenda", {
     templateUrl: "agenda/agenda.html",
-    controller: function($scope, $timeout, $stateParams, $mdMedia, $filter) {
+    controller: function($scope, $timeout, $stateParams, $mdMedia, $filter, $transitions) {
       $scope.destroy = function() {
         /*window.removeEventListener("scroll", $scope.scrollHandler);
         window.removeEventListener("resize", $scope.scrollHandler);*/
 
-        $scope.agendaRef.off();
-        $scope.categoriesRef.off();
-        $scope.tasksRef.off();
+        $scope.agendaRef && $scope.agendaRef.off();
+        $scope.categoriesRef && $scope.categoriesRef.off();
+        $scope.tasksRef && $scope.tasksRef.off();
 
         $scope.agendaRef = null;
         $scope.categoriesRef = null;
@@ -35,12 +35,16 @@ angular.module("agendasApp")
       });
 
       $scope.categories = [];
+      $scope.categoryObj = {};
 
       $scope.categoriesRef.on("child_added", function(data) {
         var category = data.val();
         category.key = data.key;
         $scope.categories.push(category);
-        $timeout();
+
+        $scope.categoryObj[data.key] = data.val();
+
+        $scope.refreshSoon();
       });
 
       $scope.categoriesRef.on("child_changed", function(data) {
@@ -51,6 +55,8 @@ angular.module("agendasApp")
             break;
           }
         }
+
+        $scope.categoryObj[data.key] = data.val();
 
         $timeout();
       });
@@ -64,6 +70,8 @@ angular.module("agendasApp")
           }
           i++;
         }
+
+        delete $scope.categoryObj[data.key];
 
         $timeout();
       });
@@ -86,7 +94,7 @@ angular.module("agendasApp")
             console.log("Running digest...");
             refreshScheduled = false;
             $scope.refreshCompletedTasks();
-          }, 200);
+          }, 400);
           refreshScheduled = true;
         }
       };
@@ -241,6 +249,23 @@ angular.module("agendasApp")
       $scope.addTask = function(task) {
         $scope.tasksRef.push().set(task);
       };
+
+      $scope.getTags = function(task) {
+        if (task.tags) {
+          return Object.keys(task.tags);
+        } else if (task.category) {
+          return [task.category];
+        }
+      };
+
+      $scope.getMdColor = function(color) {
+        return color === "black" ? {background: "grey-900"} : (color ? {background: color} : {});
+      };
+
+      $transitions.onExit({exiting: "agenda"}, function() {
+        console.log("Destroying agenda...");
+        $scope.destroy();
+      });
 
       /* var scrollTickPending = false;
       var scrollPos = 0;

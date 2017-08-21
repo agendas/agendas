@@ -4,10 +4,14 @@ angular.module("agendasApp")
     bindings: {
       task: "=",
       key: "=taskKey",
+      tagsArray: "=",
+      tagsObject: "=",
       onFinish: "&"
     },
     controller: function($scope, $stateParams, $timeout, $mdDialog) {
-      var key = this.key;
+      var key  = this.key;
+      var tags = this.tagsArray;
+      var tagsObject = this.tagsObject;
 
       $scope.cancel = this.onFinish;
 
@@ -19,6 +23,13 @@ angular.module("agendasApp")
         $scope.repeat = this.task.repeat || null;
         $scope.repeatEnd = this.task.repeatEnd;
         $scope.notes = this.task.notes;
+        $scope.tags = ((this.task.tags ? Object.keys(this.task.tags) : null) || (this.task.category ? [this.task.category] : [])).map(function(key) {
+          return {
+            name: tagsObject[key].name,
+            color: tagsObject[key].color,
+            key: key
+          };
+        });
       };
 
       $scope.save = function() {
@@ -29,6 +40,11 @@ angular.module("agendasApp")
           $scope.deadlineDate.setMilliseconds(0);
         }
 
+        var taskTags = {};
+        $scope.tags.forEach(function(tag) {
+          taskTags[tag.key] = true;
+        });
+
         var task = {
           name: $scope.name,
           completed: $scope.completed,
@@ -36,7 +52,8 @@ angular.module("agendasApp")
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
           repeatEnd: $scope.deadlineDate && $scope.repeat && $scope.repeatEnd ? $scope.repeatEnd : null,
-          notes: $scope.notes || null
+          notes: $scope.notes || null,
+          tags: taskTags
         };
 
         firebase.database().ref("/tasks/" + $stateParams.agenda + "/" + key).set(task).then(function() {
@@ -59,6 +76,21 @@ angular.module("agendasApp")
           });
         });
       };
+
+      $scope.getMdColor = function(color) {
+        return color === "black" ? {color: "grey-900"} : (color ? {color: color} : {});
+      };
+
+      $scope.getMatchingTags = function(text) {
+        if (text && text.length > 0) {
+          var query = text.toLowerCase();
+          return tags.filter(function(category) {
+            return category.name.toLowerCase().indexOf(query) === 0;
+          })
+        } else {
+          return [];
+        }
+      }
 
       this.load();
     }

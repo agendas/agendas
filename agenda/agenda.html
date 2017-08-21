@@ -21,18 +21,27 @@
             <p>
               <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline)}}</span>
               <span ng-if="tasks[task].deadline && tasks[task].deadlineTime"><md-icon>access_time</md-icon> {{tasks[task].deadline | date:"shortTime"}}</span>
+              <span ng-if="tasks[task].tags || tasks[task].category">
+                <md-icon>local_offer</md-icon>
+                <span class="tag-circle-container" ng-repeat="tag in getTags(tasks[task])">
+                  <span class="tag-circle" md-colors="getMdColor(categoryObj[tag].color)">
+                    <md-tooltip md-delay="0">{{categoryObj[tag].name}}</md-tooltip>
+                  </span>
+                </span>
+                <span ng-if="getTags(tasks[task]).length < 2">{{categoryObj[getTags(tasks[task])[0]].name}}</span>
+              </span>
             </p>
           </div>
           <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
         </md-list-item>
         <div ng-repeat-end>
-          <task-editor ng-if="selectedTask === task" task="tasks[task]" task-key="task" on-finish="hideTaskEditor()"></task-editor>
+          <task-editor ng-if="selectedTask === task" task="tasks[task]" task-key="task" tags-array="categories" tags-object="categoryObj" on-finish="hideTaskEditor()"></task-editor>
           <md-divider ng-if="selectedTask === task"></md-divider>
         </div>
         <div class="add-task">
           <md-divider></md-divider>
           <md-list-item class="add-task">
-            <task-creator on-add-task="addTask(task)"></task-creator>
+            <task-creator tags="categories" on-add-task="addTask(task)"></task-creator>
           </md-list-item>
         </div>
       </md-list>

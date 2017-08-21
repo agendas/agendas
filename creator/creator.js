@@ -6,11 +6,15 @@ angular.module("agendasApp")
       onAddTag: "&?",
       tags: "=?"
     },
-    controller: function($scope, $timeout) {
+    controller: function($scope, $timeout, colors) {
+      $scope.tags = this.tags;
+      $scope.colors = colors;
+
       $scope.items = [];
       $scope.matches = [];
       $scope.selectedMatch = null;
       $scope.hasDeadlineChip = false;
+      $scope.tagChips = {};
 
       $scope.addMatch = function(match) {
         if ($scope.matches.length < 1) {
@@ -34,9 +38,15 @@ angular.module("agendasApp")
         if (!$scope.hasDeadlineChip) {
           var date = chrono.parse(text);
           if (date.length > 0 && text.endsWith(date[0].text)) {
-            $scope.addMatch({type: "deadline", text: date[0].text, deadline: date[0].start.date(), time: date[0].start.isCertain("hour")});
+            $scope.addMatch({type: "deadline", icon: "today", text: date[0].text, deadline: date[0].start.date(), time: date[0].start.isCertain("hour")});
           }
         }
+
+        $scope.tags.forEach(function(tag) {
+          if (tag.name && tag.name.length > 0 && text.toLowerCase().endsWith(tag.name.toLowerCase()) && !$scope.tagChips[tag.name]) {
+            $scope.addMatch({type: "tag", icon: "local_offer", text: tag.name, color: tag.color, key: tag.key});
+          }
+        });
       };
 
       $scope.hasFocus = function() {
@@ -53,6 +63,8 @@ angular.module("agendasApp")
 
         if (match.type === "deadline") {
           $scope.hasDeadlineChip = true;
+        } else if (match.type === "tag") {
+          $scope.tagChips[match.text] = true;
         }
 
         $scope.items[index].text = $scope.items[index].text.slice(0, -1 * (match.text.length));
@@ -61,6 +73,9 @@ angular.module("agendasApp")
       $scope.removeItem = function(index) {
         if ($scope.items[index].type === "deadline") {
           $scope.hasDeadlineChip = false;
+        }
+        if ($scope.items[index].type === "tag") {
+          delete $scope.tagChips[$scope.items[index].text];
         }
         $scope.items.splice(index, 1);
         if ($scope.items.length > 0) {
@@ -102,9 +117,9 @@ angular.module("agendasApp")
             break;
           case 37:
             if (index > 0 && (event.target.tagName !== "INPUT" || event.target.selectionStart <= 0)) {
-              event.target.blur();
               var element = document.querySelector("task-creator > div.task-input > span:nth-child(" + (index) + ") > *")
               element.focus();
+              event.target.blur();
               if (element.tagName === "INPUT") {
                 element.selectionStart = element.value.length + 1;
               }
@@ -121,13 +136,15 @@ angular.module("agendasApp")
           case 39:
             if (event.target.tagName !== "INPUT" || event.target.selectionStart >= item.text.length) {
               if ((index >= $scope.items.length - 1 && event.target.tagName !== "INPUT") || ($scope.items[index + 1] && $scope.items[index].type !== "text" && $scope.items[index + 1].type !== "text")) {
+                console.log("Creating new input...");
                 $scope.items.splice(index + 1, 0, {type: "text", text: ""});
               }
               if (index >= 0 && index < $scope.items.length - 1) {
                 $timeout(function() {
-                  event.target.blur();
                   var element = document.querySelector("task-creator > div.task-input > span:nth-child(" + (index + 2) + ") > *");
+                  console.log(element);
                   element.focus();
+                  event.target.blur();
                   if (element.tagName === "INPUT") {
                     element.selectionStart = 0;
                   }
@@ -179,7 +196,7 @@ angular.module("agendasApp")
 
       $scope.removeIfEmpty = function(item, index) {
         if (item.text.length < 1) {
-          $scope.removeItem(index);
+          $scope.items.splice(index, 1);
         }
       };
 
@@ -196,7 +213,7 @@ angular.module("agendasApp")
       };
 
       this.addTask = function() {
-        var task = {name: ""};
+        var task = {name: "", tags: {}};
 
         $scope.items.forEach(function(item) {
           if (item.type === "text") {
@@ -207,6 +224,8 @@ angular.module("agendasApp")
           } else if (item.type === "deadline") {
             task.deadline = item.deadline.toJSON();
             task.deadlineTime = !!item.time;
+          } else if (item.type === "tag") {
+            task.tags[item.key] = true;
           }
         });
 
@@ -218,6 +237,10 @@ angular.module("agendasApp")
         $scope.selectedMatch = null;
 
         document.querySelector("task-creator input").focus();
+      };
+
+      $scope.getColor = function(color) {
+        return color === "black" ? {color: "grey-900"} : (color ? {color: color} : {})
       };
     }
   })
