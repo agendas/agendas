@@ -7,8 +7,14 @@ angular.module("agendasApp")
           $scope.agendasRef.off();
         }
 
+        if ($scope.usernameRef) {
+          $scope.usernameRef.off();
+        }
+
         $scope.agendas = [];
         $scope.agendasRef = null;
+        $scope.usernameRef = null;
+        $scope.username = "";
       };
 
       firebase.auth().onAuthStateChanged(function(user) {

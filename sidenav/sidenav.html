@@ -6,16 +6,16 @@
         <h1 class="md-display-1">Agendas</h1>
       </div>
     </md-list-item>
-    <md-list-item class="md-2-line">
+    <md-list-item class="md-2-line" ui-sref="settings">
       <img ng-if="$root.user.photoURL" ng-src="{{$root.user.photoURL}}" class="md-avatar" />
       <md-icon ng-if="!$root.user.photoURL" class="md-avatar-icon">person</md-icon>
       <div class="md-list-item-text">
         <h3>Account & Settings</h3>
-        <p>{{$root.user.email}}</p>
+        <p>{{$root.username || $root.user.email}}</p>
       </div>
     </md-list-item>
     <md-divider></md-divider>
-    <md-list-item ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-repeat="agenda in agendas">
+    <md-list-item md-no-ink ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-repeat="agenda in agendas">
       <md-card md-colors="{background: 'primary'}">
         <md-card-content>
           <md-progress-circular md-diameter="20px" md-mode="indeterminate" ng-if="!agenda.name"></md-progress-circular>

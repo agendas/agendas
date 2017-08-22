@@ -46,8 +46,11 @@
     <script src="timepicker/timepicker.js"></script>
     <script src="creator/creator.js"></script>
     <script src="tags/tags.js"></script>
+    <script src="agenda-settings/agenda-settings.js"></script>
+
+    <script src="credits.js"></script>
   </head>
-  <body ng-controller="AgendasController" ng-style="$root.bodyStyle">
+  <body ng-controller="AgendasController" ng-style="$root.bodyStyle" md-theme="{{$root.darkTheme ? 'dark' : 'default'}}">
     <div layout="row">
       <agendas-sidenav ng-if="$root.user"></agendas-sidenav>
       <ui-view flex></ui-view>

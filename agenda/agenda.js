@@ -1,7 +1,7 @@
 angular.module("agendasApp")
   .component("agenda", {
     templateUrl: "agenda/agenda.html",
-    controller: function($scope, $timeout, $stateParams, $mdMedia, $filter, $transitions) {
+    controller: function($scope, $timeout, $stateParams, $mdMedia, $filter, $transitions, $rootScope) {
       $scope.destroy = function() {
         /*window.removeEventListener("scroll", $scope.scrollHandler);
         window.removeEventListener("resize", $scope.scrollHandler);*/
@@ -9,14 +9,16 @@ angular.module("agendasApp")
         $scope.agendaRef && $scope.agendaRef.off();
         $scope.categoriesRef && $scope.categoriesRef.off();
         $scope.tasksRef && $scope.tasksRef.off();
+        $scope.permissionsRef && $scope.permissionsRef.off();
 
         $scope.agendaRef = null;
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
+        $scope.permissionsRef = null;
 
         $scope.agenda = {};
         $scope.categories = [];
-
+        $scope.permissions = {};
         $scope.tasks = {};
         $scope.tasksArray = [];
         $scope.completed = {};
@@ -27,11 +29,28 @@ angular.module("agendasApp")
 
       $scope.agendaRef     = firebase.database().ref("/agendas/" + $stateParams.agenda);
       $scope.categoriesRef = firebase.database().ref("/categories/" + $stateParams.agenda);
+      $scope.permissionsRef = firebase.database().ref("/permissions/" + $stateParams.agenda);
       $scope.tasksRef      = firebase.database().ref("/tasks/" + $stateParams.agenda);
+
+      $scope.showCompleted = !!$rootScope.showCompleted;
+
+      var refreshScheduled = false;
+      $scope.refreshSoon = function() {
+        if (!refreshScheduled) {
+          $timeout(function() {
+            console.log("Running digest...");
+            refreshScheduled = false;
+            $scope.refreshCompletedTasks();
+            $scope.$digest();
+          }, 200, false);
+          refreshScheduled = true;
+        }
+      };
 
       $scope.agenda = {};
       $scope.agendaRef.on("value", function(value) {
         $scope.agenda = value.val();
+        $scope.refreshSoon();
       });
 
       $scope.categories = [];
@@ -58,7 +77,7 @@ angular.module("agendasApp")
 
         $scope.categoryObj[data.key] = data.val();
 
-        $timeout();
+        $scope.$digest();
       });
 
       $scope.categoriesRef.on("child_removed", function(data) {
@@ -73,7 +92,24 @@ angular.module("agendasApp")
 
         delete $scope.categoryObj[data.key];
 
-        $timeout();
+        $scope.$digest();
+      });
+
+      $scope.permissions = {};
+
+      $scope.permissionsRef.on("child_added", function(data) {
+        $scope.permissions[data.key] = data.val();
+        $scope.refreshSoon();
+      });
+
+      $scope.permissionsRef.on("child_changed", function(data) {
+        $scope.permissions[data.key] = data.val();
+        $scope.$digest();
+      });
+
+      $scope.permissionsRef.on("child_removed", function(data) {
+        delete $scope.permissions[data.key];
+        $scope.$digest();
       });
 
       $scope.tasks = {};
@@ -85,18 +121,6 @@ angular.module("agendasApp")
         /*$scope.completedTasks = $scope.tasksArray.filter(function(task) {
           return !$scope.tasks[task].completed;
         });*/
-      };
-
-      var refreshScheduled = false;
-      $scope.refreshSoon = function() {
-        if (!refreshScheduled) {
-          $timeout(function() {
-            console.log("Running digest...");
-            refreshScheduled = false;
-            $scope.refreshCompletedTasks();
-          }, 400);
-          refreshScheduled = true;
-        }
       };
 
       $scope.tasksRef.on("child_added", function(data) {
@@ -190,7 +214,7 @@ angular.module("agendasApp")
           $scope.refreshCompletedTasks();
         }
 
-        $timeout();
+        $scope.$digest();
       });
 
       $scope.tasksRef.on("child_removed", function(data) {
@@ -199,7 +223,7 @@ angular.module("agendasApp")
         delete $scope.tasks[data.key];
         //delete $scope.completed[data.key];
 
-        $timeout();
+        $scope.$digest();
       });
 
       $scope.getTasksArray = function() {

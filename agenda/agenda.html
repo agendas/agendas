@@ -1,5 +1,5 @@
 <agendas-menu-toolbar></agendas-menu-toolbar>
-<div ng-style="{height: mdMedia('md') ? 'calc(100% - 64px)' : '100%'}" layout="row" layout-align="center center">
+<div ng-style="{height: mdMedia('md') ? 'calc(100vh - 64px)' : '100vh'}" layout="row" layout-align="center center">
   <div style="height: 100%;" layout="column" flex-gt-md="60" flex-md="80" flex-sm="90" flex-xs="95">
     <h1 class="md-display-3" style="margin-top: 0.5em; margin-bottom: 1.5em;">{{agenda.name}}</h1>
     <div md-whiteframe="4" flex="grow">
@@ -14,7 +14,7 @@
           <p>Show completed tasks</p>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item ng-show="showCompleted || (!completed[task])" ng-disabled="selectedTask" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="md-2-line">
+        <md-list-item ng-show="showCompleted || (!completed[task])" ng-disabled="selectedTask || permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="md-2-line">
           <md-checkbox ng-disabled="selectedTask" class="md-primary" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
           <div class="md-list-item-text">
             <h3>{{tasks[task].name}}</h3>
@@ -46,6 +46,7 @@
         </div>
       </md-list>
       <tag-editor categories="categories" ng-show="screen === 'categories'"></tag-editor>
+      <agenda-settings ng-if="screen === 'settings'" agenda="agenda" permissions="permissions"></agenda-settings>
     </div>
   </div>
 </div>

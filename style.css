@@ -8,7 +8,7 @@ html, body {
   background-color: #F5F5F5;
 }
 
-html, body, body > div:first-child, ui-view, auth, agenda, .full {
+html, body, body > div:first-child, ui-view, auth, agenda, settings, .full {
   width: 100%;
   height: 100%;
 }
@@ -19,6 +19,21 @@ body, input, textarea, md-chip {
       "Ubuntu", "Cantarell", "Fira Sans",
       "Droid Sans", "Helvetica Neue", sans-serif;
 }
+
+body[md-theme="dark"] {
+  color: white;
+  background-color: #212121;
+  /*height: auto;*/
+}
+
+/*body[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text h3,
+body[md-theme="dark"] md-sidenav md-list > md-list-item md-icon {
+  color: white;
+}
+
+body[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text p {
+  color: #FAFAFA;
+}*/
 
 md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] {
   height: 100%;
@@ -43,7 +58,8 @@ md-sidenav md-list-item md-card md-progress-circular svg > path {
   stroke: white;
 }
 
-agendas-menu-toolbar > md-toolbar.md-menu-toolbar {
+agendas-menu-toolbar > md-toolbar.md-menu-toolbar,
+agendas-menu-toolbar > md-toolbar.md-dark-theme.md-menu-toolbar {
   background-color: rgba(255, 255, 255, 0);
 }
 
@@ -112,6 +128,10 @@ agenda div[md-whiteframe] {
   background-color: #FAFAFA;
 }
 
+body[md-theme="dark"] agenda div[md-whiteframe] {
+  background-color: #454545;
+}
+
 agenda md-list.task-list {
   padding-bottom: 72px;
 }
@@ -126,6 +146,11 @@ agenda md-nav-bar > .md-nav-bar {
   z-index: 2;
 }
 
+body[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
+  background-color: #454545;
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
 task-creator > div.autocomplete {
   position: absolute;
   z-index: 3;
@@ -134,6 +159,10 @@ task-creator > div.autocomplete {
   width: 100%;
   background-color: white;
   border-radius: 0;
+}
+
+body[md-theme="dark"] task-creator > div.autocomplete {
+  background-color: black;
 }
 
 task-creator span.chip {
@@ -205,6 +234,7 @@ tag-editor md-select {
   margin: 0;
 }
 
+agenda-settings .md-errors-spacer,
 tag-editor .md-errors-spacer {
   display: none;
 }
@@ -226,6 +256,41 @@ tag-editor .md-errors-spacer {
   background-color: #757575;
   vertical-align: middle;
   position: absolute;
+}
+
+settings {
+  display: block;
+}
+
+body[md-theme="dark"] .md-nav-bar .md-nav-item > .md-button.md-unselected {
+  color: white;
+}
+
+body[md-theme="dark"] .add-task {
+  background-color: #454545;
+}
+
+body[md-theme="dark"] task-creator input {
+  background-color: #454545;
+  color: white;
+}
+
+body[md-theme="dark"] task-creator input::-webkit-input-placeholder {
+  color: #E0E0E0;
+}
+body[md-theme="dark"] task-creator input::-moz-placeholder {
+  opacity: 1;
+  color: #E0E0E0;
+}
+body[md-theme="dark"] task-creator input:-moz-placeholder {
+  opacity: 1;
+  color: #E0E0E0;
+}
+body[md-theme="dark"] task-creator input::-ms-input-placeholder {
+  color: #E0E0E0;
+}
+body[md-theme="dark"] task-creator input::placeholder {
+  color: #E0E0E0;
 }
 
 @media (min-width: 600px) and (max-width: 959px) {
