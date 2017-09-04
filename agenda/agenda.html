@@ -14,12 +14,12 @@
           <p>Show completed tasks</p>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line" ng-class="showCompleted || (!completed[task]) ? 'show' : 'hide'">
+        <md-list-item ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line" ng-class="{show: showCompleted || (!completed[task]), completed: completed[task], overdue: isOverdue(tasks[task])}">
           <md-checkbox class="md-primary" ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
           <div class="md-list-item-text">
             <h3>{{tasks[task].name}}</h3>
             <p>
-              <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline)}}</span>
+              <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline, completed[task])}}</span>
               <span ng-if="tasks[task].deadline && tasks[task].deadlineTime"><md-icon>access_time</md-icon> {{tasks[task].deadline | date:"shortTime"}}</span>
               <span ng-if="tasks[task].tags || tasks[task].category">
                 <md-icon>local_offer</md-icon>

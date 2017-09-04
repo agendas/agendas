@@ -230,60 +230,76 @@ angular.module("agendasApp")
         return $scope.showCompleted ? $scope.tasksArray : $scope.completedTasks;
       };
 
-      $scope.completeTask = function(task) {
-        if (task.repeat) {
+      $scope.completeTask = function(taskKey) {
+        var task = $scope.tasks[taskKey];
+        if (task.repeat && $scope.completed[taskKey]) {
           var day = 24 * 60 * 60 * 1000;
           var next = null;
           var deadline = new Date(task.deadline);
 
+          if (!task.deadlineTime) {
+            deadline.setHours(0);
+            deadline.setMinutes(0);
+            deadline.setSeconds(0);
+            deadline.setMilliseconds(0);
+          }
+
           switch (task.repeat) {
             case "day":
               next = new Date(deadline.getTime() + day);
+              break;
             case "weekday":
               next = new Date(deadline.getTime() + day);
               while (next.getDay() === 0 || next.getDay() === 6) {
                 next.setDate(next.getDate() + 1);
               }
+              break;
             case "week":
               next = new Date(deadline.getTime() + (7 * day));
+              break;
             case "2-weeks":
               next = new Date(deadline.getTime() + (14 * day));
+              break;
             case "month":
               next = new Date(deadline.getTime());
               next.setMonth(next.getMonth() + 1);
+              break;
             case "year":
               next = new Date(deadline.getTime());
               next.setFullYear(next.getFullYear() + 1);
+              break;
           }
 
-          if (next && task.repeatEnd) {
-            var repeatEnd = new Date(task.repeatEnd);
-            repeatEnd.setDate(repeatEnd.getDate() + 1);
-            repeatEnd.setHours(0);
-            repeatEnd.setMinutes(0);
-            repeatEnd.setSeconds(0);
-            repeatEnd.setMillseconds(0);
+          if (next && task.repeatEnds) {
+            var repeatEnds = new Date(task.repeatEnds);
+            repeatEnds.setDate(repeatEnds.getDate() + 1);
+            repeatEnds.setHours(0);
+            repeatEnds.setMinutes(0);
+            repeatEnds.setSeconds(0);
+            repeatEnds.setMilliseconds(0);
 
-            if (next < repeatEnd) {
-              $scope.tasksRef.child(task).child("deadline").set(next.toJSON());
+            console.log(repeatEnds);
+
+            if (next < repeatEnds) {
+              $scope.tasksRef.child(taskKey).child("deadline").set(next.toJSON());
               return;
             }
           } else if (next) {
-            $scope.tasksRef.child(task).child("deadline").set(next.toJSON());
+            $scope.tasksRef.child(taskKey).child("deadline").set(next.toJSON());
             return;
           }
         }
-        $scope.tasksRef.child(task).child("completed").set($scope.completed[task]);
+        $scope.tasksRef.child(taskKey).child("completed").set($scope.completed[taskKey]);
       };
 
       $scope.mdMedia = $mdMedia;
 
-      $scope.getDeadlineString = function(deadline) {
+      $scope.getDeadlineString = function(deadline, completed) {
         var deadlineDate = new Date(deadline);
         var date = Math.floor((deadlineDate.getTimezoneOffset() * -60000 + deadlineDate.getTime()) / (24 * 60 * 60 * 1000));
         var now  = Math.floor((new Date().getTimezoneOffset() * -60000 + Date.now()) / (24 * 60 * 60 * 1000));
         if (date - now < -1) {
-          return (now - date) + " days ago";
+          return completed ? $filter("date")(deadline, "mediumDate") : (now - date) + " days ago";
         } else if (date - now < 0) {
           return "Yesterday";
         } else if (date == now) {
@@ -331,6 +347,10 @@ angular.module("agendasApp")
         console.log("Destroying agenda...");
         $scope.destroy();
       });
+
+      $scope.isOverdue = function(task) {
+        return task.deadline && new Date(task.deadline) < new Date();
+      };
 
       /* var scrollTickPending = false;
       var scrollPos = 0;

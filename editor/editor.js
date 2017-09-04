@@ -20,8 +20,8 @@ angular.module("agendasApp")
         $scope.completed = !!this.task.completed;
         $scope.deadlineDate = this.task.deadline && new Date(this.task.deadline);
         $scope.deadlineTime = (this.task.deadline && this.task.deadlineTime) ? $scope.deadlineDate.getHours() * 60 + $scope.deadlineDate.getMinutes() : undefined;
-        $scope.repeat = this.task.repeat || null;
-        $scope.repeatEnd = this.task.repeatEnd;
+        $scope.repeat = this.task.repeat || "";
+        $scope.repeatEnds = this.task.repeatEnds && new Date(this.task.repeatEnds);
         $scope.notes = this.task.notes;
         $scope.tags = ((this.task.tags ? Object.keys(this.task.tags) : null) || (this.task.category ? [this.task.category] : [])).filter(function(key) {
           return tagsObject[key];
@@ -53,7 +53,7 @@ angular.module("agendasApp")
           deadline: $scope.deadlineDate ? $scope.deadlineDate.toJSON() : null,
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
-          repeatEnd: $scope.deadlineDate && $scope.repeat && $scope.repeatEnd ? $scope.repeatEnd : null,
+          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds.toJSON() : null,
           notes: $scope.notes || null,
           tags: taskTags
         };

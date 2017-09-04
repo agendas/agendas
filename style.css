@@ -20,18 +20,18 @@ body, input, textarea, md-chip {
       "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
-body[md-theme="dark"] {
+html[md-theme="dark"], html[md-theme="dark"] body {
   color: white;
   background-color: #212121;
   /*height: auto;*/
 }
 
-/*body[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text h3,
-body[md-theme="dark"] md-sidenav md-list > md-list-item md-icon {
+/*html[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text h3,
+html[md-theme="dark"] md-sidenav md-list > md-list-item md-icon {
   color: white;
 }
 
-body[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text p {
+html[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text p {
   color: #FAFAFA;
 }*/
 
@@ -128,7 +128,7 @@ agenda div[md-whiteframe] {
   background-color: #FAFAFA;
 }
 
-body[md-theme="dark"] agenda div[md-whiteframe] {
+html[md-theme="dark"] agenda div[md-whiteframe] {
   background-color: #454545;
 }
 
@@ -146,7 +146,7 @@ agenda md-nav-bar > .md-nav-bar {
   z-index: 2;
 }
 
-body[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
+html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
   background-color: #454545;
   border-bottom-color: rgba(255, 255, 255, 0.3);
 }
@@ -161,7 +161,7 @@ task-creator > div.autocomplete {
   border-radius: 0;
 }
 
-body[md-theme="dark"] task-creator > div.autocomplete {
+html[md-theme="dark"] task-creator > div.autocomplete {
   background-color: black;
 }
 
@@ -262,34 +262,34 @@ settings {
   display: block;
 }
 
-body[md-theme="dark"] .md-nav-bar .md-nav-item > .md-button.md-unselected {
+html[md-theme="dark"] .md-nav-bar .md-nav-item > .md-button.md-unselected {
   color: white;
 }
 
-body[md-theme="dark"] .add-task {
+html[md-theme="dark"] .add-task {
   background-color: #454545;
 }
 
-body[md-theme="dark"] task-creator input {
+html[md-theme="dark"] task-creator input {
   background-color: #454545;
   color: white;
 }
 
-body[md-theme="dark"] task-creator input::-webkit-input-placeholder {
+html[md-theme="dark"] task-creator input::-webkit-input-placeholder {
   color: #E0E0E0;
 }
-body[md-theme="dark"] task-creator input::-moz-placeholder {
+html[md-theme="dark"] task-creator input::-moz-placeholder {
   opacity: 1;
   color: #E0E0E0;
 }
-body[md-theme="dark"] task-creator input:-moz-placeholder {
+html[md-theme="dark"] task-creator input:-moz-placeholder {
   opacity: 1;
   color: #E0E0E0;
 }
-body[md-theme="dark"] task-creator input::-ms-input-placeholder {
+html[md-theme="dark"] task-creator input::-ms-input-placeholder {
   color: #E0E0E0;
 }
-body[md-theme="dark"] task-creator input::placeholder {
+html[md-theme="dark"] task-creator input::placeholder {
   color: #E0E0E0;
 }
 
@@ -328,4 +328,24 @@ agenda .task-list.task-editor-open md-list-item {
 
 .task:not(.show) {
   display: none;
+}
+
+.task.overdue:not(.completed) .md-list-item-text h3,
+.task.overdue:not(.completed) .md-list-item-text p,
+.task.overdue:not(.completed) .md-list-item-text md-icon {
+  color: #C62828;
+}
+
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text h3,
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text p,
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text md-icon {
+  color: #FFCDD2;
+}
+
+.task.completed .md-list-item-text {
+  opacity: 0.7;
+}
+
+.task.completed .md-list-item-text h3 {
+  text-decoration: line-through;
 }

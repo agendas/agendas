@@ -11,8 +11,8 @@
 </div>
 <div layout="row" layout-align="start center">
   <span>Repeat: </span>
-  <md-select ng-model="repeat" style="padding-left: 1em;">
-    <md-optgroup label="Repeat Every" ng-disabled="!deadlineDate">
+  <md-select ng-model="repeat" style="padding-left: 1em;" ng-disabled="!deadlineDate">
+    <md-optgroup label="Repeat Every">
       <md-option value="">None</md-option>
       <md-option value="day">Day</md-option>
       <md-option value="weekday">Weekday</md-option>
@@ -22,7 +22,7 @@
       <md-option value="year">Year</md-option>
     </md-optgroup>
   </md-select>
-  <md-datepicker ng-model="repeatEnd" md-placeholder="End Repeat" ng-if="deadlineDate && repeat"></md-datepicker>
+  <md-datepicker ng-model="repeatEnds" md-placeholder="End Repeat" ng-if="deadlineDate && repeat"></md-datepicker>
 </div>
 <md-chips ng-model="tags" md-transform-chip="angular.noop()" md-autocomplete-snap md-require-match="true">
   <md-autocomplete md-search-text="tagSearchText" md-items="item in getMatchingTags(tagSearchText)" placeholder="Add tag">

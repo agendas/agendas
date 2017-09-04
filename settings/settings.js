@@ -11,7 +11,7 @@ angular.module("agendasApp")
 
       $scope.applyDarkTheme = function(darkTheme) {
         localStorage.agendasDarkTheme = JSON.stringify(darkTheme);
-        $state.reload();
+        location.reload(false);
       };
 
       $scope.showChangeUsernameDialog = function(username) {

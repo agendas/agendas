@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="agendasApp">
+<html ng-app="agendasApp" md-theme="{{$root.darkTheme ? 'dark' : 'default'}}">
   <head>
     <meta charset="utf-8">
     <title>Agendas</title>
@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="style.css">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+
+    <link rel="icon" href="agendas.png" />
 
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
@@ -56,7 +58,7 @@
 
     <script src="credits.js"></script>
   </head>
-  <body ng-controller="AgendasController" ng-style="$root.bodyStyle" md-theme="{{$root.darkTheme ? 'dark' : 'default'}}">
+  <body ng-controller="AgendasController" ng-style="$root.bodyStyle">
     <div layout="row">
       <agendas-sidenav ng-if="$root.user"></agendas-sidenav>
       <ui-view flex></ui-view>
