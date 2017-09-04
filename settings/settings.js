@@ -1,8 +1,9 @@
 angular.module("agendasApp")
   .component("settings", {
     templateUrl: "settings/settings.html",
-    controller: function($scope, $state, credits, $mdDialog, $rootScope) {
+    controller: function($scope, $state, credits, $mdDialog, $rootScope, $authProviders) {
       $scope.credits = credits;
+      $scope.providers = $authProviders;
 
       $scope.applyShowCompleted = function(completedTasks) {
         localStorage.agendasShowCompleted = JSON.stringify(completedTasks);
@@ -71,6 +72,25 @@ angular.module("agendasApp")
           },
           clickOutsideToClose: true,
           escapeToClose: true
+        });
+      };
+
+      $scope.viewProvider = function(provider, event) {
+        $mdDialog.show({
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><provider-dialog provider='provider'></provider-dialog></md-dialog>",
+          controller: function($scope) {
+            $scope.provider = provider;
+          },
+          clickOutsideToClose: true,
+          escapeToClose: true,
+          targetEvent: event
+        });
+      };
+
+      $scope.addProvider = function(event) {
+        $mdDialog.show({
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><add-provider></add-provider></md-dialog>",
+          targetEvent: event
         });
       };
     }

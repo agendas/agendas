@@ -72,6 +72,16 @@
                 <p>Your username is "{{$root.username}}"</p>
               </div>
             </md-list-item>
+            <md-subheader>Sign-in Methods</md-subheader>
+            <md-list-item>
+              <md-button ng-click="viewProvider(provider, $event)" ng-repeat="provider in $root.user.providerData track by provider.providerId" md-colors="{background: providers.get(provider.providerId).color}">{{providers.get(provider.providerId).name}}</md-button>
+            </md-list-item>
+            <md-list-item class="md-2-line" ng-click="addProvider($event)">
+              <div class="md-list-item-text">
+                <h3>Add a sign-in method</h3>
+                <p>Use multiple ways to sign in to your account</p>
+              </div>
+            </md-list-item>
           </md-tab-body>
         </md-tab>
 

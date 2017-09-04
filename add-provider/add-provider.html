@@ -1,0 +1,11 @@
+<md-dialog-content>
+  <div class="md-dialog-content">
+    <h3 class="md-headline">Add a sign-in method</h3>
+    <div style="width: 100%;" layout="column" layout-align="center center" layout-margin>
+      <md-button class="md-raised" ng-click="linkProvider(provider)" ng-repeat="provider in providers" md-colors="{background: provider.color}">{{provider.name}}</md-button>
+    </div>
+  </div>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button class="md-accent" ng-click="cancel()">Cancel</md-button>
+</md-dialog-actions>
