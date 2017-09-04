@@ -2,7 +2,7 @@ angular.module("agendasApp")
   .component("auth", {
     templateUrl: "auth/auth.html",
     controller: function($scope, $rootScope, $authProviders, $state, $stateParams, $timeout) {
-      $scope.authProviders = $authProviders.values();
+      $scope.authProviders = Array.from($authProviders.values());
       $scope.loginWithProvider = (provider, event) => {
         provider.loginHandler(provider.provider, event).then(() => {
           if ($stateParams.redirect && $stateParams.redirect != "login") {
