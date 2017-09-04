@@ -115,7 +115,11 @@ angular.module("agendasApp")
         return $mdMedia("gt-md");
       };
 
-      $scope.$watch("sidenavIsOpen && !gtMd()", function(isOpen) {
+      $scope.lockedOpen = function() {
+        return $scope.gtMd() || !$state.current.name;
+      };
+
+      $scope.$watch("sidenavIsOpen && !lockedOpen()", function(isOpen) {
         if (isOpen) {
           $rootScope.bodyStyle.overflow = "hidden";
         } else {

@@ -325,3 +325,7 @@ agenda .task-list.task-editor-open md-list-item {
   opacity: 0.3;
   pointer-events: none;
 }
+
+.task:not(.show) {
+  display: none;
+}

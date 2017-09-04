@@ -5,7 +5,7 @@ angular.module("agendasApp")
       agenda: "=",
       permissions: "="
     },
-    controller: function($scope, $timeout, $stateParams) {
+    controller: function($scope, $timeout, $state, $stateParams, $mdDialog, $rootScope) {
       $scope.usernames = {};
       $scope.getUsername = function(uid) {
         if ($scope.usernames[uid] || $scope.usernames[uid] === false) {
@@ -26,6 +26,7 @@ angular.module("agendasApp")
             firebase.database().ref("/permissions/" + $stateParams.agenda).child(data.val()).set($scope.roleToAdd).then(function() {
               $scope.usernameToAdd = "";
               $scope.roleToAdd = null;
+              firebase.database().ref("/users/" + data.val() + "/agendas/" + $stateParams.agenda).set(true);
               $timeout();
             });
             $scope.usernameInvalid && $timeout();
@@ -44,9 +45,31 @@ angular.module("agendasApp")
       this.changePermission = function(user, role) {
         if (role === "none") {
           firebase.database().ref("/permissions/" + $stateParams.agenda).child(user).remove();
+          firebase.database().ref("/users/" + user + "/agendas/" + $stateParams.agenda).remove();
         } else {
           firebase.database().ref("/permissions/" + $stateParams.agenda).child(user).set(role);
         }
+      };
+
+      var agenda = this.agenda;
+      this.deleteAgenda = function() {
+        $mdDialog.show($mdDialog.confirm()
+          .title("Delete \"" + agenda.name + "\"?")
+          .cancel("Cancel")
+          .ok("Delete")
+        ).then(function() {
+          return Promise.all([
+            firebase.database().ref("/agendas/" + $stateParams.agenda).remove(),
+            firebase.database().ref("/categories/" + $stateParams.agenda).remove(),
+            firebase.database().ref("/schedules/" + $stateParams.agenda).remove(),
+            firebase.database().ref("/tasks/" + $stateParams.agenda).remove(),
+            firebase.database().ref("/users/" + $rootScope.user.uid + "/agendas/" + $stateParams.agenda).remove()
+          ]);
+        }).then(function() {
+          return firebase.database().ref("/permissions/" + $stateParams.agenda).remove();
+        }).then(function() {
+          $state.go("home");
+        });
       };
     }
   });

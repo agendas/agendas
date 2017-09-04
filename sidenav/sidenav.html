@@ -1,4 +1,4 @@
-<md-sidenav class="md-sidenav-left" md-is-open="sidenavIsOpen" md-component-id="agendasSidenav" md-is-locked-open="$mdMedia('gt-md')" md-whiteframe="4">
+<md-sidenav class="md-sidenav-left" md-is-open="sidenavIsOpen" md-component-id="agendasSidenav" md-is-locked-open="lockedOpen()" md-whiteframe="4">
   <md-list>
     <md-list-item>
       <md-icon md-svg-src="agendas.svg" style="width: 48px; height: 48px;"></md-icon>
@@ -15,10 +15,9 @@
       </div>
     </md-list-item>
     <md-divider></md-divider>
-    <md-list-item md-no-ink ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-repeat="agenda in agendas">
+    <md-list-item md-no-ink ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-show="agenda.name" ng-repeat="agenda in agendas">
       <md-card md-colors="{background: 'primary'}">
         <md-card-content>
-          <md-progress-circular md-diameter="20px" md-mode="indeterminate" ng-if="!agenda.name"></md-progress-circular>
           <h3 class="md-headline">{{agenda.name}}</h3>
         </md-card-content>
       </md-card>

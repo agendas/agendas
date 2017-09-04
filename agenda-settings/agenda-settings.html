@@ -26,4 +26,8 @@
     </md-select>
     <md-button class="md-secondary md-icon-button md-accent" ng-click="$ctrl.addPermission()" ng-disabled="!roleToAdd"><md-icon>person_add</md-icon></md-button>
   </md-list-item>
+  <md-divider></md-divider>
+  <md-list-item ng-if="$ctrl.permissions[$root.user.uid] === 'editor'">
+    <md-button class="md-warn" ng-click="$ctrl.deleteAgenda()">Delete Agenda</md-button>
+  </md-list-item>
 </md-list>
