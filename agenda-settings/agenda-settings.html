@@ -7,7 +7,7 @@
   <md-divider></md-divider>
   <md-subheader>Permissions</md-subheader>
   <md-list-item ng-repeat="(user, role) in $ctrl.permissions">
-    <p ng-if="getUsername(user)">{{getUsername(user)}}</p>
+    <p ng-if="getUsername(user)">{{getUsername(user) || "No Username"}}</p>
     <md-progress-circular ng-if="!getUsername(user)" md-mode="indeterminate"></md-progress-circular>
     <md-select class="md-secondary" ng-model="role" ng-change="$ctrl.changePermission(user, role)" ng-disabled="$first && $last && role === 'editor'" style="margin: 0;">
       <md-option value="editor">Can edit</md-option>

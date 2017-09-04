@@ -8,14 +8,14 @@
         <md-nav-item md-nav-click="goto('categories')" name="categories"><md-icon>local_offer</md-icon> Tags</md-nav-item>
         <md-nav-item md-nav-click="goto('settings')" name="settings"><md-icon>settings</md-icon> Settings</md-nav-item>
       </md-nav-bar>
-      <md-list class="task-list" ng-show="screen == 'tasks'">
+      <md-list class="task-list" ng-class="selectedTask ? 'task-editor-open' : 'task-editor-closed'" ng-show="screen == 'tasks'">
         <md-list-item>
           <md-switch ng-model="showCompleted" ng-disabled="selectedTask"></md-switch>
           <p>Show completed tasks</p>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item ng-show="showCompleted || (!completed[task])" ng-disabled="selectedTask || permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="md-2-line">
-          <md-checkbox ng-disabled="selectedTask" class="md-primary" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
+        <md-list-item ng-show="showCompleted || (!completed[task])" ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="md-2-line">
+          <md-checkbox class="md-primary" ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
           <div class="md-list-item-text">
             <h3>{{tasks[task].name}}</h3>
             <p>

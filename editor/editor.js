@@ -23,7 +23,9 @@ angular.module("agendasApp")
         $scope.repeat = this.task.repeat || null;
         $scope.repeatEnd = this.task.repeatEnd;
         $scope.notes = this.task.notes;
-        $scope.tags = ((this.task.tags ? Object.keys(this.task.tags) : null) || (this.task.category ? [this.task.category] : [])).map(function(key) {
+        $scope.tags = ((this.task.tags ? Object.keys(this.task.tags) : null) || (this.task.category ? [this.task.category] : [])).filter(function(key) {
+          return tagsObject[key];
+        }).map(function(key) {
           return {
             name: tagsObject[key].name,
             color: tagsObject[key].color,
@@ -48,7 +50,7 @@ angular.module("agendasApp")
         var task = {
           name: $scope.name,
           completed: $scope.completed,
-          deadline: $scope.deadlineDate && $scope.deadlineDate.toJSON(),
+          deadline: $scope.deadlineDate ? $scope.deadlineDate.toJSON() : null,
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
           repeatEnd: $scope.deadlineDate && $scope.repeat && $scope.repeatEnd ? $scope.repeatEnd : null,

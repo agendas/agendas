@@ -7,7 +7,7 @@
   </md-list>
 </div>
 <div class="task-input" ng-click="clickEvent($event)">
-  <span ng-repeat="item in items" ng-click="$event.stopPropagation()">
+  <span ng-repeat="item in items track by item.id" ng-click="$event.stopPropagation()">
     <input ng-if="item.type === 'text'" ng-change="refreshMatches(item.text)" ng-model="item.text" ng-focus="refreshMatches(item.text)" ng-blur="removeIfEmpty(item, $index)" ng-keydown="keyEvent(item, $index, $event)" ng-style="{width: getTextWidth(item.text) + 'px'}" />
     <span layout="row" layout-align="center center" class="chip" ng-if="item.type !== 'text'" ng-keydown="keyEvent(item, $index, $event)" ng-keypress="keypressEvent($index, $event)" tabindex="0">
       <md-icon md-colors="getColor(item.color)" style="margin-right: 0.25rem; font-size: 20px;">{{item.icon}}</md-icon>

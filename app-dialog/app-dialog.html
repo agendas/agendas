@@ -1,0 +1,13 @@
+<md-dialog-content>
+  <div class="md-dialog-content">
+    <h3 class="md-headline">{{app.name}}</h3>
+    <p>{{app.name}} can:</p>
+    <ul>
+      <li ng-repeat="scope in app.scopes">{{scopes[scope]}}</li>
+    </ul>
+  </div>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button class="md-warn" ng-click="revoke($event)">Remove</md-button>
+  <md-button class="md-accent" ng-click="done()">Done</md-button>
+</md-dialog-actions>

@@ -1,0 +1,44 @@
+<md-dialog-content ng-if="!(usernameStep || tutorialStep)">
+  <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
+    <md-progress-circular md-mode="indeterminate" style="height: 100px; width: 100px;"></md-progress-circular>
+    <p>Loading...</p>
+  </div>
+</md-dialog-content>
+<md-dialog-actions ng-if="!(usernameStep || tutorialStep)">
+  <md-button style="opacity: 0.5;" ng-click="done()">Skip Setup</md-button>
+  <span flex></span>
+</md-dialog-actions>
+
+<md-dialog-content ng-if="usernameStep && !tutorialStep">
+  <div style="width: 100%; padding: 32px;" layout="row" layout-align="center center">
+    <span class="md-display-1">Set your account up</span>
+  </div>
+  <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
+    <p class="md-headline">Create a username</p>
+    <p>You'll need a username to share agendas.</p>
+    <md-input-container style="display: block; width: 100%;" md-is-error="usernameError">
+      <label>Username</label>
+      <input type="text" ng-model="username.username" ng-disabled="changingUsername" />
+    </md-input-container>
+  </div>
+</md-dialog-content>
+<md-dialog-actions ng-if="usernameStep && username.username.length < 1 && !tutorialStep">
+  <md-button ng-click="skipUsername()">Skip</md-button>
+</md-dialog-actions>
+<md-dialog-actions ng-if="usernameStep && username.username.length > 0 && !tutorialStep">
+  <md-button ng-disabled="changingUsername" class="md-accent" ng-click="saveUsername(username.username)">Continue</md-button>
+</md-dialog-actions>
+
+<md-dialog-content ng-if="tutorialStep">
+  <div style="width: 100%; padding: 32px;" layout="row" layout-align="center center">
+    <span class="md-display-1">You're all set</span>
+  </div>
+  <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
+    <p>Create an agenda, then start using Agendas!</p>
+  </div>
+</md-dialog-content>
+<md-dialog-actions ng-if="tutorialStep">
+  <md-button ng-if="usernameStep" ng-click="backToUsername()">Back</md-button>
+  <span flex ng-if="usernameStep"></span>
+  <md-button class="md-accent" ng-click="done()">Done</md-button>
+</md-dialog-actions>

@@ -7,6 +7,8 @@ angular.module("agendasApp")
       tags: "=?"
     },
     controller: function($scope, $timeout, colors) {
+      var nextId = 1;
+
       $scope.tags = this.tags;
       $scope.colors = colors;
 
@@ -56,7 +58,12 @@ angular.module("agendasApp")
       $scope.complete = function(match) {
         var active = document.activeElement;
         var index  = Array.prototype.slice.call(active.parentElement.parentElement.children).indexOf(active.parentElement);
+
+        match.id = nextId;
+        nextId++;
+
         $scope.items.splice(index + 1, 0, match);
+
         $timeout(function() {
           document.querySelector("task-creator > div.task-input > span:nth-child(" + (index + 2) + ") > *").focus();
         }, 0, false);
@@ -68,6 +75,8 @@ angular.module("agendasApp")
         }
 
         $scope.items[index].text = $scope.items[index].text.slice(0, -1 * (match.text.length));
+        $scope.matches = [];
+        $scope.selectedMatch = null;
       };
 
       $scope.removeItem = function(index) {
@@ -103,6 +112,8 @@ angular.module("agendasApp")
                   element.selectionStart = element.value.length + 1;
                 }
                 event.preventDefault();
+                $scope.matches = [];
+                $scope.selectedMatch = null;
               }
             }
             break;
@@ -124,6 +135,8 @@ angular.module("agendasApp")
                 element.selectionStart = element.value.length + 1;
               }
               event.preventDefault();
+              $scope.matches = [];
+              $scope.selectedMatch = null;
             }
             break;
           case 38:
@@ -137,7 +150,8 @@ angular.module("agendasApp")
             if (event.target.tagName !== "INPUT" || event.target.selectionStart >= item.text.length) {
               if ((index >= $scope.items.length - 1 && event.target.tagName !== "INPUT") || ($scope.items[index + 1] && $scope.items[index].type !== "text" && $scope.items[index + 1].type !== "text")) {
                 console.log("Creating new input...");
-                $scope.items.splice(index + 1, 0, {type: "text", text: ""});
+                $scope.items.splice(index + 1, 0, {id: nextId, type: "text", text: ""});
+                nextId++;
               }
               if (index >= 0 && index < $scope.items.length - 1) {
                 $timeout(function() {
@@ -150,6 +164,8 @@ angular.module("agendasApp")
                   }
                   event.preventDefault();
                 }, 0, false);
+                $scope.matches = [];
+                $scope.selectedMatch = null;
               }
             }
             break;
@@ -169,7 +185,8 @@ angular.module("agendasApp")
         if ($scope.items.length > 0) {
           document.querySelector("task-creator > .task-input > span:nth-child(" + $scope.items.length + ") > *").focus();
         } else {
-          $scope.items.push({type: "text", text: ""});
+          $scope.items.push({id: nextId, type: "text", text: ""});
+          nextId++;
           $timeout(function() {
             document.querySelector("task-creator > .task-input > span:first-child > input").focus();
           }, 0, false);
@@ -186,7 +203,8 @@ angular.module("agendasApp")
             element.selectionEnd = 1;
           }, 0, false);
         } else {
-          $scope.items.splice(index + 1, 0, {type: "text", text: event.key});
+          $scope.items.splice(index + 1, 0, {id: nextId, type: "text", text: event.key});
+          nextId++;
           $timeout(function() {
             document.querySelector("task-creator > .task-input > span:nth-child(" + (index + 2) + ") > *").focus();
           }, 0, false);
@@ -231,7 +249,7 @@ angular.module("agendasApp")
 
         this.onAddTask({task: task});
 
-        $scope.items = [{type: "text", text: ""}];
+        $scope.items = [{id: 0, type: "text", text: ""}];
         $scope.matches = [];
         $scope.hasDeadlineChip = false;
         $scope.selectedMatch = null;

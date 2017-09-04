@@ -29,11 +29,17 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $mdThemingProvider.theme("dark")
       .dark(true);
   })
-  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia) => {
+  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $timeout) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
 
       if ($rootScope.user) {
+        firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").once("value").then(function(data) {
+          if (!data.val()) {
+            $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog></setup-dialog></md-dialog>"});
+          }
+        });
+
         if ($state.current.name == "login") {
           $state.go("home");
         }

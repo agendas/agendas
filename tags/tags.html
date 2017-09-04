@@ -1,4 +1,10 @@
 <md-list>
+  <md-list-item ng-if="(!categories) || categories.length < 1" class="md-2-line">
+    <div class="md-list-item-text">
+      <h3>No tags yet</h3>
+      <p>Create a tag to begin organizing your tasks.</p>
+    </div>
+  </md-list-item>
   <md-list-item ng-repeat="category in categories">
     <md-select ng-model="category.color" ng-change="$ctrl.saveTag(category)">
       <md-option ng-value=""><md-icon>local_offer</md-icon></md-option>

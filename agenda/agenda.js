@@ -231,7 +231,48 @@ angular.module("agendasApp")
       };
 
       $scope.completeTask = function(task) {
-        // TODO: Repeated tasks
+        if (task.repeat) {
+          var day = 24 * 60 * 60 * 1000;
+          var next = null;
+          var deadline = new Date(task.deadline);
+
+          switch (task.repeat) {
+            case "day":
+              next = new Date(deadline.getTime() + day);
+            case "weekday":
+              next = new Date(deadline.getTime() + day);
+              while (next.getDay() === 0 || next.getDay() === 6) {
+                next.setDate(next.getDate() + 1);
+              }
+            case "week":
+              next = new Date(deadline.getTime() + (7 * day));
+            case "2-weeks":
+              next = new Date(deadline.getTime() + (14 * day));
+            case "month":
+              next = new Date(deadline.getTime());
+              next.setMonth(next.getMonth() + 1);
+            case "year":
+              next = new Date(deadline.getTime());
+              next.setFullYear(next.getFullYear() + 1);
+          }
+
+          if (next && task.repeatEnd) {
+            var repeatEnd = new Date(task.repeatEnd);
+            repeatEnd.setDate(repeatEnd.getDate() + 1);
+            repeatEnd.setHours(0);
+            repeatEnd.setMinutes(0);
+            repeatEnd.setSeconds(0);
+            repeatEnd.setMillseconds(0);
+
+            if (next < repeatEnd) {
+              $scope.tasksRef.child(task).child("deadline").set(next.toJSON());
+              return;
+            }
+          } else if (next) {
+            $scope.tasksRef.child(task).child("deadline").set(next.toJSON());
+            return;
+          }
+        }
         $scope.tasksRef.child(task).child("completed").set($scope.completed[task]);
       };
 
