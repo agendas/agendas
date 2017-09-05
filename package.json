@@ -13,8 +13,5 @@
   "bugs": {
     "url": "https://github.com/agendas/agendas/issues"
   },
-  "homepage": "https://agendas.github.io",
-  "dependencies": {
-    "angular-ui-router": "^1.0.3"
-  }
+  "homepage": "https://agendas.github.io"
 }
