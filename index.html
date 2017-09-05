@@ -1,315 +1,69 @@
 <!DOCTYPE html>
-<html ng-app="agendasApp">
+<html ng-app="agendasApp" md-theme="{{$root.darkTheme ? 'dark' : 'default'}}">
   <head>
-    <title>Agendas</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=320px, initial-scale=1.0, maximum-scale=1.0" />
     <meta name="theme-color" content="#4CAF50" />
+    <title>Agendas</title>
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
     <link rel="icon" href="agendas.png" />
 
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+    <script src="node_modules/angular-ui-router/release/angular-ui-router.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/chrono/latest/chrono.min.js"></script>
 
-    <link rel="stylesheet" href="style.css" />
-
-    <script src="https://www.gstatic.com/firebasejs/3.5.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
     <script>
       // Initialize Firebase
       var config = {
         apiKey: "AIzaSyCKVrro03usV3StlEq5Hu7FAdSOoSM9RVg",
         authDomain: "agendas-1293.firebaseapp.com",
         databaseURL: "https://agendas-1293.firebaseio.com",
+        projectId: "agendas-1293",
         storageBucket: "agendas-1293.appspot.com",
         messagingSenderId: "153820900287"
       };
       firebase.initializeApp(config);
     </script>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.1/angular-material.min.js"></script>
-
     <script src="agendas.js"></script>
+    <script src="colors.js"></script>
+    <script src="utils.js"></script>
+    <script src="auth-providers.js"></script>
+    <script src="scopes.js"></script>
+
+    <script src="home/home.js"></script>
+    <script src="auth/auth.js"></script>
+    <script src="agenda/agenda.js"></script>
+    <script src="settings/settings.js"></script>
+    <script src="sidenav/sidenav.js"></script>
+    <script src="toolbar/toolbar.js"></script>
+    <script src="editor/editor.js"></script>
+    <script src="timepicker/timepicker.js"></script>
+    <script src="creator/creator.js"></script>
+    <script src="tags/tags.js"></script>
+    <script src="agenda-settings/agenda-settings.js"></script>
+    <script src="username/username.js"></script>
+    <script src="app-dialog/app-dialog.js"></script>
+    <script src="setup-dialog/setup-dialog.js"></script>
+    <script src="add-provider/add-provider.js"></script>
+    <script src="provider-dialog/provider-dialog.js"></script>
+
+    <script src="credits.js"></script>
   </head>
-  <body ng-controller="AgendasUIController as agendas">
-    <div class="main" layout="row">
-      <md-sidenav class="md-sidenav-left md-whiteframe-4dp" md-component-id="agendas-navigation-sidenav" md-is-locked-open="$mdMedia('gt-md')">
-        <md-list>
-          <md-list-item class="md-2-line">
-            <md-icon md-svg-src="agendas.svg" style="width: 48px; height: 48px;"></md-icon>
-            <div class="md-list-item-text">
-              <h3>Agendas</h3>
-              <p><em>by anli5005</em></p>
-            </div>
-          </md-list-item>
-          <md-list-item class="md-2-line">
-            <md-icon ng-hide="currentUser.photoURL">person</md-icon>
-            <img ng-src="{{currentUser.photoURL}}" ng-show="currentUser.photoURL" class="md-avatar" />
-            <div class="md-list-item-text">
-              <h3>Account</h3>
-              <p>{{username || currentUser.email || "You haven't signed in yet."}}</p>
-            </div>
-          </md-list-item>
-          <md-divider></md-divider>
-          <md-list-item ng-repeat="agenda in agendasList" ng-class="(selectedAgenda == agenda) ? 'selected-agenda' : ''" ng-click="selectAgenda(agenda) || (md || toggleSidenav('agendas-navigation-sidenav'))">
-            <md-icon>list</md-icon>
-            <p>{{agendas[agenda].name}}</p>
-            <md-button class="md-icon-button md-secondary" ng-click="showAgendaEditor(agenda, $event)">
-              <md-icon>edit</md-icon>
-              <md-tooltip>Edit Agenda</md-tooltip>
-            </md-button>
-            <md-button class="md-icon-button md-secondary" ng-click="shareAgenda(agenda)">
-              <md-icon>person_add</md-icon>
-              <md-tooltip>Share Agenda</md-tooltip>
-            </md-button>
-          </md-list-item>
-          <md-list-item ng-show="agendasList.length < 1" layout="column" layout-align="center center">
-            <md-button class="md-primary" ng-click="migrate()">Don't see your agendas?</md-button>
-          </md-list-item>
-          <md-list-item ng-click="showAgendaCreationDialog($event)">
-              <md-icon>add</md-icon>
-              <p>New Agenda</p>
-          </md-list-item>
-          <md-divider></md-divider>
-          <md-list-item ng-click="migrate()">
-            <md-icon>arrow_upward</md-icon>
-            <p>Migrate</p>
-          </md-list-item>
-          <md-list-item ng-click="openSettings($event)">
-            <md-icon>settings</md-icon>
-            <p>Settings</p>
-          </md-list-item>
-          <md-list-item ng-click="signOut()">
-            <md-icon>exit_to_app</md-icon>
-            <p>Sign out</p>
-          </md-list-item>
-        </md-list>
-      </md-sidenav>
-      <div class="agendas-detail">
-        <h2 class="md-display-3">{{agendas[selectedAgenda].name}}</h2>
-        <md-tabs md-dynamic-height ng-class="schedule ? '' : 'hide-tab-bar'">
-          <md-tab id="agendas-list-tab" label="List">
-            <div class="agendas-list" ng-if="selectedAgenda">
-
-              <md-switch ng-model="showCompleted">Show Completed</md-switch>
-
-              <div class="task-group" ng-repeat="taskGroup in taskGroups | tasksListFilter:showCompleted">
-                <p>{{taskGroup.deadline | dateFilter}}</p>
-                <md-list class="md-whiteframe-2dp">
-                  <md-list-item class="md-2-line" ng-repeat="task in taskGroup.tasks | completedTaskExclusionFilter:showCompleted" ng-click="selectTask(task, $event)">
-                    <md-checkbox class="md-primary" ng-model="task.completed" ng-change="completeTask(task)"></md-checkbox>
-                    <div class="md-list-item-text task-selected-{{task.selected}}">
-                      <h3 class="complete-{{task.completed}}">{{task.name}}</h3>
-                      <p>
-                        <span class="category-circle" ng-if="getColor(categories[task.category].color)" style="background-color: #{{getColor(categories[task.category].color)}}"></span>
-                        {{categories[task.category].name}}
-                      </p>
-                    </div>
-                    <p class="md-secondary task-deadline-time" ng-if="task.deadlineTime">{{task.deadline | timeFilter}}</p>
-                    <md-icon class="md-secondary" ng-click="viewTaskDetail(task)">edit</md-icon>
-                  </md-list-item>
-                </md-list>
-              </div>
-
-              <md-list class="md-whiteframe-2dp new-task" ng-if="taskCreationAllowed">
-                <md-list-item ng-click="newTask()">
-                  <md-icon>add</md-icon>
-                  <p>New task</p>
-                </md-list-item>
-              </md-list>
-
-            </div>
-          </md-tab>
-          <md-tab id="agendas-schedule-tab" ng-click="prepareScheduleView()" ng-disabled="!schedule" label="Schedule">
-            <div class="agendas-schedule" layout="column" layout-align="start center" layout-margin>
-              <md-card><md-datepicker ng-model="scheduleView.date"></md-datepicker></md-card>
-              <div ng-if="scheduleView.date && scheduleView.day">
-                <md-card ng-repeat="(key, block) in schedule.blocks" md-colors="(categories[block[scheduleView.day]] && categories[block[scheduleView.day]].color) ? {background: categories[block[scheduleView.day]].color} : {background: 'grey-500-0'}">
-                  <strong>{{categories[block[scheduleView.day]].name}}</strong> {{block.time | numericTimeFilter}}
-                </md-card>
-              </div>
-            </div>
-          </md-tab>
-        </md-tabs>
-        <md-card class="selected-tasks-actions" ng-hide="selectedTasks.length <= 0">
-          <md-card-actions layout="row" ng-hide="showingMultipleDeadlineChange">
-            <span class="md-button selected-tasks-actions-title">Actions</span>
-            <span flex></span>
-            <md-button class="md-icon-button md-primary" ng-click="showingMultipleDeadlineChange = true">
-              <md-icon>date_range</md-icon>
-              <md-tooltip>Change deadline</md-tooltip>
-            </md-button>
-            <md-button class="md-icon-button md-warn" ng-click="deleteSelectedTasks($event)">
-              <md-icon>delete</md-icon>
-              <md-tooltip>Delete</md-tooltip>
-            </md-button>
-          </md-card-actions>
-          <md-card-actions layout="row" ng-show="showingMultipleDeadlineChange">
-            <span class="md-button selected-tasks-actions-title">Deadline</span>
-            <md-datepicker ng-model="multipleDeadline"></md-datepicker>
-            <md-button class="md-icon-button md-accent" ng-click="hideMultipleDeadlineChange()">
-              <md-icon>cancel</md-icon>
-              <md-tooltip>Cancel</md-tooltip>
-            </md-button>
-            <md-button class="md-icon-button md-primary" ng-click="confirmMultipleDeadlineChange()">
-              <md-icon>check_circle</md-icon>
-              <md-tooltip>Confirm</md-tooltip>
-            </md-button>
-          </md-card-actions>
-        </md-card>
-      </div>
-    </div>
-    <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="agendas-task-detail">
-
-      <md-toolbar>
-        <div class="md-toolbar-tools">
-          <md-button class="md-icon-button" ng-click="toggleSidenav('agendas-task-detail')">
-            <md-icon>close</md-icon>
-          </md-button>
-          <h2>{{selectedTask.name}}</h2>
-        </div>
-      </md-toolbar>
-
-      <div>
-        <md-input-container class="md-block task-name-field">
-          <label>Name</label>
-          <input type="text" ng-model="selectedTask.name" />
-        </md-input-container>
-      </div>
-
-      <div>
-        <md-checkbox class="md-primary" ng-model="selectedTask.completed">Complete</md-checkbox>
-      </div>
-
-      <div>
-        <p>Deadline</p>
-        <div layout="row" layout-align="start start" class="deadline-picker">
-          <md-datepicker ng-model="selectedTask.deadlineDate" md-placeholder="Date"></md-datepicker>
-          <time-picker ng-model="selectedTask.time" use-24-hours="false"></time-picker>
-        </div>
-        <div ng-show="selectedTask && schedule">
-          <md-input-container>
-            <label>Schedule</label>
-            <md-select ng-model="selectedBlock" ng-disabled="!selectedTask.category" md-on-open="refreshBlocks()">
-              <md-option ng-repeat="block in blocks track by $index" ng-value="$index"><strong>{{block | dateFilter}}</strong> {{block | timeFilter}}</md-option>
-            </md-select>
-          </md-input-container>
-        </div>
-      </div>
-
-      <div>
-        <md-input-container>
-          <label>Repeat</label>
-          <md-select ng-model="selectedTask.repeat" ng-disabled="!selectedTask.deadlineDate">
-            <md-option value="">None</md-option>
-            <md-option value="day">Day</md-option>
-            <md-option value="weekday">Weekday</md-option>
-            <md-option value="week">Week</md-option>
-            <md-option value="2-weeks">Other Week</md-option>
-            <md-option value="month">Month</md-option>
-            <md-option value="year">Year</md-option>
-          </md-select>
-        </md-input-container>
-        <p>Repeat Ends</p>
-        <md-datepicker ng-model="selectedTask.repeatEnds" ng-disabled="!(selectedTask.deadlineDate && selectedTask.repeat)" md-placeholder="Enter date"></md-datepicker>
-      </div>
-
-      <div>
-        <md-input-container>
-          <label>Category</label>
-          <md-select ng-model="selectedTask.category">
-            <md-option ng-value="">No category</md-option>
-            <md-option ng-repeat="category in categoryList" ng-value="category.key"><span class="category-circle" ng-if="getColor(category.color)" style="background-color: #{{getColor(category.color)}}"></span>{{category.name}}</md-option>
-            <md-option value="new" ng-click="newCategory()"><md-icon>add</md-icon> New category</md-option>
-          </md-select>
-        </md-input-container>
-      </div>
-
-      <div>
-        <md-input-container>
-          <label>Notes</label>
-          <textarea ng-model="selectedTask.notes"></textarea>
-        </md-input-container>
-      </div>
-
-      <div><md-button class="md-block md-warn" ng-click="deleteSelectedTask($event)">Delete</md-button></div>
-
-    </md-sidenav>
-
-    <md-button class="new-task md-fab md-block" ng-click="settings.useQuickAdd ? quickAdd($event) : newTask()" ng-hide="xs && (screen != 'detail')" ng-disabled="!taskCreationAllowed">
-      <md-icon>add</md-icon>
-      <md-tooltip>{{settings.useQuickAdd ? "Quick Add" : "New Task"}}</md-tooltip>
-    </md-button>
-
-    <div class="agendas-welcome" ng-show="fullScreenModal" layout="column" layout-align="center center">
-      <div ng-show="migration" style="overflow: auto;">
-        <div layout="row" layout-align="start center">
-          <md-button class="md-icon-button" ng-click="cancelMigration()" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
-          <p class="md-headline">Migrate from Agendas 1.0</p>
-        </div>
-        <iframe src="" id="migration-iframe" style="border-color: white; border-style: solid; border-width: 10px; border-radius: 5px; background-color: white; width: 320px; height: 720px; margin: 0; padding: 0;"></iframe>
-      </div>
-      <div ng-show="changingUsername">
-        <div layout="row" layout-align="start center">
-          <md-button class="md-icon-button" ng-click="cancelUsernameChange()" ng-show="username" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
-          <p class="md-headline">Pick a Username</p>
-        </div>
-        <p>Your username will be used for sharing agendas.</p>
-        <md-input-container class="md-block">
-          <label style="color: rgba(255, 255, 255, 0.5);">Username</label>
-          <input type="text" ng-model="newUsername" style="color: white;"/>
-        </md-input-container>
-        <md-button class="md-raised md-accent" ng-click="confirmUsernameChange()" ng-disabled="!newUsername">Save</md-button>
-      </div>
-      <div ng-show="permissionsRef" style="overflow: auto;">
-        <div layout="row" layout-align="start center">
-          <md-button class="md-icon-button" ng-click="cancelSharing()" style="color: white;"><md-icon style="color: white;">arrow_back</md-icon></md-button>
-          <p class="md-headline">Share Agenda</p>
-        </div>
-        <md-list>
-          <md-list-item ng-repeat="(uid, user) in users">
-            <p ng-show="user.name">{{user.name}}</p>
-            <md-progress-circular md-mode="indeterminate" md-diameter="20px" ng-hide="user.name"></md-progress-circular>
-            <p class="md-secondary">Can edit</p>
-            <md-icon class="md-secondary md-warn" ng-click="removeUser(uid)" ng-disabled="uid == currentUser.uid && numberOfUsers() <= 1">delete</md-icon>
-          </md-list-item>
-          <md-list-item>
-            <md-input-container layout="row" layout-align="start center">
-              <label style="color: rgba(255, 255, 255, 0.5);">Username</label>
-              <input type="text" ng-model="newUser" style="color: white;" />
-            </md-input-container>
-            <p class="md-secondary">Can edit</p>
-            <md-icon class="md-secondary md-accent" ng-click="addUser()">add</md-icon>
-          </md-list-item>
-        </md-list>
-      </div>
-      <div class="agendas-auth" ng-hide="currentUser || isLoading" layout="column" layout-align="center center">
-        <div layout="row" style="border-color: white; border-bottom-width: 1px;">
-          <md-icon md-svg-src="agendas.svg" style="width: auto; height: 100%; margin-right: 2em;"></md-icon>
-          <div>
-            <p style="margin: 0;">Welcome to</p>
-            <h1 class="md-display-2" style="margin: 0;">Agendas</h1>
-            <p style="margin: 0; opacity: 0.5;">v2.0</p>
-          </div>
-        </div>
-        <h2 class="md-headline">Sign in using:</h2>
-        <md-button class="md-raised" ng-click="signInWithGoogle()" md-colors="{background: 'red'}">Google</md-button>
-        <!--
-          <md-button class="md-raised" md-colors="{background: 'indigo'}">Facebook</md-button>
-          <md-button class="md-raised" md-colors="{background: 'blue'}">Twitter</md-button>
-        -->
-        <md-button class="md-raised" ng-click="signInWithGithub()" md-colors="{background: 'blue-grey'}">Github</md-button>
-      </div>
-      <md-progress-circular md-mode="indeterminate" ng-show="isLoading || migrating"></md-progress-circular>
-    </div>
-
-    <div class="agendas-wallpaper" ng-style="wallpaper"></div>
-    <div class="agendas-menu-button" layout="row" layout-align="center center">
-      <md-button class="md-icon-button" ng-click="toggleSidenav('agendas-navigation-sidenav')"><md-icon>menu</md-icon></md-button>
-      <p class="md-headline" ng-hide="md || selectedAgenda">Click here to see all of your agendas.</p>
+  <body ng-controller="AgendasController" ng-style="$root.bodyStyle">
+    <div layout="row">
+      <agendas-sidenav ng-if="$root.user"></agendas-sidenav>
+      <ui-view flex></ui-view>
     </div>
   </body>
 </html>

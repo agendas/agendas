@@ -1,0 +1,20 @@
+{
+  "name": "agendas",
+  "version": "3.0.0",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agendas/agendas.git"
+  },
+  "author": "anli5005",
+  "bugs": {
+    "url": "https://github.com/agendas/agendas/issues"
+  },
+  "homepage": "https://agendas.github.io",
+  "dependencies": {
+    "angular-ui-router": "^1.0.3"
+  }
+}

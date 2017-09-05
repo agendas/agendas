@@ -1,305 +1,352 @@
-*,
-*::before,
-*::after {
+* {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  background-color: black;
+html, body {
+  background-color: #F5F5F5;
 }
 
-body {
-  background-color: transparent;
-  overflow-x: hidden;
-  overflow-y: auto;
+html, body, body > div:first-child, ui-view, auth, agenda, settings, .full {
+  width: 100%;
+  height: 100%;
 }
 
-body, input {
+body, input, textarea, md-chip {
     font-family: -apple-system, BlinkMacSystemFont,
       "Segoe UI", "Roboto", "Oxygen",
       "Ubuntu", "Cantarell", "Fira Sans",
       "Droid Sans", "Helvetica Neue", sans-serif;
 }
 
-.main {
-  width: 100vw;
-}
-
-.main,
-.agendas-detail {
-  min-height: 100vh;
-}
-
-.agendas-detail {
-  position: relative;
-  width: 100%;
-  margin-left: 50%;
-  left: 0;
+html[md-theme="dark"], html[md-theme="dark"] body {
   color: white;
-  transform: translateX(-50%);
+  background-color: #212121;
+  /*height: auto;*/
 }
 
-.agendas-detail .md-whiteframe-2dp {
-  background-color: white;
-  color: black;
-}
-
-.agendas-sidebar md-card {
-  display: inline-block;
-  width: calc(50% - 16px);
-}
-
-@media (max-width: 1280px) {
-  .agendas-sidebar md-card {
-    width: calc(100% - 16px);
-  }
-}
-
-.agendas-list {
-  width: 100%;
-  max-width: 640px;
-  padding: 8px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.agendas-list .md-whiteframe-2dp {
-  border-radius: 2px;
-}
-
-.task-group,
-.agendas-list .new-task {
-  margin-top: 2rem;
-}
-
-.agendas-list .new-task {
-  color: black;
-}
-
-.task-group p {
-  margin-bottom: 0.5rem;
-}
-
-.task-deadline-time {
-  padding-right: 1em;
-}
-
-md-sidenav[md-component-id="agendas-task-detail"] {
-  overflow-x: hidden;
-  width: 640px;
-}
-
-md-sidenav[md-component-id="agendas-task-detail"] > div {
-  padding: 1rem 1.5rem 0 1.5rem;
-}
-
-.task-name-field {
-  margin-bottom: 0;
-}
-
-.new-task.md-fab {
-  position: fixed;
-  z-index: 50;
-  top: auto;
-  left: auto;
-  bottom: 10px;
-  right: 10px;
-}
-
-.agendas-list md-list > md-list-item h3.complete-true {
-  width: auto;
-  text-decoration: line-through;
-  color: rgba(0, 0, 0, 0.48);
-}
-
-.category-circle {
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 0.5em;
-  width: 1em;
-  height: 1em;
-  border-radius: 50%;
-}
-
-.category-list md-input-container,
-.category-list md-select {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-.category-list md-input-container > .md-errors-spacer,
-.task-name-field .md-errors-spacer {
-  height: 0;
-  min-height: 0;
-}
-
-.agendas-menu-button {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  z-index: 1;
+/*html[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text h3,
+html[md-theme="dark"] md-sidenav md-list > md-list-item md-icon {
   color: white;
 }
 
-.agendas-menu-button md-icon {
-  color: white;
-}
+html[md-theme="dark"] md-sidenav md-list > md-list-item.md-2-line .md-list-item-text p {
+  color: #FAFAFA;
+}*/
 
-.task-selected-true h3,
-.task-selected-true p {
-  color: #4CAF50 !important;
-}
-
-.selected-tasks-actions {
-  position: fixed;
-  top: 48px;
-  right: 8px;
-}
-
-.selected-tasks-actions md-card-actions > .selected-tasks-actions-title:first-child {
-  cursor: default;
-}
-
-.selected-tasks-actions md-card-actions > .selected-tasks-actions-title:hover {
-  background-color: transparent;
-}
-
-.selected-agenda {
-  background-color: rgb(76, 175, 80);
-  color: white;
-}
-
-.selected-agenda md-icon {
-  color: white;
-}
-
-control-point {
-  margin-right: 2rem;
-}
-
-control-point md-icon {
-  display: block;
-  font-size: 2em;
-  width: 2em;
-  height: 2em;
-  border-radius: 50%;
-  text-align: center;
-  padding: 0.5em;
-  margin: 0;
-}
-
-.control-points {
-  overflow: auto;
-}
-
-time-picker md-input-container {
-  margin: 3px 0 0 0;
-}
-
-.deadline-picker time-picker md-input-container {
-  margin-left: 1em;
-}
-
-.schedule-div {
-  overflow-x: auto;
-}
-
-.agendas-wallpaper {
-  background-color: #757575;
-  position: fixed;
-  z-index: -1;
-  top: 0;
-  left: 0;
-  width: 100%;
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] {
   height: 100%;
-  background-size: cover;
-  background-position: auto;
-}
-
-wallpaper-picker {
-  margin-top: 2em;
-  overflow-x: auto;
-  margin-bottom: 2em;
-}
-
-wallpaper-picker > div {
-  display: flex;
-  overflow-y: hidden;
-  padding-left: 2em;
-}
-
-wallpaper-picker > div > div {
-  margin-right: 2em;
-}
-
-wallpaper-picker img {
-  max-width: 20em;
-  max-height: 10em;
-}
-
-wallpaper-picker p {
-  width: 100%;
-  text-align: center;
-  padding: 0.5em;
-  border-radius: 25px;
-}
-
-wallpaper-picker .selected p {
-  color: white;
-  background-color: #43A047;
-}
-
-.agendas-welcome {
-  background-color: rgba(0, 0, 0, 0.65);
-  color: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(6px);
+  overflow: auto;
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
 }
 
-.agendas-auth {
-  width: 90%;
-  max-width: 320px;
-}
-
-.agendas-auth .md-button.md-raised {
-  display: block;
+md-sidenav md-list-item md-card {
   width: 100%;
-}
-
-md-tabs.hide-tab-bar > md-tabs-wrapper {
-  position: absolute;
-  left: -110%;
-  top: -110%;
-}
-
-.agendas-schedule md-card {
-  padding: 0.5em;
-}
-
-div.agendas-detail > md-tabs > md-tabs-wrapper {
-  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: none;
+  margin: 0.5rem;
   border-radius: 5px;
 }
 
-div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item,
-div.agendas-detail > md-tabs > md-tabs-wrapper md-tab-item.md-active {
+md-sidenav md-list-item md-card > md-card-content {
+  padding: 0.5rem;
+}
+
+md-sidenav md-list-item md-card md-progress-circular svg > path {
+  stroke: white;
+}
+
+agendas-menu-toolbar > md-toolbar.md-menu-toolbar,
+agendas-menu-toolbar > md-toolbar.md-dark-theme.md-menu-toolbar {
+  background-color: rgba(255, 255, 255, 0);
+}
+
+md-list-item.selected {
+  background-color: #388E3C;
   color: white;
 }
 
-md-sidenav.md-locked-open.md-closed.md-sidenav-left {
-  position: fixed;
-  z-index: 2;
-  top: 0;
-  left: 0;
-  overflow: auto;
-  height: 100vh;
+md-list-item.selected md-icon {
+  color: white;
 }
 
-md-sidenav.md-locked-open + .agendas-detail {
-  margin-left: calc(50% + 160px);
+agenda div[md-whiteframe="4"] {
+  border-top-left-radius:  10px;
+  border-top-right-radius: 10px;
+}
+
+agenda md-tabs md-tabs-canvas {
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+}
+
+.agendas-sidenav-placeholder {
+  width: 320px;
+  height: 100%;
+}
+
+task-editor {
+  padding: 1em;
+  /*width: 100%;*/
+  display: block;
+}
+
+time-picker md-input-container {
+  margin: 0;
+  padding-bottom: 6px;
+}
+
+time-picker .md-errors-spacer {
+  display: none;
+}
+
+.md-nav-item .md-button._md-nav-button:not([disabled]) md-icon {
+  color: inherit;
+}
+
+md-nav-bar ul._md-nav-bar-list {
+  display: flex;
+  justify-content: center;
+}
+
+.add-task {
+  position: fixed;
+  bottom: 0;
+  background-color: white;
+  z-index: 2;
+}
+
+.add-task > md-list-item,
+task-creator {
+  width: 100%;
+}
+
+agenda div[md-whiteframe] {
+  background-color: #FAFAFA;
+}
+
+html[md-theme="dark"] agenda div[md-whiteframe] {
+  background-color: #454545;
+}
+
+agenda md-list.task-list {
+  padding-bottom: 72px;
+}
+
+agenda md-nav-bar > .md-nav-bar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  z-index: 2;
+}
+
+html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
+  background-color: #454545;
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+task-creator > div.autocomplete {
+  position: absolute;
+  z-index: 3;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border-radius: 0;
+}
+
+html[md-theme="dark"] task-creator > div.autocomplete {
+  background-color: black;
+}
+
+task-creator span.chip {
+  margin-left: 0.25em;
+  margin-right: 0.25em;
+  padding: 0.5em;
+  background-color: #E0E0E0;
+  color: #424242;
+  border-radius: 1em;
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+task-creator span.chip:focus {
+  background-color: #C8E6C9;
+  color: #2E7D32;
+}
+
+task-creator input {
+  border: none;
+  line-height: 2em;
+}
+
+@media (max-width: 599px) {
+  .add-task {
+    width: 95%;
+  }
+}
+
+.add-task > md-list-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+task-creator > div.task-input {
+  overflow: auto;
+  padding: 16px;
+  padding-right: 46px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+task-creator div.task-input > span:first-child > input:empty {
+  /* min-width: 11rem; */
+}
+
+task-creator div.task-input > p {
+  line-height: 2em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+task-creator div.task-input > .md-fab {
+  position: absolute;
+  right: 0;
+  top: 6px;
+}
+
+.measuring-div {
+  position: absolute;
+  visibility: hidden;
+  height: auto;
+  width: auto;
+  white-space: nowrap;
+  top: 100px;
+}
+
+tag-editor md-input-container,
+tag-editor md-select {
+  margin: 0;
+}
+
+agenda-settings .md-errors-spacer,
+tag-editor .md-errors-spacer {
+  display: none;
+}
+
+.tag-circle-container {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  position: relative;
+  margin-right: 0.25em;
+  vertical-align: middle;
+}
+
+.tag-circle {
+  display: block;
+  width: 1.25em;
+  height: 1.25em;
+  border-radius: 50%;
+  background-color: #757575;
+  vertical-align: middle;
+  position: absolute;
+}
+
+settings {
+  display: block;
+}
+
+html[md-theme="dark"] .md-nav-bar .md-nav-item > .md-button.md-unselected {
+  color: white;
+}
+
+html[md-theme="dark"] .add-task {
+  background-color: #454545;
+}
+
+html[md-theme="dark"] task-creator input {
+  background-color: #454545;
+  color: white;
+}
+
+html[md-theme="dark"] task-creator input::-webkit-input-placeholder {
+  color: #E0E0E0;
+}
+html[md-theme="dark"] task-creator input::-moz-placeholder {
+  opacity: 1;
+  color: #E0E0E0;
+}
+html[md-theme="dark"] task-creator input:-moz-placeholder {
+  opacity: 1;
+  color: #E0E0E0;
+}
+html[md-theme="dark"] task-creator input::-ms-input-placeholder {
+  color: #E0E0E0;
+}
+html[md-theme="dark"] task-creator input::placeholder {
+  color: #E0E0E0;
+}
+
+@media (min-width: 600px) and (max-width: 959px) {
+  .add-task {
+    width: 90%;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .add-task {
+    width: 80%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .add-task {
+    width: calc(0.6 * (100% - 320px));
+  }
+}
+
+app-dialog h3,
+app-dialog p,
+app-dialog li {
+  margin-bottom: 1em;
+}
+
+agenda .task-list md-list-item {
+  transition: opacity 0.2s;
+}
+
+agenda .task-list.task-editor-open md-list-item {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.task:not(.show) {
+  display: none;
+}
+
+.task.overdue:not(.completed) .md-list-item-text h3,
+.task.overdue:not(.completed) .md-list-item-text p,
+.task.overdue:not(.completed) .md-list-item-text md-icon {
+  color: #C62828;
+}
+
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text h3,
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text p,
+html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text md-icon {
+  color: #FFCDD2;
+}
+
+html[md-theme="default"] md-list-item.task.completed .md-list-item-text h3 {
+  color: rgba(0, 0, 0, 0.54);
+  text-decoration: line-through;
+}
+
+html[md-theme="dark"] md-list-item.task.completed .md-list-item-text h3 {
+  color: rgba(255, 255, 255, 0.7);
 }

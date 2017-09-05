@@ -1,0 +1,23 @@
+<md-list>
+  <md-list-item ng-if="(!categories) || categories.length < 1" class="md-2-line">
+    <div class="md-list-item-text">
+      <h3>No tags yet</h3>
+      <p>Create a tag to begin organizing your tasks.</p>
+    </div>
+  </md-list-item>
+  <md-list-item ng-repeat="category in categories">
+    <md-select ng-model="category.color" ng-change="$ctrl.saveTag(category)">
+      <md-option ng-value=""><md-icon>local_offer</md-icon></md-option>
+      <md-option ng-repeat="color in colors" ng-value="color.name"><md-icon md-colors="{color: color.mdColor || color.name}">local_offer</md-icon></md-option>
+    </md-select>
+    <md-input-container md-no-float class="md-block" flex>
+      <input placeholder="Tag Name" ng-model="category.name" type="text" ng-change="$ctrl.saveTag(category)" />
+    </md-input-container>
+    <md-button ng-disabled="category.saving" ng-click="$ctrl.deleteTag(category.key)" class="md-icon-button md-secondary md-warn"><md-icon>delete</md-icon></md-button>
+  </md-list-item>
+  <md-divider></md-divider>
+  <md-list-item ng-click="$ctrl.addTag()">
+    <md-icon>add</md-icon>
+    <p>Add tag</p>
+  </md-list-item>
+</md-list>

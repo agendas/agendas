@@ -1,0 +1,125 @@
+<agendas-menu-toolbar></agendas-menu-toolbar>
+<div class="full" layout="row" layout-align="center center">
+  <div flex-xs="95" flex-sm="90" flex-md="80" flex-gt-md="60" style="margin: 0;">
+    <md-card>
+      <md-card-header>
+        <md-card-avatar>
+          <img ng-if="$root.user.photoURL" ng-src="{{$root.user.photoURL}}" class="md-user-avatar" />
+          <md-icon ng-if="!$root.user.photoURL" class="md-avatar-icon">person</md-icon>
+        </md-card-avatar>
+        <md-card-header-text>
+          <span class="md-title">{{$root.username || "No Username"}}</span>
+          <span class="md-subhead">{{$root.user.email}}</span>
+        </md-card-header-text>
+      </md-card-header>
+      <md-card-title>
+        <span class="md-headline">Settings</span>
+      </md-card-title>
+      <md-tabs md-dynamic-height>
+        <md-tab>
+          <md-tab-label>
+            <md-icon>settings</md-icon>
+            General
+          </md-tab-label>
+          <md-tab-body>
+            <md-list-item>
+              <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
+            </md-list-item>
+            <md-list-item class="md-2-line">
+              <div class="md-list-item-text">
+                <h3>Show completed tasks in all agendas</h3>
+                <p>This setting can be overriden.</p>
+              </div>
+              <md-switch class="md-secondary" ng-model="$root.showCompleted" ng-change="applyShowCompleted($root.showCompleted)"></md-switch>
+            </md-list-item>
+          </md-tab-body>
+        </md-tab>
+
+        <md-tab>
+          <md-tab-label>
+            <md-icon>brush</md-icon>
+            Appearance
+          </md-tab-label>
+          <md-tab-body>
+            <md-list>
+              <md-list-item>
+                <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
+              </md-list-item>
+              <md-list-item class="md-2-line">
+                <div class="md-list-item-text">
+                  <h3>Dark theme (experimental)</h3>
+                  <p>Enjoy the dark side, stealth, and also bugs? Flick this switch!</p>
+                </div>
+                <md-switch class="md-secondary" ng-model="$root.darkTheme" ng-change="applyDarkTheme($root.darkTheme)"></md-switch>
+              </md-list-item>
+            </md-list>
+          </md-tab-body>
+        </md-tab>
+
+        <md-tab>
+          <md-tab-label>
+            <md-icon>person</md-icon>
+            Account
+          </md-tab-label>
+          <md-tab-body>
+            <md-list-item class="md-2-line" ng-click="showChangeUsernameDialog()">
+              <div class="md-list-item-text" ng-if="!$root.username">
+                <h3>Create a username</h3>
+                <p>You'll need a username to receive agendas from others.</p>
+              </div>
+              <div class="md-list-item-text" ng-if="$root.username">
+                <h3>Change username</h3>
+                <p>Your username is "{{$root.username}}"</p>
+              </div>
+            </md-list-item>
+            <md-subheader>Sign-in Methods</md-subheader>
+            <md-list-item>
+              <md-button ng-click="viewProvider(provider, $event)" ng-repeat="provider in $root.user.providerData track by provider.providerId" md-colors="{background: providers.get(provider.providerId).color}">{{providers.get(provider.providerId).name}}</md-button>
+            </md-list-item>
+            <md-list-item class="md-2-line" ng-click="addProvider($event)">
+              <div class="md-list-item-text">
+                <h3>Add a sign-in method</h3>
+                <p>Use multiple ways to sign in to your account</p>
+              </div>
+            </md-list-item>
+          </md-tab-body>
+        </md-tab>
+
+        <md-tab>
+          <md-tab-label>
+            <md-icon>apps</md-icon>
+            Apps
+          </md-tab-label>
+          <md-tab-body>
+            <md-list>
+              <md-list-item ng-if="apps.length < 1">
+                <p md-colors="{color: 'grey'}">No apps have access to your account.</p>
+              </md-list-item>
+              <md-list-item ng-repeat="app in apps" ng-click="viewAppDetail(app)">
+                <p>{{app.name}}</p>
+                <md-button class="md-secondary md-accent" ng-click="viewAppDetail(app)">More</md-button>
+              </md-list-item>
+            </md-list>
+          </md-tab-body>
+        </md-tab>
+
+        <md-tab>
+          <md-tab-label>
+            <md-icon>info</md-icon>
+            Credits
+          </md-tab-label>
+          <md-tab-body>
+            <md-list-item>
+              <p>Thanks to:</p>
+            </md-list-item>
+            <md-list-item ng-repeat="credit in credits track by $index">
+              <md-icon>{{credit.icon}}</md-icon>
+              <p>{{credit.title}}</p>
+              <a class="md-secondary md-icon-button" target="_blank" ng-href="{{credit.url}}"><md-icon>launch</md-icon></a>
+            </md-list-item>
+          </md-tab-body>
+        </md-tab>
+      </md-tabs>
+    </md-card>
+  </div>
+</div>
