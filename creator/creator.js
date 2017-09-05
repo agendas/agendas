@@ -7,6 +7,15 @@ angular.module("agendasApp")
       tags: "=?"
     },
     controller: function($scope, $timeout, colors) {
+      var repeats = new Map(Object.entries({
+        daily: "day", "each day": "day", "every day": "day",
+        "each weekday": "weekday", "every weekday": "weekday",
+        weekly: "week", "each week": "week", "every week": "week",
+        "every other week": "2-weeks", "every 2 weeks": "2-weeks", "every two weeks": "2-weeks",
+        monthly: "month", "each month": "month", "every month": "month",
+        yearly: "year", "each year": "year", "every year": "year"
+      }));
+
       var nextId = 1;
 
       $scope.tags = this.tags;
@@ -16,6 +25,7 @@ angular.module("agendasApp")
       $scope.matches = [];
       $scope.selectedMatch = null;
       $scope.hasDeadlineChip = false;
+      $scope.hasRepeatChip = false;
       $scope.tagChips = {};
 
       $scope.addMatch = function(match) {
@@ -44,11 +54,21 @@ angular.module("agendasApp")
           }
         }
 
+        var lowerCaseText = text.toLowerCase();
+
         $scope.tags.forEach(function(tag) {
-          if (tag.name && tag.name.length > 0 && text.toLowerCase().endsWith(tag.name.toLowerCase()) && !$scope.tagChips[tag.name]) {
+          if (tag.name && tag.name.length > 0 && lowerCaseText.endsWith(tag.name.toLowerCase()) && !$scope.tagChips[tag.name]) {
             $scope.addMatch({type: "tag", icon: "local_offer", text: tag.name, color: tag.color, key: tag.key});
           }
         });
+
+        if (!$scope.hasRepeatChip) {
+          repeats.forEach(function(repeat, repeatText) {
+            if (text.toLowerCase().endsWith(repeatText)) {
+              $scope.addMatch({type: "repeat", icon: "cached", text: repeatText, repeat: repeat});
+            }
+          });
+        };
       };
 
       $scope.hasFocus = function() {
@@ -72,6 +92,8 @@ angular.module("agendasApp")
           $scope.hasDeadlineChip = true;
         } else if (match.type === "tag") {
           $scope.tagChips[match.text] = true;
+        } else if (match.type === "repeat") {
+          $scope.hasRepeatChip = true;
         }
 
         $scope.items[index].text = $scope.items[index].text.slice(0, -1 * (match.text.length));
@@ -85,6 +107,9 @@ angular.module("agendasApp")
         }
         if ($scope.items[index].type === "tag") {
           delete $scope.tagChips[$scope.items[index].text];
+        }
+        if ($scope.items[index].type === "repeat") {
+          $scope.hasRepeatChip = false;
         }
         $scope.items.splice(index, 1);
         if ($scope.items.length > 0) {
@@ -244,6 +269,11 @@ angular.module("agendasApp")
             task.deadlineTime = !!item.time;
           } else if (item.type === "tag") {
             task.tags[item.key] = true;
+          } else if (item.type === "repeat") {
+            task.repeat = item.repeat;
+            if (!$scope.hasDeadlineChip) {
+              task.deadline = new Date().toJSON();
+            }
           }
         });
 
@@ -252,6 +282,7 @@ angular.module("agendasApp")
         $scope.items = [{id: 0, type: "text", text: ""}];
         $scope.matches = [];
         $scope.hasDeadlineChip = false;
+        $scope.hasRepeatChip = false;
         $scope.selectedMatch = null;
 
         document.querySelector("task-creator input").focus();

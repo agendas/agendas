@@ -35,6 +35,15 @@ function taskComparator(a, b) {
     return -1;
   }
 
+  // Sort tasks by priority.
+  var aPriority = a.priority || 0;
+  var bPriority = b.priority || 0;
+  if (aPriority < bPriority) {
+    return 1;
+  } else if (aPriority > bPriority) {
+    return -1;
+  }
+
   // Sort tasks by deadline time.
   if (a.deadline && b.deadline) {
     if (a.deadlineTime && !b.deadlineTime) {

@@ -169,7 +169,8 @@ angular.module("agendasApp")
           (newDeadline && !oldDeadline) ||
           (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
           $scope.tasks[data.key].deadlineTime != data.val().deadlineTime ||
-          $scope.tasks[data.key].completed != data.val().completed
+          $scope.tasks[data.key].completed != data.val().completed ||
+          ($scope.tasks[data.key].priority || 0) !== (data.val().priority || 0)
         ) {
           $scope.tasksArray.splice($scope.tasksArray.indexOf(data.key), 1);
 
@@ -331,10 +332,10 @@ angular.module("agendasApp")
         $scope.tasksRef.push().set(task);
       };
 
-      $scope.getTags = function(task) {
-        if (task.tags) {
+      $scope.getTags = function(task, key) {
+        if (task && task.tags) {
           return Object.keys(task.tags);
-        } else if (task.category) {
+        } else if (task && task.category) {
           return [task.category];
         }
       };
@@ -349,8 +350,22 @@ angular.module("agendasApp")
       });
 
       $scope.isOverdue = function(task) {
-        return task.deadline && new Date(task.deadline) < new Date();
+        if (task && task.deadline) {
+          var deadline = new Date(task.deadline);
+          if (!task.deadlineTime) {
+            deadline.setDate(deadline.getDate() + 1);
+            deadline.setHours(0);
+            deadline.setMinutes(0);
+            deadline.setSeconds(0);
+            deadline.setMilliseconds(0);
+          }
+          return deadline < new Date();
+        } else {
+          return false;
+        }
       };
+
+      $scope.priorities = ["Low", "Medium", "High", "Urgent"];
 
       /* var scrollTickPending = false;
       var scrollPos = 0;

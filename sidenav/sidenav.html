@@ -1,10 +1,8 @@
 <md-sidenav class="md-sidenav-left" md-is-open="sidenavIsOpen" md-component-id="agendasSidenav" md-is-locked-open="lockedOpen()" md-whiteframe="4">
   <md-list>
-    <md-list-item>
-      <md-icon md-svg-src="agendas.svg" style="width: 48px; height: 48px;"></md-icon>
-      <div class="md-list-item-text">
-        <h1 class="md-display-1">Agendas</h1>
-      </div>
+    <md-list-item ui-sref="home">
+      <md-icon md-svg-src="agendas.svg" style="width: 48px; height: 48px; margin-left: 0;"></md-icon>
+      <h1 class="md-display-1">Agendas</h1>
     </md-list-item>
     <md-list-item class="md-2-line" ui-sref="settings">
       <img ng-if="$root.user.photoURL" ng-src="{{$root.user.photoURL}}" class="md-avatar" />
