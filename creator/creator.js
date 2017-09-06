@@ -283,6 +283,7 @@ angular.module("agendasApp")
         $scope.matches = [];
         $scope.hasDeadlineChip = false;
         $scope.hasRepeatChip = false;
+        $scope.tagChips = {};
         $scope.selectedMatch = null;
 
         document.querySelector("task-creator input").focus();
