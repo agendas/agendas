@@ -50,7 +50,18 @@ angular.module("agendasApp")
         if (!$scope.hasDeadlineChip) {
           var date = chrono.parse(text);
           if (date.length > 0 && text.endsWith(date[0].text)) {
-            $scope.addMatch({type: "deadline", icon: "today", text: date[0].text, deadline: date[0].start.date(), time: date[0].start.isCertain("hour")});
+            var deadline = date[0].start.date();
+            if (date[0].isCertain("weekday") && !date[0].isCertain("day")) {
+              var now = new Date();
+              now.setHours(0);
+              now.setMinutes(0);
+              now.setSeconds(0);
+              now.setMilliseconds(0);
+              if (deadline < now) {
+                deadline.setDate(deadline.getDate() + 7);
+              }
+            }
+            $scope.addMatch({type: "deadline", icon: "today", text: date[0].text, deadline: deadline, time: date[0].start.isCertain("hour")});
           }
         }
 
