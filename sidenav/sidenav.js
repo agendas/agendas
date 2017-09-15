@@ -127,6 +127,10 @@ angular.module("agendasApp")
         }
       });
 
+      $scope.showDeveloperSidenav = function() {
+        return $state.current && $state.current.name.startsWith("console");
+      };
+
       $scope.restoreVariables();
     }
   })

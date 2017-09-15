@@ -6,7 +6,7 @@ angular.module("agendasApp")
       color: "red",
       provider: new firebase.auth.GoogleAuthProvider(),
       loginHandler: (provider, event) => {
-        return firebase.auth().signInWithRedirect(provider);
+        return firebase.auth().signInWithPopup(provider);
       }
     }],
     ["github.com", {
@@ -14,7 +14,7 @@ angular.module("agendasApp")
       color: "blue-grey",
       provider: new firebase.auth.GithubAuthProvider(),
       loginHandler: (provider, event) => {
-        return firebase.auth().signInWithRedirect(provider);
+        return firebase.auth().signInWithPopup(provider);
       }
     }]
   ]))

@@ -1,0 +1,17 @@
+<md-toolbar style="background-color: white; color: black;">
+  <span class="md-toolbar-tools">
+    <md-button class="md-icon-button" ui-sref="home"><md-icon style="color: black;">arrow_back</md-icon></md-button>
+    <h3 class="md-title">Developer Console</h3>
+  </span>
+</md-toolbar>
+<md-list>
+  <md-list-item ui-sref="console">
+    <md-icon>dashboard</md-icon>
+    <p>Dashboard</p>
+  </md-list-item>
+  <md-divider></md-divider>
+  <md-list-item ui-sref="console.detail({app: 'test'})">
+    <md-icon class="md-avatar-icon" md-colors="{background: 'accent'}">code</md-icon>
+    <p>Test App</p>
+  </md-list-item>
+</md-list>

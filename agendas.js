@@ -20,6 +20,16 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       url: "/settings",
       component: "settings"
     });
+    $stateProvider.state({
+      name: "console",
+      url: "/console",
+      component: "consoleDashboard"
+    });
+    $stateProvider.state({
+      name: "console.detail",
+      url: "/:app",
+      template: "<agendas-menu-toolbar></agendas-menu-toolbar>"
+    });
   })
   .config(($mdThemingProvider) => {
     $mdThemingProvider.theme("default")
@@ -29,7 +39,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $mdThemingProvider.theme("dark")
       .dark(true);
   })
-  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $timeout) => {
+  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
 
@@ -66,4 +76,41 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $rootScope.bodyStyle = {};
     $rootScope.darkTheme = localStorage.agendasDarkTheme && JSON.parse(localStorage.agendasDarkTheme);
     $rootScope.showCompleted = localStorage.agendasShowCompleted && JSON.parse(localStorage.agendasShowCompleted);
+    $rootScope.showDeveloper = localStorage.agendasShowConsole && JSON.parse(localStorage.agendasShowConsole);
+
+    $rootScope.unlockDeveloperSwitch = function() {
+      return firebase.database().ref("/users/" + $rootScope.user.uid + "/isDeveloper").set(true).then(function() {
+        $mdToast.show($mdToast.simple()
+          .textContent("You've unlocked the Developer switch!")
+          .action("TAKE ME THERE")
+          .highlightAction(true)
+          .highlightClass("md-accent")
+          .position("top right")
+          .hideDelay(3000)
+        ).then(function(response) {
+          if (response === "ok") {
+            if ($state.current && $state.current.name === "settings") {
+              $state.reload();
+            } else {
+              $state.go("settings");
+            }
+          }
+        }).catch(console.log);
+      });
+    };
+
+    window.setHackingSkills = function(skills) {
+      if (skills) {
+        if ($rootScope.user) {
+          console.log("enabling hacking skills...");
+          $rootScope.unlockDeveloperSwitch().then(function() {
+            console.log("%cHacking skillz enabled!", "background-color:black;color:lime;font-weight:bold;font-family:monospace;font-size:2em;")
+          });
+        } else {
+          console.log("rip. no user to hack. sign in first.");
+        }
+      } else {
+        console.log("what do you mean you don't want hacking skills?");
+      }
+    }
   });
