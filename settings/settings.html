@@ -32,7 +32,7 @@
               </div>
               <md-switch class="md-secondary" ng-model="$root.showCompleted" ng-change="applyShowCompleted($root.showCompleted)"></md-switch>
             </md-list-item>
-            <md-list-item class="md-2-line">
+            <md-list-item class="md-2-line" ng-if="developer">
               <div class="md-list-item-text">
                 <h3>Show developer console</h3>
                 <p>This setting won't affect any apps that you've made.</p>
