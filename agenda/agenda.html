@@ -33,6 +33,9 @@
               <span ng-if="tasks[task].priority">
                 <md-icon>error</md-icon> {{priorities[tasks[task].priority - 1] || tasks[task].priority}}
               </span>
+              <span ng-if="tasks[task].notes">
+                <md-icon>note</md-icon>
+              </span>
             </p>
           </div>
           <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
