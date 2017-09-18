@@ -26,9 +26,14 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "consoleDashboard"
     });
     $stateProvider.state({
-      name: "console.detail",
-      url: "/:app",
-      template: "<agendas-menu-toolbar></agendas-menu-toolbar>"
+      name: "consolenew",
+      url: "/console/new",
+      component: "consoleAdd"
+    });
+    $stateProvider.state({
+      name: "consoledetail",
+      url: "/console/:app",
+      component: "consoleDetail"
     });
   })
   .config(($mdThemingProvider) => {
