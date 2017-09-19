@@ -53,7 +53,16 @@
         </md-tab>
         <md-tab label="Auth Code Grant">
           <md-card-content>
-            <h5 class="md-display-1" style="opacity: 0.6; font-style: italic;">Coming soon!</h5>
+            <h5 class="md-headline">Authorization Code Grant</h5>
+            <md-switch class="md-accent" ng-model="authCodeEnabled" ng-change="authCodeSwitchChanged(authCodeEnabled)">{{authCodeEnabled ? "Enabled" : "Disabled"}}</md-switch>
+            <div ng-if="authCodeEnabled">
+              <p>
+                <strong>Client Secret:</strong>
+                <span ng-if="!app.oauth.secret">Loading...</span>
+                <span ng-if="showClientSecret">{{app.oauth.secret}} <md-button class="md-icon-button md-warn" ng-click="regenerateSecret($event)"><md-icon>refresh</md-icon><md-tooltip>Regenerate</md-tooltip></md-button></span>
+                <md-button ng-if="app.oauth.secret && !showClientSecret" ng-click="revealSecret()" class="md-accent">Show</md-button>
+              </p>
+            </div>
           </md-card-content>
         </md-tab>
         <md-tab label="Implicit">

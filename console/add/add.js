@@ -6,7 +6,7 @@ angular.module("agendasApp")
         $scope.saving = true;
         $scope.error = false;
         $rootScope.user.getIdToken().then(function(token) {
-          return $http.post("https://api.agendas.co/api/v1/newapp", null, {
+          return $http.post("https://api.agendas.co/api/v1/createdapps", null, {
             headers: {Authorization: "Firebase " + token}
           });
         }).then(function(response) {

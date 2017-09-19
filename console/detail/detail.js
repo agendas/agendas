@@ -1,13 +1,17 @@
 angular.module("agendasApp")
   .component("consoleDetail", {
     templateUrl: "console/detail/detail.html",
-    controller: function($scope, $state, $stateParams, $mdDialog, $rootScope) {
+    controller: function($scope, $state, $stateParams, $mdDialog, $rootScope, $http) {
       $scope.app = {};
       $scope.key = $stateParams.app;
 
       $scope.appRef = firebase.database().ref("/apps/" + $stateParams.app);
       $scope.appRef.on("value", function(data) {
         $scope.app = data.exists() ? data.val() : {};
+        $scope.authCodeEnabled = !!($scope.app.oauth && $scope.app.oauth.secret);
+        if (!$scope.authCodeEnabled) {
+          $scope.showClientSecret = false;
+        }
         $scope.$digest();
       });
 
@@ -74,6 +78,50 @@ angular.module("agendasApp")
         ).then(function() {
           return firebase.database().ref("/apps/" + $scope.key + "/oauth/redirectURL").remove();
         });
+      };
+
+      $scope.revealSecret = function() {
+        $scope.showClientSecret = true;
+      };
+
+      $scope.generateSecret = function() {
+        return $rootScope.user.getIdToken(true).then(function(token) {
+          return $http.put("https://api.agendas.co/api/v1/createdapps/" + $scope.key + "/secret", null, {
+            headers: {Authorization: "Firebase " + token}
+          });
+        });
+      };
+
+      $scope.regenerateSecret = function(event) {
+        return $mdDialog.show(
+          $mdDialog.confirm()
+            .title("Create a new client secret?")
+            .textContent("The old client secret will stop working immediately.")
+            .cancel("Cancel")
+            .ok("Regenerate")
+            .targetEvent(event)
+        ).then(function() {
+          return $scope.generateSecret();
+        })
+      };
+
+      $scope.authCodeSwitchChanged = function(enable) {
+        if (enable) {
+          $scope.generateSecret();
+        } else {
+          $mdDialog.show(
+            $mdDialog.confirm()
+              .title("Disable authorization code grant?")
+              .textContent("Clients using this authentication method will stop working.")
+              .cancel("Cancel")
+              .ok("Disable")
+              .targetEvent(event)
+          ).then(function() {
+            return firebase.database().ref("/apps/" + $scope.key + "/oauth/secret").remove();
+          }).catch(function(e) {
+            $scope.authCodeEnabled = true;
+          });
+        }
       };
     }
   })
