@@ -6,17 +6,78 @@
       <input type="text" ng-model="app.name" placeholder="App Name" />
     </md-input-container>
     <p style="font-style: italic; opacity: 0.7; margin-bottom: 2rem;"><strong>Client ID:</strong> {{key}}</p>
-    <md-card md-colors="{background: 'warn'}">
+    <md-card>
       <md-card-title>
-        <h4 class="md-headline">Danger</h4>
+        <h4 class="md-headline">Stats</h4>
+      </md-card-title>
+      <md-card-content>
+        <p ng-if="app.nextCycle"><strong>Billing cycle ends:</strong> {{app.nextCycle | date}}</p>
+        <md-grid-list md-cols-gt-md="4" md-cols="1" md-cols-md="2" md-gutter-gt-md="8px" md-gutter-md="4px" md-gutter="0px" md-row-height="130px">
+          <md-grid-tile>
+            <div class="full" layout="column" layout-align="start start" style="padding-top: 15px;">
+              <h5 class="md-title" style="opacity: 0.8;">API Calls</h5>
+              <p class="md-display-2">{{app.apiCalls || 0}} <span style="opacity: 0.7; vertical-align: bottom;" class="md-caption">out of {{app.maxCalls || "Unlimited"}}</span></p>
+              <!--<md-button class="md-accent" style="margin: 0; opacity: 0.7;" target="_blank" ng-href="">Request More</md-button>-->
+            </div>
+          </md-grid-tile>
+        </md-grid-list>
+      </md-card-content>
+    </md-card>
+    <md-card>
+      <md-card-title>
+        <h4 class="md-headline">Authentication</h4>
+      </md-card-title>
+      <md-tabs md-dynamic-height md-selected="tab">
+        <md-tab>
+          <md-tab-label><md-icon>home</md-icon></md-tab-label>
+          <md-tab-body>
+            <md-list>
+              <md-list-item class="md-3-line" ng-click="openTab(1)">
+                <div class="md-list-item-text">
+                  <h3>Authorization Code Grant</h3>
+                  <p>Uses an authorization code and a client secret to retrieve access tokens. Supports refresh tokens.</p>
+                  <p>Recommended for most apps.</p>
+                </div>
+                <md-button class="md-secondary md-accent" ng-click="openTab(1)">Manage</md-button>
+              </md-list-item>
+              <md-list-item class="md-3-line" ng-click="openTab(2)">
+                <div class="md-list-item-text">
+                  <h3>Implicit Grant</h3>
+                  <p>Issues an access token directly to a URL. <strong>Does not</strong> support refresh tokens.</p>
+                  <p>Recommended for web apps.</p>
+                </div>
+                <md-button class="md-secondary md-accent" ng-click="openTab(2)">Manage</md-button>
+              </md-list-item>
+            </md-list>
+          </md-tab-body>
+        </md-tab>
+        <md-tab label="Auth Code Grant">
+          <md-card-content>
+            <h5 class="md-display-1" style="opacity: 0.6; font-style: italic;">Coming soon!</h5>
+          </md-card-content>
+        </md-tab>
+        <md-tab label="Implicit">
+          <md-card-content>
+            <h5 class="md-headline" flex>Implicit Grant</h5>
+            <p ng-if="app.oauth.redirectURL"><strong>Redirect URL:</strong> {{app.oauth.redirectURL}} <md-button class="md-icon-button" ng-click="editRedirectURL($event)"><md-icon>edit</md-icon></md-button></p>
+            <p ng-if="!app.oauth.redirectURL">Implicit grant is disabled.</p>
+            <md-button ng-if="app.oauth.redirectURL" class="md-warn" ng-click="disableImplicit()">Disable</md-button>
+            <md-button ng-if="!app.oauth.redirectURL" class="md-accent" ng-click="editRedirectURL($event)">Enable</md-button>
+          </md-card-content>
+        </md-tab>
+      </md-tabs>
+    </md-card>
+    <md-card>
+      <md-card-title>
+        <h4 class="md-headline" md-colors="{color: 'warn'}">Danger Zone</h4>
       </md-card-title>
       <md-list>
         <md-list-item class="md-2-line">
           <div class="md-list-item-text">
-            <h3>Delete this app</h3>
-            <p>This app will immediately stop working.</p>
-            <md-button class="md-secondary" ng-click="delete($event)">Delete App</md-button>
+            <h3 md-colors="{color: 'warn'}">Delete this app</h3>
+            <p><strong>WARNING:</strong> This app will immediately stop working.</p>
           </div>
+          <md-button class="md-warn md-secondary" ng-click="delete($event)">Delete App</md-button>
         </md-list-item>
       </md-list>
     </md-card>

@@ -20,6 +20,13 @@ angular.module("agendasApp")
             .ok("Delete")
             .targetEvent(event)
         ).then(function() {
+          return $mdDialog.show(
+            $mdDialog.confirm()
+              .title("Are you absolutely sure?")
+              .cancel("No")
+              .ok("Yes")
+          );
+        }).then(function() {
           return $scope.appRef.remove();
         }).then(function() {
           return firebase.database().ref("/users/" + $rootScope.user.uid + "/createdApps/" + $stateParams.app).remove();
@@ -35,6 +42,38 @@ angular.module("agendasApp")
               .escapeToClose(true)
           );
         })
+      };
+
+      $scope.openTab = function(tab) {
+        $scope.tab = tab;
+      };
+
+      $scope.editRedirectURL = function(event) {
+        $mdDialog.show(
+          $mdDialog.prompt()
+            .title($scope.app.oauth && $scope.app.oauth.redirectURL ? "Change redirect URL" : "Set a redirect URL")
+            .textContent("Access tokens will be sent to this redirect URL.")
+            .placeholder("Redirect URL")
+            .initialValue($scope.app.oauth && $scope.app.oauth.redirectURL)
+            .cancel("Cancel")
+            .ok("Save")
+            .targetEvent(event)
+        ).then(function(url) {
+          return firebase.database().ref("/apps/" + $scope.key + "/oauth/redirectURL").set(url);
+        });
+      };
+
+      $scope.disableImplicit = function(event) {
+        $mdDialog.show(
+          $mdDialog.confirm()
+            .title("Disable implicit grant?")
+            .textContent("Clients using this authentication method will stop working.")
+            .cancel("Cancel")
+            .ok("Disable")
+            .targetEvent(event)
+        ).then(function() {
+          return firebase.database().ref("/apps/" + $scope.key + "/oauth/redirectURL").remove();
+        });
       };
     }
   })
