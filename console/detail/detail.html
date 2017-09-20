@@ -17,7 +17,7 @@
             <div class="full" layout="column" layout-align="start start" style="padding-top: 15px;">
               <h5 class="md-title" style="opacity: 0.8;">API Calls</h5>
               <p class="md-display-2">{{app.apiCalls || 0}} <span style="opacity: 0.7; vertical-align: bottom;" class="md-caption">out of {{app.maxCalls || "Unlimited"}}</span></p>
-              <!--<md-button class="md-accent" style="margin: 0; opacity: 0.7;" target="_blank" ng-href="">Request More</md-button>-->
+              <md-button class="md-accent" style="margin: 0; opacity: 0.7;" ng-click="requestMoreCalls($event)">Request More</md-button>
             </div>
           </md-grid-tile>
         </md-grid-list>

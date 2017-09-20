@@ -123,5 +123,16 @@ angular.module("agendasApp")
           });
         }
       };
+
+      $scope.requestMoreCalls = function(event) {
+        $mdDialog.show({
+          template: "<console-request type='apicall' app='$ctrl.app'></console-request>",
+          controller: angular.noop,
+          controllerAs: "$ctrl",
+          bindToController: true,
+          locals: {app: $scope.key},
+          targetEvent: event
+        });
+      };
     }
   })

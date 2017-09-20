@@ -1,0 +1,25 @@
+<form name="requestForm">
+  <md-dialog-content>
+    <div class="md-dialog-content">
+      <h3 class="md-title">Request more {{$ctrl.type === "maxapps" ? "apps" : "API calls"}}</h3>
+      <md-input-container class="md-block">
+        <label>Email</label>
+        <md-select required ng-model="email">
+          <md-option ng-value="email" ng-repeat="email in emails" ng-selected="$first">{{email}}</md-option>
+        </md-select>
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Requested {{$ctrl.type === "maxapps" ? "apps" : "API calls"}}</label>
+        <input placeholder="Number" ng-model="amount" type="text" ng-pattern="/^[0-9]{1,100}$/" required />
+      </md-input-container>
+      <md-input-container class="md-block">
+        <label>Reason</label>
+        <textarea ng-model="reason" required md-maxlength="1000"></textarea>
+      </md-input-container>
+    </div>
+  </md-dialog-content>
+  <md-dialog-actions>
+    <md-button class="md-primary" ng-click="$ctrl.cancel()">Cancel</md-button>
+    <md-button class="md-accent" ng-disabled="saving || !requestForm.$valid" ng-click="$ctrl.request(email, amount, reason)">Request</md-button>
+  </md-dialog-actions>
+</form>
