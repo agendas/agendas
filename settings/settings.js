@@ -141,7 +141,6 @@ angular.module("agendasApp")
           case "settings":
             $scope.selectedTab = 0;
             break;
-          case "settings.appearance.wallpaper":
           case "settings.appearance":
             $scope.selectedTab = 1;
             break;

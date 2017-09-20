@@ -20,10 +20,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       url: "/appearance"
     });
     $stateProvider.state({
-      name: "settings.appearance.wallpaper",
-      url: "/wallpaper"
-    });
-    $stateProvider.state({
       name: "settings.account",
       url: "/account"
     });
