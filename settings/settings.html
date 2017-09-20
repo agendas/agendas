@@ -32,6 +32,13 @@
               </div>
               <md-switch class="md-secondary" ng-model="$root.showCompleted" ng-change="applyShowCompleted($root.showCompleted)"></md-switch>
             </md-list-item>
+            <md-list-item class="md-2-line" ng-if="developer">
+              <div class="md-list-item-text">
+                <h3>Show developer console</h3>
+                <p>This setting won't affect any apps that you've made.</p>
+              </div>
+              <md-switch class="md-secondary" ng-model="$root.showDeveloper" ng-change="applyShowDeveloper($root.showDeveloper)"></md-switch>
+            </md-list-item>
           </md-tab-body>
         </md-tab>
 
@@ -114,7 +121,7 @@
             </md-list-item>
             <md-list-item ng-repeat="credit in credits track by $index">
               <md-icon>{{credit.icon}}</md-icon>
-              <p>{{credit.title}}</p>
+              <p ng-click="clickCredit($index)">{{credit.title}}</p>
               <a class="md-secondary md-icon-button" target="_blank" ng-href="{{credit.url}}"><md-icon>launch</md-icon></a>
             </md-list-item>
           </md-tab-body>

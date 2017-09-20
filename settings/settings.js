@@ -1,12 +1,16 @@
 angular.module("agendasApp")
   .component("settings", {
     templateUrl: "settings/settings.html",
-    controller: function($scope, $state, credits, $mdDialog, $rootScope, $authProviders) {
+    controller: function($scope, $state, credits, $mdDialog, $rootScope, $authProviders, $mdToast) {
       $scope.credits = credits;
       $scope.providers = $authProviders;
 
       $scope.applyShowCompleted = function(completedTasks) {
         localStorage.agendasShowCompleted = JSON.stringify(completedTasks);
+      };
+
+      $scope.applyShowDeveloper = function(showDeveloper) {
+        localStorage.agendasShowConsole = JSON.stringify(showDeveloper);
       };
 
       $scope.applyDarkTheme = function(darkTheme) {
@@ -59,6 +63,12 @@ angular.module("agendasApp")
               i++;
             }
           });
+
+          $scope.developerRef = firebase.database().ref("/users/" + $rootScope.user.uid + "/isDeveloper").on("value", function(data) {
+            $scope.developer = data.val();
+            $scope.$digest();
+          });
+
         }
 
         $scope.$digest();
@@ -92,6 +102,36 @@ angular.module("agendasApp")
           template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><add-provider></add-provider></md-dialog>",
           targetEvent: event
         });
+      };
+
+      var clickedCredits = [];
+      $scope.clickCredit = function(index) {
+        if (!clickedCredits.includes(index)) {
+          clickedCredits.push(index);
+          if (clickedCredits.length === credits.length) {
+            if ($scope.developer) {
+              $mdToast.show($mdToast.simple()
+                .textContent("Congratulat-oh wait, you've done this before.")
+                .position("top right")
+                .hideDelay(1000)
+              );
+            } else {
+              $rootScope.unlockDeveloperSwitch();
+            }
+          } else if (clickedCredits.length < 2) {
+            $mdToast.show($mdToast.simple()
+              .textContent("Keep clicking...")
+              .position("top right")
+              .hideDelay(1000)
+            );
+          } else {
+            $mdToast.show($mdToast.simple()
+              .textContent("Only " + (credits.length - clickedCredits.length) + " clicks left to go!")
+              .position("top right")
+              .hideDelay(1000)
+            );
+          }
+        }
       };
     }
   })
