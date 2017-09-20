@@ -5,7 +5,7 @@
   <h4 class="md-headline" style="margin-top: 2rem;">Your Apps</h4>
   <md-grid-list style="margin-top: 1rem;" md-cols-gt-md="3" md-cols="1" md-cols-md="2" md-gutter-gt-md="16px" md-gutter-md="12px" md-gutter="8px" md-row-height="150px">
     <md-grid-tile ng-repeat="app in $root.developerApps">
-      <md-card class="full">
+      <md-card class="full" ui-sref="consoledetail({app: app.key})">
         <md-card-title>
           <h3 class="md-title">{{app.name}}</h3>
         </md-card-title>
@@ -18,7 +18,7 @@
       </md-card>
     </md-grid-tile>
     <md-grid-tile>
-      <md-card class="full" ui-sref="consolenew" layout="column" layout-align="center center" style="cursor: pointer;">
+      <md-card class="full" ui-sref="consolenew" layout="column" layout-align="center center">
         <p class="md-display-1">Create a new app</p>
         <md-button ui-sref="consolenew" class="md-raised md-accent">Get started</md-button>
       </md-card>

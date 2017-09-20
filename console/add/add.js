@@ -1,7 +1,20 @@
 angular.module("agendasApp")
   .component("consoleAdd", {
     templateUrl: "console/add/add.html",
-    controller: function($scope, $http, $rootScope, $state) {
+    controller: function($scope, $http, $rootScope, $state, $mdDialog) {
+      $scope.appName = "";
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        $scope.maxRef = firebase.database().ref("/users/" + user.uid + "/maxApps").on("value", function(max) {
+          $scope.max = max.exists() ? max.val() : 0;
+          $scope.$digest();
+        });
+      });
+
+      $scope.$watch(function() {
+        $scope.limitReached = $scope.max === 0 || ($scope.max !== -1 && $rootScope.developerApps && $rootScope.developerApps.length >= $scope.max);
+      })
+
       $scope.save = function() {
         $scope.saving = true;
         $scope.error = false;
@@ -22,6 +35,13 @@ angular.module("agendasApp")
           $scope.$digest();
 
           console.log(e);
+        });
+      };
+
+      $scope.requestApps = function() {
+        $mdDialog.show({
+          template: "<console-request type='maxapps'></console-request>",
+          targetEvent: event
         });
       };
     }

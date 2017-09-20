@@ -64,6 +64,19 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
           $rootScope.username = data.val();
           $scope.$apply();
         });
+
+        if ($state.current.name && $state.current.name.startsWith("console")) {
+          firebase.database().ref("/users/" + $rootScope.user.uid + "/isDeveloper").once("value").then(function(value) {
+            if (!value.val()) {
+              return $rootScope.unlockDeveloperSwitch();
+            }
+          }).then(function() {
+            if (!($rootScope.showDeveloper || (localStorage.agendasShowConsole && JSON.parse(localStorage.agendasShowConsole)))) {
+              localStorage.agendasShowConsole = JSON.parse(true);
+              $rootScope.showDeveloper = true;
+            }
+          });
+        }
       } else {
         $state.go("login", {redirect: $state.current.name});
 

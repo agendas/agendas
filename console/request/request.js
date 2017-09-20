@@ -19,7 +19,17 @@ angular.module("agendasApp")
       this.cancel = $mdDialog.cancel;
       this.request = function(email, amount, reason) {
         if (this.type === "maxapps") {
-
+          $scope.saving = true;
+          firebase.database().ref("/users/" + $rootScope.user.uid + "/maxAppsRequest").set({
+            email: email,
+            amount: parseInt(amount),
+            reason: reason
+          }).then(function() {
+            $mdDialog.hide();
+          }).catch(function() {
+            $scope.saving = false;
+            $scope.$digest();
+          });
         } else {
           $scope.saving = true;
           firebase.database().ref("/apps/" + this.app + "/request").set({
