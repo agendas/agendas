@@ -1,7 +1,7 @@
 angular.module("agendasApp")
   .component("agenda", {
     templateUrl: "agenda/agenda.html",
-    controller: function($scope, $timeout, $stateParams, $mdMedia, $filter, $transitions, $rootScope) {
+    controller: function($scope, $timeout, $stateParams, $mdMedia, $mdDialog, $filter, $transitions, $rootScope) {
       $scope.destroy = function() {
         /*window.removeEventListener("scroll", $scope.scrollHandler);
         window.removeEventListener("resize", $scope.scrollHandler);*/
@@ -366,6 +366,19 @@ angular.module("agendasApp")
       };
 
       $scope.priorities = ["Low", "Medium", "High", "Urgent"];
+
+      $scope.viewNotes = function(name, notes, event) {
+        return $mdDialog.show({
+          templateUrl: "agenda/notes.html",
+          controller: function($scope, $mdDialog) {
+            $scope.hide = $mdDialog.hide;
+          },
+          controllerAs: "$ctrl",
+          bindToController: true,
+          locals: {name: name, notes: notes},
+          targetEvent: event
+        });
+      };
 
       /* var scrollTickPending = false;
       var scrollPos = 0;
