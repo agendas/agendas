@@ -11,14 +11,34 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "auth"
     });
     $stateProvider.state({
-      name: "agenda",
-      url: "/:agenda",
-      component: "agenda"
-    });
-    $stateProvider.state({
       name: "settings",
       url: "/settings",
       component: "settings"
+    });
+    $stateProvider.state({
+      name: "settings.appearance",
+      url: "/appearance"
+    });
+    $stateProvider.state({
+      name: "settings.appearance.wallpaper",
+      url: "/wallpaper"
+    });
+    $stateProvider.state({
+      name: "settings.account",
+      url: "/account"
+    });
+    $stateProvider.state({
+      name: "settings.apps",
+      url: "/apps"
+    });
+    $stateProvider.state({
+      name: "settings.credits",
+      url: "/about"
+    });
+    $stateProvider.state({
+      name: "agenda",
+      url: "/:agenda",
+      component: "agenda"
     });
     $stateProvider.state({
       name: "console",

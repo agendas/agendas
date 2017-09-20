@@ -133,5 +133,33 @@ angular.module("agendasApp")
           }
         }
       };
+
+      $scope.$watch(function() {
+        return $state.current.name;
+      }, function(state) {
+        switch (state) {
+          case "settings":
+            $scope.selectedTab = 0;
+            break;
+          case "settings.appearance.wallpaper":
+          case "settings.appearance":
+            $scope.selectedTab = 1;
+            break;
+          case "settings.account":
+            $scope.selectedTab = 2;
+            break;
+          case "settings.apps":
+            $scope.selectedTab = 3;
+            break;
+          case "settings.credits":
+            $scope.selectedTab = 4;
+            break;
+        }
+      });
+
+      $scope.$watch("selectedTab", function(tab) {
+        var tabs = ["settings", "settings.appearance", "settings.account", "settings.apps", "settings.credits"]
+        $state.go(tabs[tab]);
+      });
     }
   })
