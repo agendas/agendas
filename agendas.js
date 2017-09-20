@@ -36,11 +36,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       url: "/about"
     });
     $stateProvider.state({
-      name: "agenda",
-      url: "/:agenda",
-      component: "agenda"
-    });
-    $stateProvider.state({
       name: "console",
       url: "/console",
       component: "consoleDashboard"
@@ -54,6 +49,11 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       name: "consoledetail",
       url: "/console/:app",
       component: "consoleDetail"
+    });
+    $stateProvider.state({
+      name: "agenda",
+      url: "/:agenda",
+      component: "agenda"
     });
   })
   .config(($mdThemingProvider) => {
