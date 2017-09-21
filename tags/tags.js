@@ -4,10 +4,8 @@ angular.module("agendasApp")
     bindings: {
       categories: "="
     },
-    controller: function($scope, colors, $stateParams, $timeout) {
+    controller: function($scope, colors, $stateParams, $timeout, $mdDialog, $mdMedia) {
       $scope.categories = this.categories;
-
-      $scope.colors = colors;
       $scope.categoriesRef = firebase.database().ref("/categories").child($stateParams.agenda);
 
       this.addTag = function() {
@@ -31,6 +29,22 @@ angular.module("agendasApp")
 
       this.deleteTag = function(key) {
         $scope.categoriesRef.child(key).remove();
+      };
+
+      this.openColorPicker = function(category, event) {
+        var saveTag = this.saveTag;
+        $mdDialog.show({
+          template: "<tag-color-picker color='$ctrl.category.color' name='$ctrl.category.name'></tag-color-picker>",
+          controller: angular.noop,
+          controllerAs: "$ctrl",
+          bindToController: true,
+          locals: {category: category},
+          targetEvent: event,
+          fullscreen: $mdMedia("xs") || !$mdMedia("sm")
+        }).then(function(color) {
+          category.color = color;
+          saveTag(category);
+        });
       };
     }
   })

@@ -15,7 +15,7 @@ angular.module("agendasApp")
             .hideDelay(3000)
           ).then(function(response) {
             if (response === "ok") {
-              $state.go("settings");
+              $state.go("settings.account");
             }
           }).catch(console.log);
         }

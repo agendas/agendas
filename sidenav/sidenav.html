@@ -1,5 +1,5 @@
 <md-sidenav class="md-sidenav-left" md-is-open="sidenavIsOpen" md-component-id="agendasSidenav" md-is-locked-open="lockedOpen()" md-whiteframe="4">
-  <md-list>
+  <md-list ng-if="!showDeveloperSidenav()">
     <md-list-item ui-sref="home">
       <md-icon md-svg-src="agendas.svg" style="width: 48px; height: 48px; margin-left: 0;"></md-icon>
       <h1 class="md-display-1">Agendas</h1>
@@ -11,6 +11,10 @@
         <h3>Account & Settings</h3>
         <p>{{$root.username || $root.user.email}}</p>
       </div>
+    </md-list-item>
+    <md-list-item ng-if="$root.showDeveloper" ui-sref="console">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'primary'}">code</md-icon>
+      <p>Developer Console</p>
     </md-list-item>
     <md-divider></md-divider>
     <md-list-item md-no-ink ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-show="agenda.name" ng-repeat="agenda in agendas">
@@ -30,5 +34,6 @@
       <p>Sign out</p>
     </md-list-item>
   </md-list>
+  <console-sidenav ng-if="showDeveloperSidenav()"></console-sidenav>
 </md-sidenav>
 <div class="agendas-sidenav-placeholder" ng-if="gtMd()"></div>

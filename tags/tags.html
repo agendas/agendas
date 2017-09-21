@@ -5,11 +5,9 @@
       <p>Create a tag to begin organizing your tasks.</p>
     </div>
   </md-list-item>
-  <md-list-item ng-repeat="category in categories">
-    <md-select ng-model="category.color" ng-change="$ctrl.saveTag(category)">
-      <md-option ng-value=""><md-icon>local_offer</md-icon></md-option>
-      <md-option ng-repeat="color in colors" ng-value="color.name"><md-icon md-colors="{color: color.mdColor || color.name}">local_offer</md-icon></md-option>
-    </md-select>
+  <md-list-item ng-repeat="category in categories" class="md-no-proxy">
+    <md-icon md-colors="category.color ? {color: category.color === 'black' ? 'grey-900' : category.color} : {}" style="margin-right: 0;">local_offer</md-icon>
+    <md-button class="md-icon-button" style="margin-left: 0;" ng-click="$ctrl.openColorPicker(category, $event)"><md-icon>arrow_drop_down</md-icon></md-button>
     <md-input-container md-no-float class="md-block" flex>
       <input placeholder="Tag Name" ng-model="category.name" type="text" ng-change="$ctrl.saveTag(category)" />
     </md-input-container>

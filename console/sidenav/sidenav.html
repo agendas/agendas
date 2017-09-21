@@ -1,0 +1,22 @@
+<md-toolbar style="background-color: white; color: black;">
+  <span class="md-toolbar-tools">
+    <md-button class="md-icon-button" ui-sref="home"><md-icon style="color: black;">arrow_back</md-icon></md-button>
+    <h3 class="md-title">Developer Console</h3>
+  </span>
+</md-toolbar>
+<md-list>
+  <md-list-item ui-sref="console">
+    <md-icon>dashboard</md-icon>
+    <p>Dashboard</p>
+  </md-list-item>
+  <md-divider></md-divider>
+  <md-subheader>Your Apps</md-subheader>
+  <md-list-item ng-repeat="app in $root.developerApps track by app.key" ui-sref="consoledetail({app: app.key})">
+    <md-icon class="md-avatar-icon" md-colors="{background: 'accent'}">code</md-icon>
+    <p>{{app.name}}</p>
+  </md-list-item>
+  <md-list-item ui-sref="consolenew">
+    <md-icon>add</md-icon>
+    <p>Create an app</p>
+  </md-list-item>
+</md-list>
