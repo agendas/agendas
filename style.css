@@ -350,17 +350,3 @@ html[md-theme="default"] md-list-item.task.completed .md-list-item-text h3 {
 html[md-theme="dark"] md-list-item.task.completed .md-list-item-text h3 {
   color: rgba(255, 255, 255, 0.7);
 }
-
-.tag-color-option {
-  display: inline-block;
-  padding: 0.5em;
-}
-
-.tag-color-optgroup {
-  margin: 0;
-  padding: 0;
-}
-
-.tag-color-optgroup > label.md-container-ignore {
-  display: none;
-}
