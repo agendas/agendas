@@ -350,3 +350,8 @@ html[md-theme="default"] md-list-item.task.completed .md-list-item-text h3 {
 html[md-theme="dark"] md-list-item.task.completed .md-list-item-text h3 {
   color: rgba(255, 255, 255, 0.7);
 }
+
+md-dialog tag-color-picker {
+  display: flex;
+  flex-direction: column;
+}
