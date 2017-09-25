@@ -8,7 +8,15 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $stateProvider.state({
       name: "login",
       url: "/login",
-      component: "auth"
+      resolve: {
+        redirect: function($location) {
+          return $location.path();
+        }
+      },
+      template: "<auth redirect='redirect'></auth>",
+      controller: function($scope, redirect) {
+        $scope.redirect = redirect;
+      }
     });
     $stateProvider.state({
       name: "settings",
@@ -60,7 +68,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $mdThemingProvider.theme("dark")
       .dark(true);
   })
-  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout) => {
+  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout, $location) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
 
@@ -70,10 +78,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog></setup-dialog></md-dialog>"});
           }
         });
-
-        if ($state.current.name == "login") {
-          $state.go("home");
-        }
 
         $scope.usernameRef = firebase.database().ref("/users/" + $rootScope.user.uid + "/username");
         $scope.usernameRef.on("value", function(data) {
@@ -94,7 +98,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
           });
         }
       } else {
-        $state.go("login", {redirect: $state.current.name});
+        $state.go("login");
 
         if ($scope.usernameRef) {
           $scope.usernameRef.off();

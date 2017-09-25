@@ -126,7 +126,7 @@ angular.module("agendasApp")
 
       $scope.requestMoreCalls = function(event) {
         $mdDialog.show({
-          template: "<console-request type='apicall' app='$ctrl.app'></console-request>",
+          template: "<md-dialog ng-class='{\"md-dark-theme\": $root.darkTheme}'><console-request type='apicall' app='$ctrl.app'></console-request></md-dialog>",
           controller: angular.noop,
           controllerAs: "$ctrl",
           bindToController: true,

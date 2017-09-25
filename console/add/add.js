@@ -40,7 +40,7 @@ angular.module("agendasApp")
 
       $scope.requestApps = function() {
         $mdDialog.show({
-          template: "<console-request type='maxapps'></console-request>",
+          template: "<md-dialog ng-class='{\"md-dark-theme\": $root.darkTheme}'><console-request type='maxapps'></console-request></md-dialog>",
           targetEvent: event
         });
       };
