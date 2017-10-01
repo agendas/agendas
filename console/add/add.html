@@ -1,0 +1,15 @@
+<agendas-menu-toolbar></agendas-menu-toolbar>
+<div class="full" layout="column" layout-align="center center" ng-hide="limitReached">
+  <h3 class="md-headline">Create an app</h3>
+  <md-input-container md-is-error="error">
+    <label>Name</label>
+    <input type="text" ng-model="appName" />
+  </md-input-container>
+  <md-button class="md-raised md-accent" ng-disabled="saving || !appName" ng-click="save()">Save</md-button>
+  <p style="font-size: 0.75em; opacity: 0.7">You can register {{max === -1 ? "unlimited" : max}} apps.</p>
+</div>
+<div class="full" layout="column" layout-align="center center" ng-if="limitReached">
+  <h3 class="md-headline">App limit reached</h3>
+  <p>To continue, delete some apps or <a href="" md-colors="{color: 'accent-A700'}" style="text-decoration: none;" ng-click="requestApps()">request more</a>.</p>
+  <md-button class="md-accent" ng-click="requestApps()">Request more apps</md-button>
+</div>

@@ -1,0 +1,21 @@
+<md-dialog-content>
+  <div class="md-dialog-content">
+    <h3 class="md-title">Select a color for {{$ctrl.name}}</h3>
+  </div>
+  <md-grid-list md-cols="14" md-gutter-gt-md="2px" md-gutter="1px" md-row-height="1:1" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}">
+    <md-grid-tile ng-click="$ctrl.select(undefined)" md-colors="{background: 'grey-600'}" style="cursor: pointer;">
+      <md-icon style="color: white;" ng-if="!$ctrl.color">done</md-icon>
+      <md-grid-tile-footer style="padding: 1em;" ng-if="showFooters()">
+        None
+      </md-grid-tile-footer>
+    </md-grid-tile>
+    <md-grid-tile md-colspan="13"></md-grid-tile>
+    <md-grid-tile ng-click="(!color.offset) && $ctrl.select(color.name)" ng-repeat="color in colors" style="cursor: pointer;" md-colors="color.name ? {background: color.name === 'black' ? 'grey-900' : color.name} : {}" md-colspan="{{color.offset ? 4 : 1}}">
+      <md-icon style="color: inherit;" ng-if="$ctrl.color === color.name && !color.offset">done</md-icon>
+    </md-grid-tile>
+  </md-grid-list>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button class="md-primary" ng-click="cancel()">Cancel</md-button>
+  <md-button class="md-accent" ng-click="$ctrl.save()">Select</md-button>
+</md-dialog-actions>

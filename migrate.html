@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html ng-app="agendasMigration">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=320px, initial-scale=1.0, maximum-scale=1.0" />
+
+    <link rel="icon" href="favicon.ico" />
+
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc4/angular-material.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc4/angular-material.min.js"></script>
+
+    <script>
+      angular.module("agendasMigration", ["ngMaterial"])
+        .controller("AgendasMigrationController", function($scope, $window, $timeout) {
+          $window.onmessage = function(e) {
+            if (e.data.name) {
+              $scope.name = e.data.name;
+              $scope.origin = e.origin;
+              $timeout(function(){$scope.didReceiveInfo = true;});
+            }
+          };
+          $window.parent.postMessage({ready: true}, "*");
+          try {
+            $scope.agendas = JSON.parse(localStorage.getItem("agendas"));
+          } catch (e) {
+            $scope.agendas = [];
+          }
+          $scope.selectedAgendas = {};
+          $scope.deny = function() {
+            $scope.denied = true;
+          };
+
+          $scope.allow = function() {
+            $scope.didReceiveInfo = false;
+            var agendasToMigrate = Object.keys($scope.selectedAgendas).filter(function(input){
+              return $scope.selectedAgendas[input] === true;
+            });
+            console.log("Migrating agendas:");
+            console.log(agendasToMigrate);
+
+            var data = [];
+            for (var agenda of agendasToMigrate) {
+              data.push(JSON.parse(localStorage.getItem("agendas_" + agenda)));
+            }
+            $window.parent.postMessage({agendas: data}, $scope.origin);
+            $scope.allowed = true;
+          }
+        });
+    </script>
+  </head>
+  <body ng-controller="AgendasMigrationController">
+    <div layout="column" layout-align="center center" style="width: 100%; height: 100%;">
+      <div ng-show="didReceiveInfo && !denied && !allowed" layout="column" layout-align="center center">
+        <p class="md-headline">Which agendas can <strong>{{name}}</strong> read?</p>
+        <md-list>
+          <md-list-item ng-repeat="agenda in agendas track by $index">
+            <md-checkbox ng-model="selectedAgendas[agenda]"></md-checkbox>
+            <p>{{agenda}}</p>
+          </md-list-item>
+        </md-list>
+        <p style="text-align: center;">The site at <strong>{{origin}}</strong> will be able to access the checked agendas.</p>
+        <md-button class="md-raised md-primary" ng-click="allow()">Allow</md-button>
+        <md-button class="md-raised md-warn" ng-click="deny()">Deny</md-button>
+      </div>
+      <p class="md-headline" ng-show="denied">You denied access.</p>
+      <p class="md-headline" ng-show="allowed"><md-icon>check</md-icon> All done!</p>
+      <md-progress-circular ng-hide="didReceiveInfo || allowed"></md-progress-circular>
+    </div>
+  </body>
+</html>

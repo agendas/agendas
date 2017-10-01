@@ -1,0 +1,12 @@
+<div class="full" layout="column" layout-align="center center">
+  <md-icon md-svg-src="agendas.svg" style="width: 200px; height: 200px; margin: 10px; line-height: 200px;"></md-icon>
+  <div>
+    <p>Welcome to</p>
+    <h1 class="md-display-3" style="margin: 0.25rem 0 0.25em 0;">Agendas</h1>
+    <p>by anli5005</p>
+  </div>
+  <p style="margin-top: 1.5rem;">Sign in to start using Agendas</p>
+  <md-button class="md-raised" ng-repeat="provider in authProviders" ng-click="loginWithProvider(provider, $event)" md-colors="{background: provider.color}">{{provider.name}}</md-button>
+  <a href="https://agendas.co" class="md-button md-accent">Learn More</a>
+</div>
+<p style="position: absolute; left: 8px; bottom: 8px; opacity: 0.5; font-size: 0.8em;">Agendas 3.1.1 | API 1.0</p>

@@ -1,0 +1,10 @@
+<md-dialog-content>
+  <div class="md-dialog-content">
+    <h3 style="margin-bottom: 1rem;" class="md-title">{{provider.name}}</h3>
+    <p><strong>Email:</strong> {{email}}</p>
+  </div>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button class="md-warn" ng-click="unlink($event)" ng-disabled="$root.user.providerData.length < 2">Unlink</md-button>
+  <md-button class="md-accent" ng-click="done()">Done</md-button>
+</md-dialog-actions>
