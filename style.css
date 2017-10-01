@@ -60,7 +60,8 @@ md-sidenav md-list-item md-card md-progress-circular svg > path {
 
 agendas-menu-toolbar > md-toolbar.md-menu-toolbar,
 agendas-menu-toolbar > md-toolbar.md-dark-theme.md-menu-toolbar {
-  background-color: rgba(255, 255, 255, 0);
+   color: white;
+  background-color: #212121;
 }
 
 md-list-item.selected {
