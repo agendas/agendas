@@ -267,7 +267,7 @@ angular.module("agendasApp")
       };
 
       this.addTask = function() {
-        var task = {name: "", tags: {}};
+        var task = {name: ""};
 
         $scope.items.forEach(function(item) {
           if (item.type === "text") {
@@ -279,6 +279,9 @@ angular.module("agendasApp")
             task.deadline = item.deadline.toJSON();
             task.deadlineTime = !!item.time;
           } else if (item.type === "tag") {
+            if (!task.tags) {
+              task.tags = {};
+            }
             task.tags[item.key] = true;
           } else if (item.type === "repeat") {
             task.repeat = item.repeat;
