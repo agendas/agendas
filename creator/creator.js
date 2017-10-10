@@ -267,7 +267,7 @@ angular.module("agendasApp")
       };
 
       this.addTask = function() {
-        var task = {name: ""};
+        var task = {name: "", completed: false};
 
         $scope.items.forEach(function(item) {
           if (item.type === "text") {
