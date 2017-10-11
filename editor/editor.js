@@ -8,7 +8,7 @@ angular.module("agendasApp")
       tagsObject: "=",
       onFinish: "&"
     },
-    controller: function($scope, $stateParams, $timeout, $mdDialog) {
+    controller: function($scope, $stateParams, $timeout, $mdDialog, db) {
       var key  = this.key;
       var tags = this.tagsArray;
       var tagsObject = this.tagsObject;
@@ -43,7 +43,7 @@ angular.module("agendasApp")
           $scope.deadlineDate.setMilliseconds(0);
         }
 
-        var taskTags = {};
+        var taskTags = $scope.tags && $scope.tags.length > 0 ? {} : null;
         $scope.tags.forEach(function(tag) {
           taskTags[tag.key] = true;
         });
@@ -51,16 +51,16 @@ angular.module("agendasApp")
         var task = {
           name: $scope.name,
           completed: $scope.completed,
-          deadline: $scope.deadlineDate ? $scope.deadlineDate.toJSON() : null,
+          deadline: $scope.deadlineDate ? $scope.deadlineDate : null,
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
-          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds.toJSON() : null,
+          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds : null,
           priority: $scope.priority || null,
           notes: $scope.notes || null,
           tags: taskTags
         };
 
-        firebase.database().ref("/tasks/" + $stateParams.agenda + "/" + key).set(task).then(function() {
+        db.collection("agendas").doc($stateParams.agenda).collection("tasks").doc(key).set(task).then(function() {
           $scope.cancel();
           $timeout();
         });

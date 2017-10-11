@@ -14,16 +14,16 @@
           <p>Show completed tasks</p>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line" ng-class="{show: showCompleted || (!completed[task]), completed: completed[task], overdue: isOverdue(tasks[task])}">
-          <md-checkbox class="md-primary" ng-disabled="permissions[$root.user.uid] !== 'editor'" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
+        <md-list-item ng-disabled="!agenda.permissions[$root.user.uid].edit_tasks" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line" ng-class="{show: showCompleted || (!completed[task]), completed: completed[task], overdue: isOverdue(tasks[task])}">
+          <md-checkbox class="md-primary" ng-disabled="!agenda.permissions[$root.user.uid].complete_tasks" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
           <div class="md-list-item-text">
             <h3>{{tasks[task].name}}</h3>
             <p>
               <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline, completed[task])}}</span>
               <span ng-if="tasks[task].deadline && tasks[task].deadlineTime"><md-icon>access_time</md-icon> {{tasks[task].deadline | date:"shortTime"}}</span>
-              <span ng-if="tasks[task].tags || tasks[task].category">
+              <span ng-if="tasks[task].tags && getTags(tasks[task]).length > 0">
                 <md-icon>local_offer</md-icon>
-                <span class="tag-circle-container" ng-repeat="tag in getTags(tasks[task])">
+                <span class="tag-circle-container" ng-repeat="tag in getTags(tasks[task]) track by tag">
                   <span class="tag-circle" md-colors="getMdColor(categoryObj[tag].color)">
                     <md-tooltip md-delay="0">{{categoryObj[tag].name}}</md-tooltip>
                   </span>
@@ -36,13 +36,13 @@
             </p>
           </div>
           <md-button class="md-secondary md-icon-button" ng-click="viewNotes(tasks[task].name, tasks[task].notes, $event)" ng-if="tasks[task].notes && !selectedTask"><md-icon>notes</md-icon><md-tooltip>Notes</md-tooltip></md-button>
-          <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
+          <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-disabled="!agenda.permissions[$root.user.uid].edit_tasks" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
         </md-list-item>
         <div ng-repeat-end>
           <task-editor ng-if="selectedTask === task" task="tasks[task]" task-key="task" tags-array="categories" tags-object="categoryObj" on-finish="hideTaskEditor()"></task-editor>
           <md-divider ng-if="selectedTask === task"></md-divider>
         </div>
-        <div class="add-task">
+        <div class="add-task" ng-if="agenda.permissions[$root.user.uid].edit_tasks">
           <md-divider></md-divider>
           <md-list-item class="add-task">
             <task-creator tags="categories" on-add-task="addTask(task)"></task-creator>
@@ -50,7 +50,7 @@
         </div>
       </md-list>
       <tag-editor categories="categories" ng-show="screen === 'categories'"></tag-editor>
-      <agenda-settings ng-if="screen === 'settings'" agenda="agenda" permissions="permissions"></agenda-settings>
+      <agenda-settings ng-if="screen === 'settings'" agenda="agenda"></agenda-settings>
     </div>
   </div>
 </div>

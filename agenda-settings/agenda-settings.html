@@ -6,7 +6,7 @@
   </md-list-item>
   <md-divider></md-divider>
   <md-subheader>Permissions</md-subheader>
-  <md-list-item ng-repeat="(user, role) in $ctrl.permissions">
+  <md-list-item ng-repeat="(user, role) in permissions">
     <p ng-if="getUsername(user)">{{getUsername(user) || "No Username"}}</p>
     <md-progress-circular ng-if="!getUsername(user)" md-mode="indeterminate"></md-progress-circular>
     <md-select class="md-secondary" ng-model="role" ng-change="$ctrl.changePermission(user, role)" ng-disabled="$first && $last && role === 'editor'" style="margin: 0;">
@@ -27,7 +27,7 @@
     <md-button class="md-secondary md-icon-button md-accent" ng-click="$ctrl.addPermission()" ng-disabled="!roleToAdd"><md-icon>person_add</md-icon></md-button>
   </md-list-item>
   <md-divider></md-divider>
-  <md-list-item ng-if="$ctrl.permissions[$root.user.uid] === 'editor'">
+  <md-list-item ng-if="$ctrl.agenda.permissions[$root.user.uid].manage">
     <md-button class="md-warn" ng-click="$ctrl.deleteAgenda()">Delete Agenda</md-button>
   </md-list-item>
 </md-list>

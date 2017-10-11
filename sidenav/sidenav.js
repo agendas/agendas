@@ -1,7 +1,7 @@
 angular.module("agendasApp")
   .component("agendasSidenav", {
     templateUrl: "sidenav/sidenav.html",
-    controller: function($scope, $rootScope, $timeout, $state, $stateParams, $mdDialog, $mdSidenav, $mdMedia) {
+    controller: function($scope, $rootScope, $timeout, $state, $stateParams, $mdDialog, $mdSidenav, $mdMedia, db) {
       $scope.restoreVariables = function() {
         if ($scope.agendasRef) {
           $scope.agendasRef.off();
@@ -20,44 +20,15 @@ angular.module("agendasApp")
       firebase.auth().onAuthStateChanged(function(user) {
         if (user) {
           console.log("User signed in");
-          $scope.agendasRef = firebase.database().ref("/users/" + user.uid + "/agendas");
-
-          $scope.agendasRef.on("child_added", function(data) {
-            var agenda = {id: data.key, ref: firebase.database().ref("/agendas/" + data.key)};
-
-            agenda.ref.on("value", function(value) {
-              agenda.name = value.child("name").val();
-              $timeout();
+          $scope.agendasRef = db.collection("agendas").where(user.uid, "==", true);
+          $scope.agendasRef.onSnapshot(function(data) {
+            $scope.agendas = [];
+            data.forEach(function(doc) {
+              var agenda = {id: doc.id, name: doc.data().name};
+              $scope.agendas.push(agenda);
             });
-
-            $scope.agendas.push(agenda);
             $timeout();
-          });
-
-          /* $scope.agendasRef.on("child_moved", function() {
-
-          }); */
-
-          $scope.agendasRef.on("child_removed", function(data) {
-            var i = 0;
-            for (var agenda of $scope.agendas) {
-              if (agenda.id === data.key) {
-                agenda.ref.off();
-                break;
-              }
-              i++;
-            }
-
-            if (i < $scope.agendas.length) {
-              $scope.agendas.splice(i, 1);
-            }
-
-            if ($scope.loagendaIsSelected(data.key)) {
-              $state.go("home");
-            }
-
-            $timeout();
-          });
+          }, console.log);
         } else {
           $scope.restoreVariables();
         }
@@ -96,17 +67,16 @@ angular.module("agendasApp")
           .targetEvent(event)
         ).then(function(name) {
           if (name) {
-            var ref = firebase.database().ref("/agendas").push();
-
-            ref.set({name: name}).then(function() {
-              return firebase.database().ref("/permissions").child(ref.key).child($rootScope.user.uid).set("editor");
-            }).then(function() {
-              return $scope.agendasRef.child(ref.key).set(true);
-            }).then(function() {
-              $scope.selectAgenda({id: ref.key});
-            }).catch(function(e) {
-              console.log(e);
+            var permissions = {};
+            ["manage", "edit_tasks", "edit_tags", "complete_tasks"].forEach(function(permission) {
+              permissions[permission] = true;
             });
+
+            var agenda = {name: name, permissions: {}};
+            agenda[$rootScope.user.uid] = true;
+            agenda.permissions[$rootScope.user.uid] = permissions;
+
+            db.collection("agendas").add(agenda);
           }
         });
       };
