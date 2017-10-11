@@ -51,10 +51,10 @@ angular.module("agendasApp")
         var task = {
           name: $scope.name,
           completed: $scope.completed,
-          deadline: $scope.deadlineDate ? $scope.deadlineDate.toJSON() : null,
+          deadline: $scope.deadlineDate ? $scope.deadlineDate : null,
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
-          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds.toJSON() : null,
+          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds : null,
           priority: $scope.priority || null,
           notes: $scope.notes || null,
           tags: taskTags

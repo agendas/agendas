@@ -21,9 +21,9 @@
             <p>
               <span ng-if="tasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(tasks[task].deadline, completed[task])}}</span>
               <span ng-if="tasks[task].deadline && tasks[task].deadlineTime"><md-icon>access_time</md-icon> {{tasks[task].deadline | date:"shortTime"}}</span>
-              <span ng-if="tasks[task].tags || tasks[task].category">
+              <span ng-if="tasks[task].tags && getTags(tasks[task]).length > 0">
                 <md-icon>local_offer</md-icon>
-                <span class="tag-circle-container" ng-repeat="tag in getTags(tasks[task])">
+                <span class="tag-circle-container" ng-repeat="tag in getTags(tasks[task]) track by tag">
                   <span class="tag-circle" md-colors="getMdColor(categoryObj[tag].color)">
                     <md-tooltip md-delay="0">{{categoryObj[tag].name}}</md-tooltip>
                   </span>

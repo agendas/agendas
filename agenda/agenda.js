@@ -357,11 +357,11 @@ angular.module("agendasApp")
             console.log(repeatEnds);
 
             if (next < repeatEnds) {
-              $scope.tasksRef.doc(taskKey).update({deadline: next.toJSON()});
+              $scope.tasksRef.doc(taskKey).update({deadline: next});
               return;
             }
           } else if (next) {
-            $scope.tasksRef.doc(taskKey).update({deadline: next.toJSON()});
+            $scope.tasksRef.doc(taskKey).update({deadline: next});
             return;
           }
         }
@@ -410,8 +410,6 @@ angular.module("agendasApp")
       $scope.getTags = function(task, key) {
         if (task && task.tags) {
           return Object.keys(task.tags);
-        } else if (task && task.category) {
-          return [task.category];
         }
       };
 
