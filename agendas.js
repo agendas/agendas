@@ -171,13 +171,14 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       return {"background-image": background};
     };
 
-    $rootScope.wallpaper = {collection: "san-francisco"};
+    $rootScope.wallpaper = localStorage.agendasWallpaper ? JSON.parse(localStorage.agendasWallpaper) : {collection: "san-francisco"};
 
-    $scope.refreshWallpaper = function() {
-      var wallpaper = $rootScope.wallpaper;
+    $rootScope.getWallpaperURL = function(wallpaper) {
       var hour = new Date().getHours();
 
-      if (wallpaper.collection) {
+      if (wallpaper.image) {
+        return wallpapers.images[wallpaper.image].url;
+      } else if (wallpaper.collection) {
         var collection = wallpapers.options[wallpaper.collection].images;
         var image;
         if (hour >= 6 && hour < 8 && collection.dawn) {
@@ -191,15 +192,17 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
         } else {
           image = collection.night;
         }
-        $rootScope.wallpaperURL = wallpapers.images[image].url;
-      } else if (wallpaper.image) {
-        $rootScope.wallpaperURL = wallpapers.images[wallpaper.image].url;
+        return wallpapers.images[image].url;
       } else {
-        $rootScope.wallpaperURL = wallpaper.url;
+        return wallpaper.url;
       }
     };
 
-    $scope.$watch("$root.wallpaper", $scope.refreshWallpaper);
+    $scope.refreshWallpaper = function() {
+      $rootScope.wallpaperURL = $rootScope.getWallpaperURL($rootScope.wallpaper);
+    };
+
+    $scope.$watch("$root.wallpaper.collection + '_' + $root.wallpaper.image", $scope.refreshWallpaper);
     $scope.$watch(function() {
       return new Date().getHours();
     }, $scope.refreshWallpaper);

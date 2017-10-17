@@ -1,13 +1,32 @@
 <md-dialog-content>
-  <md-grid-list md-cols-lg="4" md-cols-md="2" md-gutter="8px" md-row-height="16:9" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}" style="margin: 8px;">
-    <md-grid-tile ng-repeat="collection in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(' + (collection.images ? images[collection.images.day].url : images[collection].url) + ')'}">
-      <md-grid-tile-footer ng-show="collection.images" style="background-color: rgba(0, 0, 0, 0.36); padding-left: 1em;">
-        <md-icon>access_time</md-icon>
+  <md-grid-list md-cols-lg="4" md-cols-md="2" md-gutter="4px" md-row-height="16:9" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}" style="margin: 8px;">
+    <md-grid-tile ng-click="selectNone()" style="background-color: rgba(255, 255, 255, 0.2);">
+      <md-grid-tile-footer style="padding-left: 1em;">
+        <span ng-if="wallpaper.collection || wallpaper.image">None</span>
+        <md-icon ng-if="!(wallpaper.collection || wallpaper.image)">done</md-icon>
+        <span ng-if="!(wallpaper.collection || wallpaper.image)">Selected</span>
+      </md-grid-tile-footer>
+    </md-grid-tile>
+    <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(' + ((wallpaper.collection || wallpaper.image) === key ? $root.getWallpaperURL(wallpaper) : (collection.images ? $root.getWallpaperURL({collection: key}) : $root.getWallpaperURL({image: key}))) + ')'}">
+      <md-grid-tile-footer ng-show="collection.images" ng-style="{'background-color': (wallpaper.collection || wallpaper.image) === key ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}" style="padding-left: 1em;">
+        <md-icon ng-if="(wallpaper.collection || wallpaper.image) !== key">access_time</md-icon>
+        <md-icon ng-if="(wallpaper.collection || wallpaper.image) === key">done</md-icon>
+        <span ng-if="(wallpaper.collection || wallpaper.image) === key">Selected</span>
       </md-grid-tile-footer>
     </md-grid-tile>
   </md-grid-list>
 </md-dialog-content>
 <md-dialog-actions>
+  <strong ng-if="wallpaper.collection">{{wallpapers[wallpaper.collection].name}}</strong>
+  <md-select class="md-no-underline" ng-if="wallpaper.collection" ng-model="wallpaper.image" placeholder="Automatic" style="vertical-align: middle; margin: 0; margin-left: 1em;">
+    <md-option ng-value=""><md-icon style="color: inherit;">access_time</md-icon> Automatic</md-option>
+    <md-option ng-if="wallpapers[wallpaper.collection].images.dawn" ng-value="wallpapers[wallpaper.collection].images.dawn">Dawn</md-option>
+    <md-option ng-if="wallpapers[wallpaper.collection].images.day" ng-value="wallpapers[wallpaper.collection].images.day">Day</md-option>
+    <md-option ng-if="wallpapers[wallpaper.collection].images.sunset" ng-value="wallpapers[wallpaper.collection].images.sunset">Sunset</md-option>
+    <md-option ng-if="wallpapers[wallpaper.collection].images.night" ng-value="wallpapers[wallpaper.collection].images.night">Night</md-option>
+  </md-select>
+  <a ng-href="{{images[wallpaper.image].creditURL}}" target="_blank" ng-if="wallpaper && !wallpaper.collection">{{images[wallpaper.image].name}}</a>
+  <span flex></span>
   <md-button class="md-primary" ng-click="cancel()">Cancel</md-button>
   <md-button class="md-accent" ng-click="select()">Select</md-button>
 </md-dialog-actions>
