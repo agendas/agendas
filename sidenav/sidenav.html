@@ -8,11 +8,15 @@
       <img ng-if="$root.user.photoURL" ng-src="{{$root.user.photoURL}}" class="md-avatar" />
       <md-icon ng-if="!$root.user.photoURL" class="md-avatar-icon">person</md-icon>
       <div class="md-list-item-text">
-        <h3>Account & Settings</h3>
+        <h3>{{$root.isOffline ? "Settings" : "Account & Settings"}}</h3>
         <p>{{$root.username || $root.user.email}}</p>
       </div>
     </md-list-item>
-    <md-list-item ng-if="$root.showDeveloper" ui-sref="console">
+    <md-list-item ng-if="$root.isOffline">
+      <md-icon>cloud_off</md-icon>
+      <p>You're offline.</p>
+    </md-list-item>
+    <md-list-item ng-if="$root.showDeveloper && !$root.isOffline" ui-sref="console">
       <md-icon class="md-avatar-icon" md-colors="{background: 'primary'}">code</md-icon>
       <p>Developer Console</p>
     </md-list-item>

@@ -6,23 +6,23 @@
     <meta name="theme-color" content="#4CAF50" />
     <title>Agendas</title>
 
-    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+    <link rel="stylesheet" href="lib/angular-material.min.css">
     <link rel="stylesheet" href="style.css">
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
     <link rel="icon" href="agendas.png" />
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/angular-animate.min.js"></script>
+    <script src="lib/angular-aria.min.js"></script>
+    <script src="lib/angular-messages.min.js"></script>
+    <script src="lib/angular-material.min.js"></script>
     <script src="lib/angular-ui-router.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/chrono/latest/chrono.min.js"></script>
+    <script src="lib/chrono.min.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
+    <script src="lib/firebase.js"></script>
+    <script src="lib/firebase-firestore.js"></script>
     <script>
       // Initialize Firebase
       var config = {
@@ -41,6 +41,7 @@
     <script src="utils.js"></script>
     <script src="auth-providers.js"></script>
     <script src="scopes.js"></script>
+    <script defer src="offline.js"></script>
 
     <script src="home/home.js"></script>
     <script src="auth/auth.js"></script>
@@ -59,8 +60,10 @@
     <script src="add-provider/add-provider.js"></script>
     <script src="provider-dialog/provider-dialog.js"></script>
     <script src="tag-color-picker/tag-color-picker.js"></script>
+    <script src="wallpaper/wallpaper.js"></script>
 
     <script src="credits.js"></script>
+    <script src="wallpapers.js"></script>
 
     <script src="console/sidenav/sidenav.js"></script>
     <script src="console/dashboard/dashboard.js"></script>
@@ -73,5 +76,6 @@
       <agendas-sidenav ng-if="$root.user"></agendas-sidenav>
       <ui-view flex></ui-view>
     </div>
+    <div class="agendas-wallpaper" ng-style="getWallpaper()"></div>
   </body>
 </html>

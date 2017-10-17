@@ -1,0 +1,13 @@
+<md-dialog-content>
+  <md-grid-list md-cols-lg="4" md-cols-md="2" md-gutter="8px" md-row-height="16:9" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}" style="margin: 8px;">
+    <md-grid-tile ng-repeat="collection in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(' + (collection.images ? images[collection.images.day].url : images[collection].url) + ')'}">
+      <md-grid-tile-footer ng-show="collection.images" style="background-color: rgba(0, 0, 0, 0.36); padding-left: 1em;">
+        <md-icon>access_time</md-icon>
+      </md-grid-tile-footer>
+    </md-grid-tile>
+  </md-grid-list>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button class="md-primary" ng-click="cancel()">Cancel</md-button>
+  <md-button class="md-accent" ng-click="select()">Select</md-button>
+</md-dialog-actions>

@@ -5,7 +5,7 @@
 }
 
 html, body {
-  background-color: #F5F5F5;
+  background-color: rgba(0, 0, 0, 0);
 }
 
 html, body, body > div:first-child, ui-view, auth, agenda, settings, .full {
@@ -22,7 +22,6 @@ body, input, textarea, md-chip {
 
 html[md-theme="dark"], html[md-theme="dark"] body {
   color: white;
-  background-color: #212121;
   /*height: auto;*/
 }
 
@@ -354,4 +353,24 @@ html[md-theme="dark"] md-list-item.task.completed .md-list-item-text h3 {
 md-dialog tag-color-picker {
   display: flex;
   flex-direction: column;
+}
+
+.agendas-wallpaper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-color: #F5F5F5;
+  background-size: cover;
+}
+
+[md-theme="dark"] .agendas-wallpaper {
+  background-color: #212121;
+}
+
+.wallpaper-tile {
+  background-size: cover;
+  background-position: center;
 }

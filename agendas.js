@@ -69,7 +69,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       .dark(true);
   })
   .value("db", firebase.firestore())
-  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout, $location) => {
+  .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout, $location, db, wallpapers) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
 
@@ -116,6 +116,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $rootScope.darkTheme = localStorage.agendasDarkTheme && JSON.parse(localStorage.agendasDarkTheme);
     $rootScope.showCompleted = localStorage.agendasShowCompleted && JSON.parse(localStorage.agendasShowCompleted);
     $rootScope.showDeveloper = localStorage.agendasShowConsole && JSON.parse(localStorage.agendasShowConsole);
+    $rootScope.enableOffline = localStorage.agendasEnableOffline && JSON.parse(localStorage.agendasEnableOffline);
 
     $rootScope.unlockDeveloperSwitch = function() {
       return firebase.database().ref("/users/" + $rootScope.user.uid + "/isDeveloper").set(true).then(function() {
@@ -151,5 +152,72 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       } else {
         console.log("what do you mean you don't want hacking skills?");
       }
-    }
+    };
+
+    //if ($rootScope.enableOffline) {
+      db.enablePersistence().catch(function(e) {
+        if (e.code !== "failed-precondition") {
+          //$rootScope.enableOffline = false;
+          //localStorage.agendasEnableOffline = JSON.stringify(false);
+        }
+      });
+    //}
+
+    $scope.getWallpaper = function() {
+      var background = ($rootScope.wallpaperURL && !($state.current && $state.current.name && $state.current.name.startsWith("console")) ? ($rootScope.darkTheme ?
+        "linear-gradient(rgba(33, 33, 33, 0.5), rgba(33, 33, 33, 0.5)), "
+        : "linear-gradient(rgba(240, 240, 240, 0.7), rgba(240, 240, 240, 0.7)), "
+      ) + "url(" + $rootScope.wallpaperURL + ")" : "");
+      return {"background-image": background};
+    };
+
+    $rootScope.wallpaper = {collection: "san-francisco"};
+
+    $scope.refreshWallpaper = function() {
+      var wallpaper = $rootScope.wallpaper;
+      var hour = new Date().getHours();
+
+      if (wallpaper.collection) {
+        var collection = wallpapers.options[wallpaper.collection].images;
+        var image;
+        if (hour >= 6 && hour < 8 && collection.dawn) {
+          image = collection.dawn;
+        } else if (hour >= 8 && hour < 18) {
+          image = collection.day;
+        } else if (hour === 7) {
+          image = collection.day;
+        } else if (hour >= 18 && hour < 21 && collection.sunset) {
+          image = collection.sunset;
+        } else {
+          image = collection.night;
+        }
+        $rootScope.wallpaperURL = wallpapers.images[image].url;
+      } else if (wallpaper.image) {
+        $rootScope.wallpaperURL = wallpapers.images[wallpaper.image].url;
+      } else {
+        $rootScope.wallpaperURL = wallpaper.url;
+      }
+    };
+
+    $scope.$watch("$root.wallpaper", $scope.refreshWallpaper);
+    $scope.$watch(function() {
+      return new Date().getHours();
+    }, $scope.refreshWallpaper);
+
+    var offlineTimeout = null;
+
+    firebase.database().ref(".info/connected").on("value", function(connected) {
+      if (offlineTimeout) {
+        $timeout.cancel(offlineTimeout);
+        offlineTimeout = null;
+      }
+      if (connected.val() === true) {
+        $rootScope.isOffline = false;
+        $timeout();
+      } else {
+        offlineTimeout = $timeout(function() {
+          $rootScope.isOffline = true;
+        }, 1000);
+      }
+    });
   });

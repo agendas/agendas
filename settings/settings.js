@@ -18,6 +18,11 @@ angular.module("agendasApp")
         location.reload(false);
       };
 
+      $scope.applyEnableOffline = function(enableOffline) {
+        localStorage.agendasEnableOffline = JSON.stringify(enableOffline);
+        location.reload(false);
+      };
+
       $scope.showChangeUsernameDialog = function(username) {
         $mdDialog.show({
           template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><username-dialog></username-dialog></md-dialog>"
@@ -160,5 +165,13 @@ angular.module("agendasApp")
         var tabs = ["settings", "settings.appearance", "settings.account", "settings.apps", "settings.credits"]
         $state.go(tabs[tab]);
       });
+
+      $scope.openWallpaperPicker = function() {
+        $mdDialog.show({
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><wallpaper-picker></wallpaper-picker></md-dialog>",
+          targetEvent: event,
+          clickOutsideToClose: true
+        });
+      };
     }
   })
