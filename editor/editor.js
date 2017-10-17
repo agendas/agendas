@@ -74,7 +74,7 @@ angular.module("agendasApp")
             .ok("Delete")
             .targetEvent(event)
         ).then(function() {
-          firebase.database().ref("/tasks/" + $stateParams.agenda + "/" + key).remove().then(function() {
+          db.collection("agendas").doc($stateParams.agenda).collection("tasks").doc(key).delete().then(function() {
             $scope.cancel();
             $timeout();
           });
