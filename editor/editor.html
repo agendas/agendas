@@ -22,7 +22,7 @@
       <md-option value="year">Year</md-option>
     </md-optgroup>
   </md-select>
-  <md-datepicker ng-model="repeatEnds" md-placeholder="End Repeat" ng-show="deadlineDate && repeat"></md-datepicker>
+  <md-datepicker ng-model="repeatEnds" md-placeholder="End Repeat" ng-if="deadlineDate && repeat"></md-datepicker>
 </div>
 <div layout="row" layout-align="start center" style="margin-bottom: 1rem;">
   <span>Priority: </span>

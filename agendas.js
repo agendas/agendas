@@ -68,7 +68,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
     $mdThemingProvider.theme("dark")
       .dark(true);
   })
-  .value("db", firebase.firestore())
   .controller("AgendasController", ($scope, $rootScope, $state, $mdMedia, $mdDialog, $mdToast, $timeout, $location) => {
     firebase.auth().onAuthStateChanged(function(user) {
       $rootScope.user = user;
