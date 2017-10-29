@@ -1,36 +1,39 @@
 angular.module("agendasApp")
   .component("agenda", {
     templateUrl: "agenda/agenda.html",
-    controller: function($scope, $timeout, $stateParams, $mdMedia, $mdDialog, $filter, $transitions, $rootScope) {
+    controller: function($scope, $timeout, $stateParams, $mdMedia, $mdDialog, $filter, $transitions, $rootScope, db) {
       $scope.destroy = function() {
         /*window.removeEventListener("scroll", $scope.scrollHandler);
         window.removeEventListener("resize", $scope.scrollHandler);*/
-
-        $scope.agendaRef && $scope.agendaRef.off();
-        $scope.categoriesRef && $scope.categoriesRef.off();
-        $scope.tasksRef && $scope.tasksRef.off();
-        $scope.permissionsRef && $scope.permissionsRef.off();
+        $scope.unsubscribeIncomplete && $scope.unsubscribeIncomplete();
+        $scope.unsubscribe.forEach(function(detach) {
+          detach();
+        });
 
         $scope.agendaRef = null;
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
-        $scope.permissionsRef = null;
+        $scope.incompleteRef = null;
+        $scope.completeRef = null;
 
         $scope.agenda = {};
         $scope.categories = [];
-        $scope.permissions = {};
         $scope.tasks = {};
         $scope.tasksArray = [];
         $scope.completed = {};
+        $scope.unsubscribe = [];
+        $scope.unsubscribeIncomplete = null;
         //$scope.completedTasks = [];
 
         $scope.selectedTask = null;
       };
 
-      $scope.agendaRef     = firebase.database().ref("/agendas/" + $stateParams.agenda);
-      $scope.categoriesRef = firebase.database().ref("/categories/" + $stateParams.agenda);
-      $scope.permissionsRef = firebase.database().ref("/permissions/" + $stateParams.agenda);
-      $scope.tasksRef      = firebase.database().ref("/tasks/" + $stateParams.agenda);
+      $scope.unsubscribe = [];
+
+      $scope.agendaRef     = db.collection("agendas").doc($stateParams.agenda);
+      $scope.categoriesRef = $scope.agendaRef.collection("tags");
+      $scope.tasksRef      = $scope.agendaRef.collection("tasks");
+      $scope.incompleteRef = $scope.tasksRef.where("completed", "==", false);
 
       $scope.showCompleted = !!$rootScope.showCompleted;
 
@@ -40,7 +43,7 @@ angular.module("agendasApp")
           $timeout(function() {
             console.log("Running digest...");
             refreshScheduled = false;
-            $scope.refreshCompletedTasks();
+            //$scope.refreshCompletedTasks();
             $scope.$digest();
           }, 200, false);
           refreshScheduled = true;
@@ -48,69 +51,48 @@ angular.module("agendasApp")
       };
 
       $scope.agenda = {};
-      $scope.agendaRef.on("value", function(value) {
-        $scope.agenda = value.val();
+      $scope.unsubscribe.push($scope.agendaRef.onSnapshot(function(value) {
+        $scope.agenda = value.data();
         $scope.refreshSoon();
-      });
+      }));
 
       $scope.categories = [];
       $scope.categoryObj = {};
 
-      $scope.categoriesRef.on("child_added", function(data) {
-        var category = data.val();
-        category.key = data.key;
-        $scope.categories.push(category);
+      $scope.unsubscribe.push($scope.categoriesRef.onSnapshot(function(tags) {
+        tags.docChanges.forEach(function(change) {
+          var data = change.doc;
+          if (change.type === "added") {
+            var category = data.data();
+            category.key = data.id;
+            $scope.categories.push(category);
 
-        $scope.categoryObj[data.key] = data.val();
+            $scope.categoryObj[data.id] = data.data();
+          } else if (change.type === "modified") {
+            for (var category of $scope.categories) {
+              if (category.key === data.id) {
+                category.name  = data.data().name;
+                category.color = data.data().color;
+                break;
+              }
+            }
 
-        $scope.refreshSoon();
-      });
+            $scope.categoryObj[data.id] = data.data();
+          } else if (change.type === "removed") {
+            var i = 0;
+            for (var category of $scope.categories) {
+              if (category.key === data.id) {
+                $scope.categories.splice(i, 1);
+                break;
+              }
+              i++;
+            }
 
-      $scope.categoriesRef.on("child_changed", function(data) {
-        for (var category of $scope.categories) {
-          if (category.key === data.key) {
-            category.name  = data.child("name").val();
-            category.color = data.child("color").val();
-            break;
+            delete $scope.categoryObj[data.id];
           }
-        }
-
-        $scope.categoryObj[data.key] = data.val();
-
-        $scope.$digest();
-      });
-
-      $scope.categoriesRef.on("child_removed", function(data) {
-        var i = 0;
-        for (var category of $scope.categories) {
-          if (category.key === data.key) {
-            $scope.categories.splice(i, 1);
-            break;
-          }
-          i++;
-        }
-
-        delete $scope.categoryObj[data.key];
-
-        $scope.$digest();
-      });
-
-      $scope.permissions = {};
-
-      $scope.permissionsRef.on("child_added", function(data) {
-        $scope.permissions[data.key] = data.val();
+        });
         $scope.refreshSoon();
-      });
-
-      $scope.permissionsRef.on("child_changed", function(data) {
-        $scope.permissions[data.key] = data.val();
-        $scope.$digest();
-      });
-
-      $scope.permissionsRef.on("child_removed", function(data) {
-        delete $scope.permissions[data.key];
-        $scope.$digest();
-      });
+      }));
 
       $scope.tasks = {};
       $scope.tasksArray = [];
@@ -123,108 +105,201 @@ angular.module("agendasApp")
         });*/
       };
 
-      $scope.tasksRef.on("child_added", function(data) {
-        $scope.tasks[data.key] = data.val();
-        $scope.completed[data.key] = !!data.child("completed").val();
-        if ($scope.tasksArray.length < 1) {
-          $scope.tasksArray.push(data.key);
-        } else {
-          var start = 0;
-          var end = $scope.tasksArray.length - 1;
-          var deadline = new Date(data.child("deadline").val());
-          var toAdd = data.val();
-
-          while (end >= start) {
-            if (end < 0 || start > $scope.tasksArray.length) {
-              break;
-            }
-
-            var index = Math.floor((start + end) / 2);
-            var task = $scope.tasks[$scope.tasksArray[index]];
-            var compare = taskComparator(task, toAdd);
-
-            if (compare > 0) {
-              end = index - 1;
-            } else if (compare < 0) {
-              start = index + 1;
-            } else {
-              start = index;
-              end = index - 1;
-              break;
-            }
-          }
-
-          $scope.tasksArray.splice(start, 0, data.key);
-        }
-
-        $scope.refreshSoon();
-      });
-
-      $scope.tasksRef.on("child_changed", function(data) {
-        var oldDeadline = $scope.tasks[data.key].deadline && new Date($scope.tasks[data.key].deadline);
-        var newDeadline = data.val().deadline && new Date(data.val().deadline);
-
-        if (
-          (oldDeadline && !newDeadline) ||
-          (newDeadline && !oldDeadline) ||
-          (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
-          $scope.tasks[data.key].deadlineTime != data.val().deadlineTime ||
-          $scope.tasks[data.key].completed != data.val().completed ||
-          ($scope.tasks[data.key].priority || 0) !== (data.val().priority || 0)
-        ) {
-          $scope.tasksArray.splice($scope.tasksArray.indexOf(data.key), 1);
-
-          if ($scope.tasksArray.length < 1) {
-            $scope.tasksArray.push(data.key);
-          } else {
-            var start = 0;
-            var end = $scope.tasksArray.length - 1;
-            var toAdd = data.val();
-
-            while (end >= start) {
-              if (end < 0 || start > $scope.tasksArray.length) {
-                break;
-              }
-
-              var index = Math.floor((start + end) / 2);
-              var task = $scope.tasks[$scope.tasksArray[index]];
-              var compare = taskComparator(task, toAdd);
-
-              if (compare > 0) {
-                end = index - 1;
-              } else if (compare < 0) {
-                start = index + 1;
+      if (!$scope.showCompleted) {
+        $scope.unsubscribeIncomplete = $scope.incompleteRef.onSnapshot(function(tasks) {
+          tasks.docChanges.forEach(function(change) {
+            var data = change.doc;
+            if (change.type === "added") {
+              $scope.tasks[data.id] = data.data();
+              $scope.completed[data.id] = !!data.data().completed;
+              if ($scope.tasksArray.length < 1) {
+                $scope.tasksArray.push(data.id);
               } else {
-                start = index;
-                end = index - 1;
-                break;
+                var start = 0;
+                var end = $scope.tasksArray.length - 1;
+                var deadline = new Date(data.data().deadline);
+                var toAdd = data.data();
+
+                while (end >= start) {
+                  if (end < 0 || start > $scope.tasksArray.length) {
+                    break;
+                  }
+
+                  var index = Math.floor((start + end) / 2);
+                  var task = $scope.tasks[$scope.tasksArray[index]];
+                  var compare = taskComparator(task, toAdd);
+
+                  if (compare > 0) {
+                    end = index - 1;
+                  } else if (compare < 0) {
+                    start = index + 1;
+                  } else {
+                    start = index;
+                    end = index - 1;
+                    break;
+                  }
+                }
+
+                $scope.tasksArray.splice(start, 0, data.id);
+              }
+            } else if (change.type === "modified") {
+              var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+              var newDeadline = data.data().deadline && new Date(data.data().deadline);
+
+              if (
+                (oldDeadline && !newDeadline) ||
+                (newDeadline && !oldDeadline) ||
+                (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
+                $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
+                $scope.tasks[data.id].completed != data.data().completed ||
+                ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+              ) {
+                $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+
+                if ($scope.tasksArray.length < 1) {
+                  $scope.tasksArray.push(data.id);
+                } else {
+                  var start = 0;
+                  var end = $scope.tasksArray.length - 1;
+                  var toAdd = data.data();
+
+                  while (end >= start) {
+                    if (end < 0 || start > $scope.tasksArray.length) {
+                      break;
+                    }
+
+                    var index = Math.floor((start + end) / 2);
+                    var task = $scope.tasks[$scope.tasksArray[index]];
+                    var compare = taskComparator(task, toAdd);
+
+                    if (compare > 0) {
+                      end = index - 1;
+                    } else if (compare < 0) {
+                      start = index + 1;
+                    } else {
+                      start = index;
+                      end = index - 1;
+                      break;
+                    }
+                  }
+
+                  $scope.tasksArray.splice(start, 0, data.id);
+                }
+
+                $scope.completed[data.id] = data.data().completed;
+                $scope.tasks[data.id] = data.data();
+              } else if (change.type === "removed") {
+                $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+                delete $scope.tasks[data.id];
+                delete $scope.completed[data.id];
               }
             }
+          });
+          $scope.refreshSoon();
+        });
+      } else {
+        $scope.unsubscribeIncomplete = angular.noop;
+      }
 
-            $scope.tasksArray.splice(start, 0, data.key);
-          }
+      $scope.$watch("showCompleted", function(show) {
+        if (show && !$scope.completeRef) {
+          $scope.unsubscribeIncomplete();
+          $scope.completeRef = $scope.tasksRef;
+          $scope.tasksArray = [];
+          $scope.unsubscribe.push($scope.completeRef.onSnapshot(function(tasks) {
+            tasks.docChanges.forEach(function(change) {
+              var data = change.doc;
+              if (change.type === "added") {
+                $scope.tasks[data.id] = data.data();
+                $scope.completed[data.id] = !!data.data().completed;
+                if ($scope.tasksArray.length < 1) {
+                  $scope.tasksArray.push(data.id);
+                } else {
+                  var start = 0;
+                  var end = $scope.tasksArray.length - 1;
+                  var deadline = new Date(data.data().deadline);
+                  var toAdd = data.data();
 
-          $scope.completed[data.key] = data.val().completed;
+                  while (end >= start) {
+                    if (end < 0 || start > $scope.tasksArray.length) {
+                      break;
+                    }
+
+                    var index = Math.floor((start + end) / 2);
+                    var task = $scope.tasks[$scope.tasksArray[index]];
+                    var compare = taskComparator(task, toAdd);
+
+                    if (compare > 0) {
+                      end = index - 1;
+                    } else if (compare < 0) {
+                      start = index + 1;
+                    } else {
+                      start = index;
+                      end = index - 1;
+                      break;
+                    }
+                  }
+
+                  $scope.tasksArray.splice(start, 0, data.id);
+                }
+              } else if (change.type === "modified") {
+                var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+                var newDeadline = data.data().deadline && new Date(data.data().deadline);
+
+                if (
+                  (oldDeadline && !newDeadline) ||
+                  (newDeadline && !oldDeadline) ||
+                  (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
+                  $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
+                  $scope.tasks[data.id].completed != data.data().completed ||
+                  ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+                ) {
+                  $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+
+                  if ($scope.tasksArray.length < 1) {
+                    $scope.tasksArray.push(data.id);
+                  } else {
+                    var start = 0;
+                    var end = $scope.tasksArray.length - 1;
+                    var toAdd = data.data();
+
+                    while (end >= start) {
+                      if (end < 0 || start > $scope.tasksArray.length) {
+                        break;
+                      }
+
+                      var index = Math.floor((start + end) / 2);
+                      var task = $scope.tasks[$scope.tasksArray[index]];
+                      var compare = taskComparator(task, toAdd);
+
+                      if (compare > 0) {
+                        end = index - 1;
+                      } else if (compare < 0) {
+                        start = index + 1;
+                      } else {
+                        start = index;
+                        end = index - 1;
+                        break;
+                      }
+                    }
+
+                    $scope.tasksArray.splice(start, 0, data.id);
+                  }
+
+                  $scope.completed[data.id] = data.data().completed;
+                  $scope.tasks[data.id] = data.data();
+                } else if (change.type === "removed") {
+                  $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+                  //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+                  delete $scope.tasks[data.id];
+                  delete $scope.completed[data.id];
+                }
+              }
+            });
+            $scope.refreshSoon();
+          }));
         }
-
-        var needsRefresh = ($scope.tasks[data.key].completed != data.val().completed);
-
-        $scope.tasks[data.key] = data.val();
-
-        if (needsRefresh) {
-          $scope.refreshCompletedTasks();
-        }
-
-        $scope.$digest();
-      });
-
-      $scope.tasksRef.on("child_removed", function(data) {
-        $scope.tasksArray.splice($scope.tasksArray.indexOf(data.key), 1);
-        $scope.completedTasks.splice($scope.completedTasks.indexOf(data.key), 1);
-        delete $scope.tasks[data.key];
-        //delete $scope.completed[data.key];
-
-        $scope.$digest();
       });
 
       $scope.getTasksArray = function() {
@@ -282,15 +357,15 @@ angular.module("agendasApp")
             console.log(repeatEnds);
 
             if (next < repeatEnds) {
-              $scope.tasksRef.child(taskKey).child("deadline").set(next.toJSON());
+              $scope.tasksRef.doc(taskKey).update({deadline: next});
               return;
             }
           } else if (next) {
-            $scope.tasksRef.child(taskKey).child("deadline").set(next.toJSON());
+            $scope.tasksRef.doc(taskKey).update({deadline: next});
             return;
           }
         }
-        $scope.tasksRef.child(taskKey).child("completed").set($scope.completed[taskKey]);
+        $scope.tasksRef.doc(taskKey).update({completed: $scope.completed[taskKey]});
       };
 
       $scope.mdMedia = $mdMedia;
@@ -329,14 +404,12 @@ angular.module("agendasApp")
       };
 
       $scope.addTask = function(task) {
-        $scope.tasksRef.push().set(task);
+        $scope.tasksRef.add(task);
       };
 
       $scope.getTags = function(task, key) {
         if (task && task.tags) {
           return Object.keys(task.tags);
-        } else if (task && task.category) {
-          return [task.category];
         }
       };
 
