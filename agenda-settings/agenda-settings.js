@@ -130,7 +130,7 @@ angular.module("agendasApp")
       $scope.$watchGroup([function() {
         return $scope.$ctrl.agenda;
       }, function() {
-        return $scope.$ctrl.rawPermissions;
+        return $scope.rawPermissions;
       }], function() {
         $scope.permissions = {};
         Object.keys($scope.$ctrl.agenda).forEach(function(permission) {

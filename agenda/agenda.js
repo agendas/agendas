@@ -33,7 +33,6 @@ angular.module("agendasApp")
       $scope.unsubscribe = [];
 
       $scope.agendaRef     = db.collection("agendas").doc($stateParams.agenda);
-      $scope.permissionRef = $scope.agendaRef.collection("permissions").doc($rootScope.user.uid);
       $scope.categoriesRef = $scope.agendaRef.collection("tags");
       $scope.tasksRef      = $scope.agendaRef.collection("tasks");
       $scope.incompleteRef = $scope.tasksRef.where("completed", "==", false);
@@ -60,10 +59,15 @@ angular.module("agendasApp")
       }));
 
       $scope.permissions = {};
-      $scope.unsubscribe.push($scope.permissionRef.onSnapshot(function(value) {
-        $scope.permissions = value.data();
-        $scope.refreshSoon();
-      }));
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        $scope.permissionRef = $scope.agendaRef.collection("permissions").doc(user.uid);
+        $scope.permissions = {};
+        $scope.unsubscribe.push($scope.permissionRef.onSnapshot(function(value) {
+          $scope.permissions = value.data();
+          $scope.refreshSoon();
+        }));
+      });
 
       $scope.categories = [];
       $scope.categoryObj = {};
