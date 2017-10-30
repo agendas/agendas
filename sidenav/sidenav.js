@@ -72,11 +72,15 @@ angular.module("agendasApp")
               permissions[permission] = true;
             });
 
-            var agenda = {name: name, permissions: {}};
-            agenda[$rootScope.user.uid] = true;
-            agenda.permissions[$rootScope.user.uid] = permissions;
-
-            db.collection("agendas").add(agenda);
+            db.collection("agendas").add({}).then(function(ref) {
+              return ref.collection("permissions").doc($rootScope.user.uid).set(permissions).then(function() {
+                return ref;
+              });
+            }).then(function(ref) {
+              var agenda = {name: name};
+              agenda[$rootScope.user.uid] = true;
+              ref.set(agenda);
+            });
           }
         });
       };
