@@ -267,7 +267,7 @@ angular.module("agendasApp")
       };
 
       this.addTask = function() {
-        var task = {name: "", completed: false};
+        var task = {name: "", tags: {}};
 
         $scope.items.forEach(function(item) {
           if (item.type === "text") {
@@ -276,21 +276,14 @@ angular.module("agendasApp")
             }
             task.name += item.text;
           } else if (item.type === "deadline") {
-            task.deadline = item.deadline;
+            task.deadline = item.deadline.toJSON();
             task.deadlineTime = !!item.time;
           } else if (item.type === "tag") {
-            if (!task.tags) {
-              task.tags = {};
-            }
             task.tags[item.key] = true;
           } else if (item.type === "repeat") {
             task.repeat = item.repeat;
             if (!$scope.hasDeadlineChip) {
-              task.deadline = new Date();
-              task.deadline.setHours(0);
-              task.deadline.setMinutes(0);
-              task.deadline.setSeconds(0);
-              task.deadline.setMilliseconds(0);
+              task.deadline = new Date().toJSON();
             }
           }
         });

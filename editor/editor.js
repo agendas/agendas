@@ -8,7 +8,7 @@ angular.module("agendasApp")
       tagsObject: "=",
       onFinish: "&"
     },
-    controller: function($scope, $stateParams, $timeout, $mdDialog, db) {
+    controller: function($scope, $stateParams, $timeout, $mdDialog) {
       var key  = this.key;
       var tags = this.tagsArray;
       var tagsObject = this.tagsObject;
@@ -43,7 +43,7 @@ angular.module("agendasApp")
           $scope.deadlineDate.setMilliseconds(0);
         }
 
-        var taskTags = $scope.tags && $scope.tags.length > 0 ? {} : null;
+        var taskTags = {};
         $scope.tags.forEach(function(tag) {
           taskTags[tag.key] = true;
         });
@@ -51,16 +51,16 @@ angular.module("agendasApp")
         var task = {
           name: $scope.name,
           completed: $scope.completed,
-          deadline: $scope.deadlineDate ? $scope.deadlineDate : null,
+          deadline: $scope.deadlineDate ? $scope.deadlineDate.toJSON() : null,
           deadlineTime: $scope.deadlineDate ? !!$scope.deadlineTime : null,
           repeat: $scope.deadlineDate ? $scope.repeat : null,
-          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds : null,
+          repeatEnds: $scope.deadlineDate && $scope.repeat && $scope.repeatEnds ? $scope.repeatEnds.toJSON() : null,
           priority: $scope.priority || null,
           notes: $scope.notes || null,
           tags: taskTags
         };
 
-        db.collection("agendas").doc($stateParams.agenda).collection("tasks").doc(key).set(task).then(function() {
+        firebase.database().ref("/tasks/" + $stateParams.agenda + "/" + key).set(task).then(function() {
           $scope.cancel();
           $timeout();
         });
@@ -74,7 +74,7 @@ angular.module("agendasApp")
             .ok("Delete")
             .targetEvent(event)
         ).then(function() {
-          db.collection("agendas").doc($stateParams.agenda).collection("tasks").doc(key).delete().then(function() {
+          firebase.database().ref("/tasks/" + $stateParams.agenda + "/" + key).remove().then(function() {
             $scope.cancel();
             $timeout();
           });

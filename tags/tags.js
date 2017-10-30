@@ -4,13 +4,14 @@ angular.module("agendasApp")
     bindings: {
       categories: "="
     },
-    controller: function($scope, colors, $stateParams, $timeout, $mdDialog, $mdMedia, db) {
+    controller: function($scope, colors, $stateParams, $timeout, $mdDialog, $mdMedia) {
       $scope.categories = this.categories;
-      $scope.categoriesRef = db.collection("agendas").doc($stateParams.agenda).collection("tags");
+      $scope.categoriesRef = firebase.database().ref("/categories").child($stateParams.agenda);
 
       this.addTag = function() {
         var tag = {name: "Tag"};
-        $scope.categoriesRef.add(tag);
+        var tagRef = $scope.categoriesRef.push();
+        tagRef.set(tag);
       };
 
       this.saveTag = function(category) {
@@ -18,7 +19,7 @@ angular.module("agendasApp")
           category.saving = true;
           $timeout(function() {
             category.saving = false;
-            $scope.categoriesRef.doc(category.key).set({
+            $scope.categoriesRef.child(category.key).set({
               name: category.name || "",
               color: category.color || null
             });
@@ -27,7 +28,7 @@ angular.module("agendasApp")
       };
 
       this.deleteTag = function(key) {
-        $scope.categoriesRef.doc(key).delete();
+        $scope.categoriesRef.child(key).remove();
       };
 
       this.openColorPicker = function(category, event) {
