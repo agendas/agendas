@@ -6,6 +6,9 @@ angular.module("agendasApp")
     },
     controller: function($scope, $timeout, $state, $stateParams, $mdDialog, $rootScope, db) {
       $scope.agendaRef = db.collection("agendas").doc($stateParams.agenda);
+      $scope.permissionsRef = $scope.agendaRef.collection("permissions");
+
+      $scope.rawPermissions = {};
 
       $scope.usernames = {};
       $scope.getUsername = function(uid) {
@@ -27,12 +30,12 @@ angular.module("agendasApp")
             var update = {};
             update[data.val()] = true;
             if ($scope.roleToAdd === "editor") {
-              update["permissions." + data.val()] = {
+              $scope.permissionsRef.doc(data.val()).set({
                 complete_tasks: true,
                 edit_tags: true,
                 edit_tasks: true,
                 manage: true
-              };
+              });
             }
             $scope.agendaRef.update(update).then(function() {
               $scope.usernameToAdd = "";
@@ -56,21 +59,17 @@ angular.module("agendasApp")
         if (role === "none") {
           var permissions = {};
           permissions[user] = firebase.firestore.FieldValue.delete();
-          permissions["permissions." + user] = firebase.firestore.FieldValue.delete();
           $scope.agendaRef.update(permissions);
+          $scope.permissionsRef.doc(user).delete();
         } else if (role === "editor") {
-          var permissions = {};
-          permissions["permissions." + user] = {
+          $scope.permissionsRef.doc(user).set({
             complete_tasks: true,
             edit_tags: true,
             edit_tasks: true,
             manage: true
-          };
-          $scope.agendaRef.update(permissions);
+          });
         } else {
-          var permissions = {};
-          permissions["permissions." + user] = firebase.firestore.FieldValue.delete();
-          $scope.agendaRef.update(permissions);
+          $scope.permissionsRef.doc(user).delete();
         }
       };
 
@@ -114,17 +113,29 @@ angular.module("agendasApp")
         }).then(function() {
           return $scope.agendaRef.delete();
         }).then(function() {
+          return deleteCollection($scope.permissionsRef);
+        }).then(function() {
           $state.go("home");
         });
       };
 
-      $scope.$watch(function() {
+      $scope.permissionsRef.onSnapshot(function(permissions) {
+        $scope.rawPermissions = {};
+        permissions.forEach(function(permission) {
+          $scope.rawPermissions[permission.id] = permission.data();
+        });
+        $timeout();
+      });
+
+      $scope.$watchGroup([function() {
         return $scope.$ctrl.agenda;
-      }, function(agenda) {
+      }, function() {
+        return $scope.rawPermissions;
+      }], function() {
         $scope.permissions = {};
-        Object.keys(agenda).forEach(function(permission) {
+        Object.keys($scope.$ctrl.agenda).forEach(function(permission) {
           if (permission !== "name" && permission !== "permissions") {
-            var permissions = agenda.permissions[permission];
+            var permissions = $scope.rawPermissions[permission];
             if (!permissions) {
               $scope.permissions[permission] = "viewer";
             } else if (permissions.manage) {

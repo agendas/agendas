@@ -15,8 +15,10 @@ angular.module("agendasApp")
         $scope.tasksRef = null;
         $scope.incompleteRef = null;
         $scope.completeRef = null;
+        $scope.permissionRef = null;
 
         $scope.agenda = {};
+        $scope.permissions = {};
         $scope.categories = [];
         $scope.tasks = {};
         $scope.tasksArray = [];
@@ -55,6 +57,17 @@ angular.module("agendasApp")
         $scope.agenda = value.data();
         $scope.refreshSoon();
       }));
+
+      $scope.permissions = {};
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        $scope.permissionRef = $scope.agendaRef.collection("permissions").doc(user.uid);
+        $scope.permissions = {};
+        $scope.unsubscribe.push($scope.permissionRef.onSnapshot(function(value) {
+          $scope.permissions = value.data();
+          $scope.refreshSoon();
+        }));
+      });
 
       $scope.categories = [];
       $scope.categoryObj = {};
