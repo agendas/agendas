@@ -167,7 +167,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       var background = ($rootScope.wallpaperURL && !($state.current && $state.current.name && $state.current.name.startsWith("console")) ? ($rootScope.darkTheme ?
         "linear-gradient(rgba(33, 33, 33, 0.5), rgba(33, 33, 33, 0.5)), "
         : "linear-gradient(rgba(240, 240, 240, 0.7), rgba(240, 240, 240, 0.7)), "
-      ) + "url(" + $rootScope.wallpaperURL + ")" : "");
+      ) + "url(\"" + $rootScope.wallpaperURL + "\")" : "");
       return {"background-image": background};
     };
 

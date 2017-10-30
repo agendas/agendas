@@ -7,7 +7,7 @@
         <span ng-if="!(wallpaper.collection || wallpaper.image)">Selected</span>
       </md-grid-tile-footer>
     </md-grid-tile>
-    <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(' + ((wallpaper.collection || wallpaper.image) === key ? $root.getWallpaperURL(wallpaper) : (collection.images ? $root.getWallpaperURL({collection: key}) : $root.getWallpaperURL({image: key}))) + ')'}">
+    <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(\'' + ((wallpaper.collection || wallpaper.image) === key ? $root.getWallpaperURL(wallpaper) : (collection.images ? $root.getWallpaperURL({collection: key}) : $root.getWallpaperURL({image: key}))) + '\')'}">
       <md-grid-tile-footer ng-show="collection.images" ng-style="{'background-color': (wallpaper.collection || wallpaper.image) === key ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}" style="padding-left: 1em;">
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) !== key">access_time</md-icon>
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) === key">done</md-icon>
