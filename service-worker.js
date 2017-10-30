@@ -39,7 +39,8 @@ self.addEventListener("install", function(event) {
         "index.html",
         "lib/angular-material.min.css",
         "style.css",
-        "utils.js"
+        "utils.js",
+        "wallpapers.js"
       ];
       var libraries = [
         "angular-animate.min",
@@ -80,13 +81,11 @@ self.addEventListener("fetch", function(event) {
       var networked = fetch(event.request).then(function(response) {
         var cacheCopy = response.clone();
         //console.log("WORKER: Got response from network");
-        if (!event.request.url.includes("wallpaper")) {
-          caches.open(version + "agendas").then(function(cache) {
-            cache.put(event.request, cacheCopy);
-          }).then(function() {
-            //console.log("WORKER: Fetch response stored in cache.");
-          });
-        }
+        caches.open(version + "agendas").then(function(cache) {
+          cache.put(event.request, cacheCopy);
+        }).then(function() {
+          //console.log("WORKER: Fetch response stored in cache.");
+        });
         return response;
       }).catch(function(e) {
         //console.log("WORKER: Fetch request failed: ", e);
