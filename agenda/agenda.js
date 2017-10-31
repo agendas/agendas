@@ -198,15 +198,14 @@ angular.module("agendasApp")
 
                   $scope.tasksArray.splice(start, 0, data.id);
                 }
-
-                $scope.completed[data.id] = data.data().completed;
-                $scope.tasks[data.id] = data.data();
-              } else if (change.type === "removed") {
-                $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
-                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                delete $scope.tasks[data.id];
-                delete $scope.completed[data.id];
               }
+              $scope.completed[data.id] = data.data().completed;
+              $scope.tasks[data.id] = data.data();
+            } else if (change.type === "removed") {
+              $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+              //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+              delete $scope.tasks[data.id];
+              delete $scope.completed[data.id];
             }
           });
           $scope.refreshSoon();
@@ -299,15 +298,15 @@ angular.module("agendasApp")
 
                     $scope.tasksArray.splice(start, 0, data.id);
                   }
-
-                  $scope.completed[data.id] = data.data().completed;
-                  $scope.tasks[data.id] = data.data();
-                } else if (change.type === "removed") {
-                  $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
-                  //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                  delete $scope.tasks[data.id];
-                  delete $scope.completed[data.id];
                 }
+                
+                $scope.completed[data.id] = data.data().completed;
+                $scope.tasks[data.id] = data.data();
+              } else if (change.type === "removed") {
+                $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+                delete $scope.tasks[data.id];
+                delete $scope.completed[data.id];
               }
             });
             $scope.refreshSoon();
