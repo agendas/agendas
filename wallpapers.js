@@ -121,6 +121,48 @@ angular.module("agendasApp")
         credit: "By No machine-readable author provided. AnthonyWinning assumed (based on copyright claims). [GFDL (http://www.gnu.org/copyleft/fdl.html), CC-BY-SA-3.0 (http://creativecommons.org/licenses/by-sa/3.0/) or CC BY 2.5 (http://creativecommons.org/licenses/by/2.5)], via Wikimedia Commons",
         creditURL: "https://commons.wikimedia.org/wiki/File%3ASydney_Opera_House_Night.jpg"
       },
+      "sao-paulo-congonhas-2": {
+        name: "Sao Paulo Congonhas",
+        url: "https://upload.wikimedia.org/wikipedia/commons/7/71/Sao_Paulo_Congonhas_2.jpg",
+        credit: "By Mariordo (Own work) [CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) or GFDL (http://www.gnu.org/copyleft/fdl.html)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3ASao_Paulo_Congonhas_2.jpg"
+      },
+      "paulista-avenue": {
+        name: "Paulista Avenue, São Paulo, Brazil",
+        url: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Paulista_Avenue%2C_S%C3%A3o_Paulo%2C_Brazil.jpg",
+        credit: "By The Photographer (Own work) [CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3APaulista_Avenue%2C_S%C3%A3o_Paulo%2C_Brazil.jpg"
+      },
+      "ponte-estaiada-octavio-frias-sao-paulo": {
+        name: "Ponte estaiada Octavio Frias - Sao Paulo",
+        url: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Ponte_estaiada_Octavio_Frias_-_Sao_Paulo.jpg",
+        credit: "By Marcosleal (Own work) [CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0) or GFDL (http://www.gnu.org/copyleft/fdl.html)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3APonte_estaiada_Octavio_Frias_-_Sao_Paulo.jpg"
+      },
+      "antarctica-mcmurdo-radarsatunderthemoonatdawn": {
+        name: "ARL-USAP-Antarctica-McMurdo-RadarsatUnderTheMoonAtDawn",
+        url: "https://upload.wikimedia.org/wikipedia/commons/7/74/ARL-USAP-Antarctica-McMurdo-RadarsatUnderTheMoonAtDawn.JPG",
+        credit: "By Alan R Light (Own work) [Public domain], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3AARL-USAP-Antarctica-McMurdo-RadarsatUnderTheMoonAtDawn.JPG"
+      },
+      "mount-jackson-antarctica": {
+        name: "Mount Jackson, Antarctica",
+        url: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Mount_Jackson%2C_Antarctica.jpg",
+        credit: "By euphro (Flickr: SE of Mt Jackson ridge) [CC BY-SA 2.0 (https://creativecommons.org/licenses/by-sa/2.0)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3AMount_Jackson%2C_Antarctica.jpg"
+      },
+      "antarctica-8381226547": {
+        name: "Antarctica (8381226547)",
+        url: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Antarctica_%288381226547%29.jpg",
+        credit: "Christopher Michel [CC BY 2.0 (http://creativecommons.org/licenses/by/2.0)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3AAntarctica_(8381226547).jpg"
+      },
+      "amundsen-scott": {
+        name: "Amundsen-Scott marsstation ray h edit",
+        url: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Amundsen-Scott_marsstation_ray_h_edit.jpg",
+        credit: "By Photo by Chris Danals, National Science Foundation ([1]) [Public domain], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3AAmundsen-Scott_marsstation_ray_h_edit.jpg"
+      },
       "amazon-rainforest": {
         name: "Amazon Rainforest",
         url: "https://c1.staticflickr.com/7/6091/6285070575_1cfae9eb7d_b.jpg"
@@ -184,6 +226,23 @@ angular.module("agendasApp")
           day: "sydney-skyline-from-the-north-aerial",
           sunset: "sydney-opera-house-sunset",
           night: "sydney-opera-house-night"
+        }
+      },
+      "sao-paulo": {
+        name: "São Paulo, Brazil",
+        images: {
+          day: "sao-paulo-congonhas-2",
+          sunset: "paulista-avenue",
+          night: "ponte-estaiada-octavio-frias-sao-paulo"
+        }
+      },
+      "antarctica": {
+        name: "Antarctica",
+        images: {
+          dawn: "antarctica-mcmurdo-radarsatunderthemoonatdawn",
+          day: "mount-jackson-antarctica",
+          sunset: "antarctica-8381226547",
+          night: "amundsen-scott"
         }
       },
       "amazon-rainforest": true,
