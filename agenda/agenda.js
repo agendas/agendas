@@ -122,6 +122,7 @@ angular.module("agendasApp")
         $scope.unsubscribeIncomplete = $scope.incompleteRef.onSnapshot(function(tasks) {
           tasks.docChanges.forEach(function(change) {
             var data = change.doc;
+            console.log(change.type);
             if (change.type === "added") {
               $scope.tasks[data.id] = data.data();
               $scope.completed[data.id] = !!data.data().completed;
@@ -198,15 +199,18 @@ angular.module("agendasApp")
 
                   $scope.tasksArray.splice(start, 0, data.id);
                 }
-
-                $scope.completed[data.id] = data.data().completed;
-                $scope.tasks[data.id] = data.data();
-              } else if (change.type === "removed") {
-                $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
-                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                delete $scope.tasks[data.id];
-                delete $scope.completed[data.id];
               }
+
+              $scope.completed[data.id] = data.data().completed;
+              $scope.tasks[data.id] = data.data();
+              console.log($scope.tasks);
+              console.log(data.data());
+              console.log(data.id);
+            } else if (change.type === "removed") {
+              $scope.tasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+              //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+              delete $scope.tasks[data.id];
+              delete $scope.completed[data.id];
             }
           });
           $scope.refreshSoon();

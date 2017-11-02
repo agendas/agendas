@@ -42,15 +42,15 @@
           <task-editor ng-if="selectedTask === task" task="tasks[task]" task-key="task" tags-array="categories" tags-object="categoryObj" on-finish="hideTaskEditor()"></task-editor>
           <md-divider ng-if="selectedTask === task"></md-divider>
         </div>
-        <div class="add-task" ng-if="permissions.edit_tasks">
-          <md-divider></md-divider>
-          <md-list-item class="add-task">
-            <task-creator tags="categories" on-add-task="addTask(task)"></task-creator>
-          </md-list-item>
-        </div>
       </md-list>
       <tag-editor categories="categories" ng-show="screen === 'categories'"></tag-editor>
       <agenda-settings ng-if="screen === 'settings'" agenda="agenda"></agenda-settings>
     </div>
+  </div>
+  <div class="add-task" ng-if="permissions.edit_tasks">
+    <md-divider></md-divider>
+    <md-list-item class="add-task">
+      <task-creator tags="categories" on-add-task="addTask(task)"></task-creator>
+    </md-list-item>
   </div>
 </div>

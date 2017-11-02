@@ -97,6 +97,30 @@ angular.module("agendasApp")
         credit: "Photograph by Mike Peel (www.mikepeel.net). [CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0)], via Wikimedia Commons",
         creditURL: "https://commons.wikimedia.org/wiki/File%3ALondon_Eye_at_night_3.jpg"
       },
+      "sydney-harbour-bridge-dawn": {
+        name: "Sydney harbour bridge dawn",
+        url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Sydney_harbour_bridge_dawn.jpg",
+        credit: "By Please refer to actuarial disco boy in wikipedia (Own work) [Public domain], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3ASydney_harbour_bridge_dawn.jpg"
+      },
+      "sydney-skyline-from-the-north-aerial": {
+        name: "Sydney skyline from the north aerial",
+        url: "https://upload.wikimedia.org/wikipedia/commons/7/72/Sydney_skyline_from_the_north_aerial_2010.jpg",
+        credit: "By Beau Giles (http://www.flickr.com/photos/beaugiles/5245075698) [CC BY 2.0 (http://creativecommons.org/licenses/by/2.0)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3ASydney_skyline_from_the_north_aerial_2010.jpg"
+      },
+      "sydney-opera-house-sunset": {
+        name: "Sydney Opera House Sunset - panoramio",
+        url: "https://upload.wikimedia.org/wikipedia/commons/7/76/Sydney_Opera_House_Sunset_-_panoramio.jpg",
+        credit: "Danijel James [CC BY 3.0 (http://creativecommons.org/licenses/by/3.0)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3ASydney_Opera_House_Sunset_-_panoramio.jpg"
+      },
+      "sydney-opera-house-night": {
+        name: "Sydney Opera House Night",
+        url: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Sydney_Opera_House_Night.jpg",
+        credit: "By No machine-readable author provided. AnthonyWinning assumed (based on copyright claims). [GFDL (http://www.gnu.org/copyleft/fdl.html), CC-BY-SA-3.0 (http://creativecommons.org/licenses/by-sa/3.0/) or CC BY 2.5 (http://creativecommons.org/licenses/by/2.5)], via Wikimedia Commons",
+        creditURL: "https://commons.wikimedia.org/wiki/File%3ASydney_Opera_House_Night.jpg"
+      },
       "amazon-rainforest": {
         name: "Amazon Rainforest",
         url: "https://c1.staticflickr.com/7/6091/6285070575_1cfae9eb7d_b.jpg"
@@ -151,6 +175,15 @@ angular.module("agendasApp")
           day: "tower-of-london-white-tower",
           sunset: "tower-bridge-london-dusk",
           night: "london-eye-at-night"
+        }
+      },
+      "sydney": {
+        name: "Sydney, Australia",
+        images: {
+          dawn: "sydney-harbour-bridge-dawn",
+          day: "sydney-skyline-from-the-north-aerial",
+          sunset: "sydney-opera-house-sunset",
+          night: "sydney-opera-house-night"
         }
       },
       "amazon-rainforest": true,
