@@ -168,7 +168,8 @@ agenda div[md-whiteframe] {
   box-shadow: none;
 }
 
-agenda md-list.task-list {
+agenda md-list.task-list:not(.no-padding), agenda tag-editor, agenda agenda-settings {
+  display: block;
   padding-bottom: 72px;
 }
 
@@ -355,26 +356,26 @@ app-dialog li {
   margin-bottom: 1em;
 }
 
-agenda .task-list md-list-item {
+.task-list md-list-item {
   transition: opacity 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
   border-radius: 5px;
 }
 
-agenda .task-list md-list-item .md-button.md-no-style {
+.task-list md-list-item .md-button.md-no-style {
   border-radius: 5px;
 }
 
-agenda .task-list md-list-item:hover {
+.task-list md-list-item:hover {
   background-color: white;
   box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
   color: black;
 }
 
-agenda .task-list md-list-item:hover .md-button.md-no-style {
+.task-list md-list-item:hover .md-button.md-no-style {
   background-color: transparent;
 }
 
-agenda .task-list.task-editor-open md-list-item {
+.task-list.task-editor-open md-list-item {
   opacity: 0.3;
   pointer-events: none;
 }
