@@ -1,5 +1,5 @@
 <md-dialog ng-class="$root.darkTheme ? 'md-dark-theme' : ''">
-  <md-dialog-content>
+  <md-dialog-content on-scroll-bottom="paginate()">
     <div class="md-dialog-content">
       <h3 class="md-headline">Completed tasks</h3>
       <md-list class="task-list no-padding" ng-class="(selectedTask ? 'task-editor-open ' : 'task-editor-closed ') + ($root.darkTheme ? 'md-dark-theme' : '')">

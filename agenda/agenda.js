@@ -13,7 +13,7 @@ angular.module("agendasApp")
         $scope.categoriesRef = null;
         $scope.tasksRef = null;
         $scope.incompleteRef = null;
-        $scope.completeRef = null;
+        $scope.completeRefs = null;
         $scope.permissionRef = null;
 
         $scope.agenda = {};
@@ -215,22 +215,70 @@ angular.module("agendasApp")
         $scope.refreshSoon();
       }));
 
-      $scope.viewCompletedTasks = function(event) {
-        if (!$scope.completeRef) {
-          $scope.completeRef = $scope.tasksRef.where("completed", "==", true);
-          $scope.completedTasksArray = [];
-          $scope.unsubscribe.push($scope.completeRef.onSnapshot(function(tasks) {
-            tasks.docChanges.forEach(function(change) {
-              var data = change.doc;
-              if (change.type === "added") {
-                $scope.tasks[data.id] = data.data();
-                $scope.completed[data.id] = !!data.data().completed;
+      var lastTask = null;
+
+      $scope.paginateCompletedTasks = function() {
+        var query = $scope.tasksRef.where("completed", "==", true).orderBy("deadline", "desc").limit(20);
+        if (lastTask) {
+          query = query.startAfter(lastTask);
+        }
+        $scope.completeRefs.push(query);
+        $scope.unsubscribe.push(query.onSnapshot(function(tasks) {
+          lastTask = tasks.docs[tasks.size - 1];
+          tasks.docChanges.forEach(function(change) {
+            var data = change.doc;
+            if (change.type === "added") {
+              $scope.tasks[data.id] = data.data();
+              $scope.completed[data.id] = !!data.data().completed;
+              if ($scope.completedTasksArray.length < 1) {
+                $scope.completedTasksArray.push(data.id);
+              } else {
+                var start = 0;
+                var end = $scope.completedTasksArray.length - 1;
+                var deadline = new Date(data.data().deadline);
+                var toAdd = data.data();
+
+                while (end >= start) {
+                  if (end < 0 || start > $scope.completedTasksArray.length) {
+                    break;
+                  }
+
+                  var index = Math.floor((start + end) / 2);
+                  var task = $scope.tasks[$scope.completedTasksArray[index]];
+                  var compare = -taskComparator(task, toAdd);
+
+                  if (compare > 0) {
+                    end = index - 1;
+                  } else if (compare < 0) {
+                    start = index + 1;
+                  } else {
+                    start = index;
+                    end = index - 1;
+                    break;
+                  }
+                }
+
+                $scope.completedTasksArray.splice(start, 0, data.id);
+              }
+            } else if (change.type === "modified") {
+              var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+              var newDeadline = data.data().deadline && new Date(data.data().deadline);
+
+              if (
+                (oldDeadline && !newDeadline) ||
+                (newDeadline && !oldDeadline) ||
+                (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
+                $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
+                $scope.tasks[data.id].completed != data.data().completed ||
+                ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+              ) {
+                $scope.completedTasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+
                 if ($scope.completedTasksArray.length < 1) {
                   $scope.completedTasksArray.push(data.id);
                 } else {
                   var start = 0;
                   var end = $scope.completedTasksArray.length - 1;
-                  var deadline = new Date(data.data().deadline);
                   var toAdd = data.data();
 
                   while (end >= start) {
@@ -255,67 +303,32 @@ angular.module("agendasApp")
 
                   $scope.completedTasksArray.splice(start, 0, data.id);
                 }
-              } else if (change.type === "modified") {
-                var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
-                var newDeadline = data.data().deadline && new Date(data.data().deadline);
 
-                if (
-                  (oldDeadline && !newDeadline) ||
-                  (newDeadline && !oldDeadline) ||
-                  (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
-                  $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
-                  $scope.tasks[data.id].completed != data.data().completed ||
-                  ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
-                ) {
-                  $scope.completedTasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
-
-                  if ($scope.completedTasksArray.length < 1) {
-                    $scope.completedTasksArray.push(data.id);
-                  } else {
-                    var start = 0;
-                    var end = $scope.completedTasksArray.length - 1;
-                    var toAdd = data.data();
-
-                    while (end >= start) {
-                      if (end < 0 || start > $scope.completedTasksArray.length) {
-                        break;
-                      }
-
-                      var index = Math.floor((start + end) / 2);
-                      var task = $scope.tasks[$scope.completedTasksArray[index]];
-                      var compare = -taskComparator(task, toAdd);
-
-                      if (compare > 0) {
-                        end = index - 1;
-                      } else if (compare < 0) {
-                        start = index + 1;
-                      } else {
-                        start = index;
-                        end = index - 1;
-                        break;
-                      }
-                    }
-
-                    $scope.completedTasksArray.splice(start, 0, data.id);
-                  }
-
-                  $scope.completed[data.id] = data.data().completed;
-                  $scope.tasks[data.id] = data.data();
-                } else if (change.type === "removed") {
-                  $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
-                  //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                  delete $scope.tasks[data.id];
-                  delete $scope.completed[data.id];
-                }
+                $scope.completed[data.id] = data.data().completed;
+                $scope.tasks[data.id] = data.data();
+              } else if (change.type === "removed") {
+                $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
+                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+                delete $scope.tasks[data.id];
+                delete $scope.completed[data.id];
               }
-            });
-            $scope.refreshSoon();
-          }));
+            }
+          });
+          $scope.refreshSoon();
+        }));
+      };
+
+      $scope.viewCompletedTasks = function(event) {
+        if (!$scope.completeRefs) {
+          $scope.completeRefs = [];
+          $scope.completedTasksArray = [];
+          $scope.paginateCompletedTasks();
         }
 
         $mdDialog.show({
           targetEvent: event,
           templateUrl: "agenda/completed.html",
+          fullscreen: $mdMedia("sm") || $mdMedia("xs"),
           locals: {
             completedTasksArray: $scope.completedTasksArray,
             tasks: $scope.tasks,
@@ -325,9 +338,11 @@ angular.module("agendasApp")
             getMdColor: $scope.getMdColor,
             getDeadlineString: $scope.getDeadlineString,
             categoryObj: $scope.categoryObj,
-            permissions: $scope.permissions
+            permissions: $scope.permissions,
+            completeRefs: $scope.completeRefs,
+            paginateCompletedTasks: $scope.paginateCompletedTasks
           },
-          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions) {
+          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions, completeRefs, paginateCompletedTasks) {
             $scope.tasksArray = completedTasksArray;
             $scope.tasks = tasks;
             $scope.completed = completed;
@@ -345,6 +360,13 @@ angular.module("agendasApp")
 
             $scope.hideTaskEditor = function() {
               $scope.selectedTask = null;
+            };
+
+            $scope.paginate = function() {
+              console.log("Paginating...");
+              if ($scope.tasksArray.length >= completeRefs.length * 20) {
+                paginateCompletedTasks();
+              }
             };
           }
         })
