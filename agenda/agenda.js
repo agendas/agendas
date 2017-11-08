@@ -16,6 +16,9 @@ angular.module("agendasApp")
         $scope.completeRefs = null;
         $scope.permissionRef = null;
 
+        $scope.lastTask = null;
+        $scope.lastCompletedRef = null;
+
         $scope.agenda = {};
         $scope.permissions = {};
         $scope.categories = [];
@@ -28,6 +31,7 @@ angular.module("agendasApp")
         //$scope.completedTasks = [];
 
         $scope.selectedTask = null;
+        $scope.filter = null;
       };
 
       $scope.unsubscribe = [];
@@ -215,16 +219,19 @@ angular.module("agendasApp")
         $scope.refreshSoon();
       }));
 
-      var lastTask = null;
+      $scope.lastTask = null;
 
       $scope.paginateCompletedTasks = function() {
         var query = $scope.tasksRef.where("completed", "==", true).orderBy("deadline", "desc").limit(20);
-        if (lastTask) {
-          query = query.startAfter(lastTask);
+        if ($scope.lastTask) {
+          query = query.startAfter($scope.lastTask);
         }
         $scope.completeRefs.push(query);
+        $scope.lastCompletedRef = query;
         $scope.unsubscribe.push(query.onSnapshot(function(tasks) {
-          lastTask = tasks.docs[tasks.size - 1];
+          if ($scope.lastCompletedRef === query) {
+            $scope.lastTask = tasks.size < 1 ? null : tasks.docs[tasks.size - 1];
+          }
           tasks.docChanges.forEach(function(change) {
             var data = change.doc;
             if (change.type === "added") {
@@ -521,6 +528,25 @@ angular.module("agendasApp")
           locals: {name: name, notes: notes},
           targetEvent: event
         });
+      };
+
+      $scope.openFilter = function(event) {
+        return $mdDialog.show({
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><filter-editor filter='filter' tags-array='tagsArray' tags-objet='tagsObject'></filter-editor></md-dialog>",
+          locals: {filter: $scope.filter, tagsArray: $scope.categories, tagsObject: $scope.categoryObj},
+          controller: function($scope, filter, tagsArray, tagsObject) {
+            $scope.filter = filter;
+            $scope.tagsArray = tagsArray;
+            $scope.tagsObject = tagsObject;
+          },
+          targetEvent: event
+        }).then(function(filter) {
+          $scope.filter = filter;
+        });
+      };
+
+      $scope.removeFilter = function() {
+        $scope.filter = null;
       };
 
       /* var scrollTickPending = false;

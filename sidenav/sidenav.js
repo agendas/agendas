@@ -90,7 +90,7 @@ angular.module("agendasApp")
       };
 
       $scope.lockedOpen = function() {
-        return $scope.gtMd() || !$state.current.name;
+        return ($scope.gtMd() && !$scope.hideSidenav) || !$state.current.name;
       };
 
       $scope.$watch("sidenavIsOpen && !lockedOpen()", function(isOpen) {

@@ -17,6 +17,7 @@ self.addEventListener("install", function(event) {
         "console/sidenav",
         "creator",
         "editor",
+        "filter",
         "home",
         "provider-dialog",
         "settings",
@@ -25,10 +26,12 @@ self.addEventListener("install", function(event) {
         "tag-color-picker",
         "tags",
         "toolbar",
-        "username"
+        "username",
+        "wallpaper"
       ];
       var files = [
         "",
+        "agenda/completed.html",
         "agenda/notes.html",
         "timepicker/timepicker.js",
         "agendas.js",

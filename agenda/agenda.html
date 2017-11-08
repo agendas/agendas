@@ -7,11 +7,21 @@
         <md-nav-item md-nav-click="goto('tasks')" name="tasks"><md-icon>list</md-icon> Tasks</md-nav-item>
         <md-nav-item md-nav-click="goto('categories')" name="categories"><md-icon>local_offer</md-icon> Tags</md-nav-item>
         <md-nav-item md-nav-click="goto('settings')" name="settings"><md-icon>settings</md-icon> Settings</md-nav-item>
+        <md-button style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%);" class="md-icon-button" ng-if="screen == 'tasks' && !selectedTask" ng-click="openFilter($event)" ng-class="{'md-accent': filter}">
+          <md-icon>filter_list</md-icon>
+          <md-tooltip md-direction="left">Filter tasks</md-tooltip>
+        </md-button>
       </md-nav-bar>
       <md-list class="task-list" ng-class="selectedTask ? 'task-editor-open' : 'task-editor-closed'" ng-show="screen == 'tasks'">
-        <md-list-item ng-click="viewCompletedTasks($event)">
+        <md-list-item ng-click="viewCompletedTasks($event)" ng-hide="filter">
           <p>View completed tasks</p>
           <md-icon class="md-secondary">arrow_forward</md-icon>
+        </md-list-item>
+        <md-list-item class="filter-notification" ng-if="filter" class="md-2-line" md-colors="{background: 'primary-600'}" ng-click="openFilter()">
+          <md-icon style="color: inherit;">filter_list</md-icon>
+          <p>Filtering tasks</p>
+          <md-button class="md-secondary" ng-click="openFilter($event)">Edit</md-button>
+          <md-button class="md-secondary" ng-click="removeFilter()">Remove</md-button>
         </md-list-item>
         <md-divider></md-divider>
         <md-list-item ng-disabled="!permissions.edit_tasks" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line show" ng-class="{completed: completed[task], overdue: isOverdue(tasks[task])}">
@@ -47,8 +57,7 @@
       <agenda-settings ng-if="screen === 'settings'" agenda="agenda"></agenda-settings>
     </div>
   </div>
-  <div class="add-task" ng-if="permissions.edit_tasks">
-    <md-divider></md-divider>
+  <div class="add-task" ng-if="permissions.edit_tasks && !filter">
     <md-list-item class="add-task">
       <task-creator tags="categories" on-add-task="addTask(task)"></task-creator>
     </md-list-item>

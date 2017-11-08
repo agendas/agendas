@@ -1,0 +1,72 @@
+<md-dialog-content>
+  <div class="md-dialog-content">
+    <h3 class="md-headline">Filter tasks by...</h3>
+    <p>
+      <md-input-container md-no-float>
+        <md-select placeholder="(select one)" ng-model="filter.filter">
+          <md-option value="deadline">Deadline</md-option>
+          <md-option value="tags">Tags</md-option>
+          <md-option value="repeat">Repeat</md-option>
+        </md-select>
+      </md-input-container>
+      <md-input-container md-no-float ng-show="filter.filter === 'deadline'">
+        <md-select placeholder="(select one)" ng-model="filter.type">
+          <md-option value="yesterday">yesterday</md-option>
+          <md-option value="today">today</md-option>
+          <md-option value="tomorrow">tomorrow</md-option>
+          <md-option value="week">this week</md-option>
+          <md-option value="past">in the past</md-option>
+          <md-option value="future">in the future</md-option>
+          <md-option value="none">no deadline</md-option>
+          <md-option value="any">a deadline</md-option>
+          <md-option value="custom">custom range</md-option>
+        </md-select>
+      </md-input-container>
+      <span ng-if="filter.filter === 'tags'"> with all of these tags:</span>
+      <md-input-container md-no-float ng-show="filter.filter === 'repeat'">
+        <md-select placeholder="(select one)" ng-model="filter.type">
+          <md-optgroup label="Repeat Every">
+            <md-option value="day">Day</md-option>
+            <md-option value="weekday">Weekday</md-option>
+            <md-option value="week">Week</md-option>
+            <md-option value="2-weeks">Other Week</md-option>
+            <md-option value="month">Month</md-option>
+            <md-option value="year">Year</md-option>
+          </md-optgroup>
+        </md-select>
+      </md-input-container>
+    </p>
+    <p ng-show="filter.filter === 'deadline' && filter.type === 'custom'">
+      <span>from </span>
+      <md-datepicker ng-model="filter.from" md-max-date="filter.to"></md-datepicker>
+      <span> to </span>
+      <md-datepicker ng-model="filter.to" md-min-date="filter.from"></md-datepicker>
+    </p>
+    <md-chips ng-model="filter.tags" md-transform-chip="angular.noop()" md-autocomplete-snap md-require-match="true" ng-if="filter.filter === 'tags'">
+      <md-autocomplete md-search-text="tagSearchText" md-items="item in getMatchingTags(tagSearchText)" placeholder="Add tag">
+        <span><md-icon md-colors="getMdColor(item.color)">local_offer</md-icon> {{item.name}}</span>
+      </md-autocomplete>
+      <md-chip-template>
+        <md-icon md-colors="getMdColor($chip.color)">local_offer</md-icon>
+        {{$chip.name}}
+      </md-chip-template>
+    </md-chips>
+    <p>
+      <span>Include </span>
+      <md-input-container md-no-float>
+        <md-select placeholder="all" ng-model="filter.completion">
+          <md-option>all</md-option>
+          <md-option ng-value="false">only incomplete</md-option>
+          <md-option ng-value="true">only completed</md-option>
+        </md-select>
+      </md-input-container>
+      <span> tasks.</span>
+    </p>
+  </div>
+</md-dialog-content>
+<md-dialog-actions>
+  <md-button ng-click="remove()" ng-if="hadFilter" class="md-warn">Remove Filters</md-button>
+  <span flex></span>
+  <md-button ng-click="cancel()" class="md-primary">Cancel</md-button>
+  <md-button ng-click="apply()" ng-disabled="!filter.filter" class="md-accent">Apply</md-button>
+</md-dialog-actions>

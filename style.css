@@ -83,7 +83,7 @@ md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-l
   color: black;
 }
 
-agendas-menu-toolbar > md-toolbar.md-menu-toolbar,
+agendas-menu-toolbar > md-toolbar.md-default-theme.md-menu-toolbar,
 agendas-menu-toolbar > md-toolbar.md-dark-theme.md-menu-toolbar {
   background-color: rgba(255, 255, 255, 0);
 }
@@ -146,7 +146,7 @@ md-nav-bar ul._md-nav-bar-list {
 }
 
 .add-task:not(md-list-item) {
-  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 60%, transparent);
+  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, transparent);
 }
 
 html[md-theme="dark"] .add-task:not(md-list-item) {
@@ -367,7 +367,7 @@ app-dialog li {
 
 .task-list md-list-item:hover {
   background-color: white;
-  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
   color: black;
 }
 
