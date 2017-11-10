@@ -74,7 +74,7 @@ angular.module("agendasApp")
       },
       controller: function($scope, $element) {
         $element[0].addEventListener("scroll", function(event) {
-          if (event.target.scrollTop >= (event.target.scrollHeight - event.target.offsetHeight)) {
+          if (event.target.scrollTop + 10 >= (event.target.scrollHeight - event.target.offsetHeight)) {
             window.requestAnimationFrame(function() {
               $scope.onScrollBottom({$event: event});
             });

@@ -17,5 +17,20 @@ angular.module("agendasApp")
         localStorage.agendasWallpaper = JSON.stringify($scope.wallpaper);
         $mdDialog.hide();
       };
+
+      $scope.viewImageCredits = function() {
+        $scope.viewingCredits = !$scope.viewingCredits;
+      };
+
+      $scope.getImageCredits = function() {
+        if ($scope.wallpaper.image) {
+          return [$scope.images[$scope.wallpaper.image]];
+        } else if ($scope.wallpaper.collection) {
+          var images = $scope.wallpapers[$scope.wallpaper.collection].images;
+          return Object.keys(images).map(function(image) {
+            return $scope.images[images[image]];
+          });
+        }
+      };
     }
   })

@@ -4,9 +4,11 @@
     <p>
       <md-input-container md-no-float>
         <md-select placeholder="(select one)" ng-model="filter.filter">
+          <md-option value="everything">Everything</md-option>
           <md-option value="deadline">Deadline</md-option>
-          <md-option value="tags">Tags</md-option>
+          <md-option value="priority">Priority</md-option>
           <md-option value="repeat">Repeat</md-option>
+          <md-option value="tags">Tags</md-option>
         </md-select>
       </md-input-container>
       <md-input-container md-no-float ng-show="filter.filter === 'deadline'">
@@ -17,12 +19,9 @@
           <md-option value="week">this week</md-option>
           <md-option value="past">in the past</md-option>
           <md-option value="future">in the future</md-option>
-          <md-option value="none">no deadline</md-option>
-          <md-option value="any">a deadline</md-option>
           <md-option value="custom">custom range</md-option>
         </md-select>
       </md-input-container>
-      <span ng-if="filter.filter === 'tags'"> with all of these tags:</span>
       <md-input-container md-no-float ng-show="filter.filter === 'repeat'">
         <md-select placeholder="(select one)" ng-model="filter.type">
           <md-optgroup label="Repeat Every">
@@ -35,6 +34,15 @@
           </md-optgroup>
         </md-select>
       </md-input-container>
+      <md-input-container md-no-float ng-show="filter.filter === 'priority'">
+        <md-select placeholder="(select one)" ng-model="filter.type">
+          <md-option ng-value="1">Low</md-option>
+          <md-option ng-value="2">Medium</md-option>
+          <md-option ng-value="3">High</md-option>
+          <md-option ng-value="4">Urgent</md-option>
+        </md-select>
+      </md-input-container>
+      <span ng-if="filter.filter === 'tags'"> with all of these tags:</span>
     </p>
     <p ng-show="filter.filter === 'deadline' && filter.type === 'custom'">
       <span>from </span>
@@ -55,7 +63,7 @@
       <span>Include </span>
       <md-input-container md-no-float>
         <md-select placeholder="all" ng-model="filter.completion">
-          <md-option>all</md-option>
+          <md-option md-option-empty>all</md-option>
           <md-option ng-value="false">only incomplete</md-option>
           <md-option ng-value="true">only completed</md-option>
         </md-select>

@@ -25,12 +25,18 @@
             <md-list-item>
               <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
             </md-list-item>
+            <md-list-item class="md-2-line" ng-click="openWallpaperPicker()">
+              <div class="md-list-item-text">
+                <h3>Change background image</h3>
+                <p>Give Agendas a new look.</p>
+              </div>
+            </md-list-item>
             <md-list-item class="md-2-line">
               <div class="md-list-item-text">
-                <h3>Show completed tasks in all agendas</h3>
-                <p>This setting can be overriden.</p>
+                <h3>Dark theme (experimental)</h3>
+                <p>Enjoy the dark side, stealth, and also bugs? Flick this switch!</p>
               </div>
-              <md-switch class="md-secondary" ng-model="$root.showCompleted" ng-change="applyShowCompleted($root.showCompleted)"></md-switch>
+              <md-switch class="md-secondary" ng-model="$root.darkTheme" ng-change="applyDarkTheme($root.darkTheme)"></md-switch>
             </md-list-item>
             <md-subheader ng-if="developer">Developer</md-subheader>
             <md-list-item class="md-2-line" ng-if="developer">
@@ -40,33 +46,6 @@
               </div>
               <md-switch class="md-secondary" ng-model="$root.showDeveloper" ng-change="applyShowDeveloper($root.showDeveloper)"></md-switch>
             </md-list-item>
-          </md-tab-body>
-        </md-tab>
-
-        <md-tab>
-          <md-tab-label>
-            <md-icon>brush</md-icon>
-            Appearance
-          </md-tab-label>
-          <md-tab-body>
-            <md-list>
-              <md-list-item>
-                <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
-              </md-list-item>
-              <md-list-item class="md-2-line" ng-click="openWallpaperPicker()">
-                <div class="md-list-item-text">
-                  <h3>Change background image</h3>
-                  <p>Give Agendas a new look.</p>
-                </div>
-              </md-list-item>
-              <md-list-item class="md-2-line">
-                <div class="md-list-item-text">
-                  <h3>Dark theme (experimental)</h3>
-                  <p>Enjoy the dark side, stealth, and also bugs? Flick this switch!</p>
-                </div>
-                <md-switch class="md-secondary" ng-model="$root.darkTheme" ng-change="applyDarkTheme($root.darkTheme)"></md-switch>
-              </md-list-item>
-            </md-list>
           </md-tab-body>
         </md-tab>
 

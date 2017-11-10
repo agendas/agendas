@@ -1,5 +1,5 @@
 <md-dialog-content>
-  <md-grid-list md-cols-lg="4" md-cols="2" md-gutter="4px" md-row-height="16:9" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}" style="margin: 8px;">
+  <md-grid-list md-cols-lg="4" md-cols="2" md-gutter="4px" md-row-height="16:9" ng-style="{width: isFullscreen() ? '100vw' : '70vw'}" style="margin: 8px;" ng-if="!viewingCredits">
     <md-grid-tile ng-click="selectNone()" style="background-color: rgba(255, 255, 255, 0.2);">
       <md-grid-tile-footer style="padding-left: 1em;">
         <span ng-if="wallpaper.collection || wallpaper.image">None</span>
@@ -15,6 +15,15 @@
       </md-grid-tile-footer>
     </md-grid-tile>
   </md-grid-list>
+  <div class="md-dialog-content" ng-if="viewingCredits">
+    <h3 class="md-headline" style="margin-bottom: 1em;">Image credits</h3>
+    <div ng-repeat="image in getImageCredits()" style="margin-bottom: 1em;">
+      <h4 class="md-title">{{image.name}}</h4>
+      <p ng-if="image.credit">{{image.credit}}</p>
+      <a ng-if="image.creditURL" md-colors="{color: 'blue-300'}" target="_blank" ng-href="{{image.creditURL}}">View image</a>
+    </div>
+    <md-button ng-click="viewImageCredits()" style="margin: 0; padding-left: 0; padding-right: 0;">Back to wallpapers</md-button>
+  </div>
 </md-dialog-content>
 <md-dialog-actions>
   <strong ng-if="wallpaper.collection">{{wallpapers[wallpaper.collection].name}}</strong>
@@ -25,7 +34,8 @@
     <md-option ng-if="wallpapers[wallpaper.collection].images.sunset" ng-value="wallpapers[wallpaper.collection].images.sunset">Sunset</md-option>
     <md-option ng-if="wallpapers[wallpaper.collection].images.night" ng-value="wallpapers[wallpaper.collection].images.night">Night</md-option>
   </md-select>
-  <a ng-href="{{images[wallpaper.image].creditURL}}" target="_blank" ng-if="wallpaper && !wallpaper.collection">{{images[wallpaper.image].name}}</a>
+  <span ng-if="wallpaper && !wallpaper.collection">{{images[wallpaper.image].name}}</span>
+  <md-button ng-class="{'md-accent': viewingCredits}" class="md-icon-button" ng-if="wallpaper" ng-click="viewImageCredits()"><md-icon>info</md-icon></md-button>
   <span flex></span>
   <md-button class="md-primary" ng-click="cancel()">Cancel</md-button>
   <md-button class="md-accent" ng-click="select()">Select</md-button>

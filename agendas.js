@@ -24,10 +24,6 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "settings"
     });
     $stateProvider.state({
-      name: "settings.appearance",
-      url: "/appearance"
-    });
-    $stateProvider.state({
       name: "settings.account",
       url: "/account"
     });

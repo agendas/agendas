@@ -24,7 +24,7 @@
           <md-button class="md-secondary" ng-click="removeFilter()">Remove</md-button>
         </md-list-item>
         <md-divider></md-divider>
-        <md-list-item ng-disabled="!permissions.edit_tasks" ng-click="showTaskEditor(task)" ng-repeat-start="task in tasksArray track by task" class="task md-2-line show" ng-class="{completed: completed[task], overdue: isOverdue(tasks[task])}">
+        <md-list-item ng-disabled="!permissions.edit_tasks" ng-click="showTaskEditor(task)" ng-repeat-start="task in getTasksArray() track by task" class="task md-2-line show" ng-class="{completed: completed[task], overdue: isOverdue(tasks[task])}">
           <md-checkbox class="md-primary" ng-disabled="!permissions.complete_tasks" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
           <div class="md-list-item-text">
             <h3>{{tasks[task].name}}</h3>

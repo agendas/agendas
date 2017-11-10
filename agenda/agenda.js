@@ -5,6 +5,10 @@ angular.module("agendasApp")
       $scope.destroy = function() {
         /*window.removeEventListener("scroll", $scope.scrollHandler);
         window.removeEventListener("resize", $scope.scrollHandler);*/
+        if ($scope.unsubscribeFilter) {
+          $scope.unsubscribeFilter();
+        }
+
         $scope.unsubscribe.forEach(function(detach) {
           detach();
         });
@@ -15,6 +19,7 @@ angular.module("agendasApp")
         $scope.incompleteRef = null;
         $scope.completeRefs = null;
         $scope.permissionRef = null;
+        $scope.filteredRef = null;
 
         $scope.lastTask = null;
         $scope.lastCompletedRef = null;
@@ -27,7 +32,7 @@ angular.module("agendasApp")
         $scope.completed = {};
         $scope.completedTasksArray = [];
         $scope.unsubscribe = [];
-        $scope.unsubscribeIncomplete = null;
+        $scope.unsubcribeFilter = null;
         //$scope.completedTasks = [];
 
         $scope.selectedTask = null;
@@ -346,10 +351,11 @@ angular.module("agendasApp")
             getDeadlineString: $scope.getDeadlineString,
             categoryObj: $scope.categoryObj,
             permissions: $scope.permissions,
+            priorities: $scope.priorities,
             completeRefs: $scope.completeRefs,
             paginateCompletedTasks: $scope.paginateCompletedTasks
           },
-          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions, completeRefs, paginateCompletedTasks) {
+          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions, priorities, completeRefs, paginateCompletedTasks) {
             $scope.tasksArray = completedTasksArray;
             $scope.tasks = tasks;
             $scope.completed = completed;
@@ -360,6 +366,7 @@ angular.module("agendasApp")
             $scope.getDeadlineString = getDeadlineString;
             $scope.categoryObj = categoryObj;
             $scope.permissions = permissions;
+            $scope.priorities = priorities;
 
             $scope.showTaskEditor = function(task) {
               $scope.selectedTask = task;
@@ -380,7 +387,7 @@ angular.module("agendasApp")
       };
 
       $scope.getTasksArray = function() {
-        return $scope.showCompleted ? $scope.tasksArray : $scope.completedTasks;
+        return $scope.filteredTasks || $scope.tasksArray;
       };
 
       $scope.completeTask = function(taskKey) {
@@ -542,11 +549,172 @@ angular.module("agendasApp")
           targetEvent: event
         }).then(function(filter) {
           $scope.filter = filter;
+          $scope.updateFilter();
         });
       };
 
       $scope.removeFilter = function() {
         $scope.filter = null;
+        $scope.updateFilter();
+      };
+
+      $scope.updateFilter = function() {
+        if ($scope.unsubscribeFilter) {
+          $scope.unsubscribeFilter();
+        }
+
+        if ($scope.filter && !($scope.filter.filter === "everything" && $scope.filter.completion === false)) {
+          $scope.filteredRef = $scope.tasksRef;
+          $scope.filteredTasks = [];
+
+          if ($scope.filter.filter === "deadline") {
+            var today = new Date();
+            today.setHours(0);
+            today.setMinutes(0);
+            today.setSeconds(0);
+            today.setMilliseconds(0);
+            if ($scope.filter.type === "yesterday") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", new Date(today.getTime() - (24 * 60 * 60 * 1000))).where("deadline", "<", today);
+            } else if ($scope.filter.type === "today") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", today).where("deadline", "<", new Date(today.getTime() + (24 * 60 * 60 * 1000)));
+            } else if ($scope.filter.type === "tomorrow") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", new Date(today.getTime() + (24 * 60 * 60 * 1000))).where("deadline", "<", new Date(today.getTime() + (2 * 24 * 60 * 60 * 1000)));
+            } else if ($scope.filter.type === "week") {
+              var sunday = new Date(today);
+              sunday.setDate(sunday.getDate() - sunday.getDay());
+
+              var nextSunday = new Date(sunday);
+              nextSunday.setDate(sunday.getDate() + 7);
+
+              $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", sunday).where("deadline", "<", nextSunday);
+            } else if ($scope.filter.type === "past") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", "<", today);
+            } else if ($scope.filter.type === "future") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", new Date(today.getTime() + (24 * 60 * 60 * 1000)));
+            } else if ($scope.filter.type === "none") {
+              $scope.filteredRef = $scope.filteredRef.where("deadline", "==", null);
+            } else if ($scope.filter.type === "custom") {
+              if ($scope.filter.from) {
+                $scope.filteredRef = $scope.filteredRef.where("deadline", ">=", $scope.filter.from);
+              }
+              if ($scope.filter.to) {
+                $scope.filteredRef = $scope.filteredRef.where("deadline", "<", new Date($scope.filter.to.getTime() + (24 * 60 * 60 * 1000)));
+              }
+            }
+          } else if ($scope.filter.filter === "repeat") {
+            $scope.filteredRef = $scope.filteredRef.where("repeat", "==", $scope.filter.type);
+          } else if ($scope.filter.filter === "priority") {
+            $scope.filteredRef = $scope.filteredRef.where("priority", "==", $scope.filter.type);
+          } else if ($scope.filter.filter === "tags") {
+            $scope.filter.tags.forEach(function(tag) {
+              $scope.filteredRef = $scope.filteredRef.where("tags." + tag.key, "==", true);
+            });
+          }
+
+          if ($scope.filter.completion === true || $scope.filter.completion === false) {
+            $scope.filteredRef = $scope.filteredRef.where("completed", "==", $scope.filter.completion);
+          }
+
+          $scope.unsubscribeFilter = $scope.filteredRef.onSnapshot(function(tasks) {
+            tasks.docChanges.forEach(function(change) {
+              var data = change.doc;
+              if (change.type === "added") {
+                $scope.tasks[data.id] = data.data();
+                $scope.completed[data.id] = !!data.data().completed;
+                if ($scope.filteredTasks.length < 1) {
+                  $scope.filteredTasks.push(data.id);
+                } else {
+                  var start = 0;
+                  var end = $scope.filteredTasks.length - 1;
+                  var deadline = new Date(data.data().deadline);
+                  var toAdd = data.data();
+
+                  while (end >= start) {
+                    if (end < 0 || start > $scope.filteredTasks.length) {
+                      break;
+                    }
+
+                    var index = Math.floor((start + end) / 2);
+                    var task = $scope.tasks[$scope.filteredTasks[index]];
+                    var compare = taskComparator(task, toAdd);
+
+                    if (compare > 0) {
+                      end = index - 1;
+                    } else if (compare < 0) {
+                      start = index + 1;
+                    } else {
+                      start = index;
+                      end = index - 1;
+                      break;
+                    }
+                  }
+
+                  $scope.filteredTasks.splice(start, 0, data.id);
+                }
+              } else if (change.type === "modified") {
+                var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+                var newDeadline = data.data().deadline && new Date(data.data().deadline);
+
+                if (
+                  (oldDeadline && !newDeadline) ||
+                  (newDeadline && !oldDeadline) ||
+                  (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
+                  $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
+                  $scope.tasks[data.id].completed != data.data().completed ||
+                  ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+                ) {
+                  $scope.filteredTasks.splice($scope.filteredTasks.indexOf(data.id), 1);
+
+                  if ($scope.filteredTasks.length < 1) {
+                    $scope.filteredTasks.push(data.id);
+                  } else {
+                    var start = 0;
+                    var end = $scope.filteredTasks.length - 1;
+                    var toAdd = data.data();
+
+                    while (end >= start) {
+                      if (end < 0 || start > $scope.filteredTasks.length) {
+                        break;
+                      }
+
+                      var index = Math.floor((start + end) / 2);
+                      var task = $scope.tasks[$scope.filteredTasks[index]];
+                      var compare = taskComparator(task, toAdd);
+
+                      if (compare > 0) {
+                        end = index - 1;
+                      } else if (compare < 0) {
+                        start = index + 1;
+                      } else {
+                        start = index;
+                        end = index - 1;
+                        break;
+                      }
+                    }
+
+                    $scope.filteredTasks.splice(start, 0, data.id);
+                  }
+                }
+
+                $scope.completed[data.id] = data.data().completed;
+                $scope.tasks[data.id] = data.data();
+                console.log($scope.tasks);
+                console.log(data.data());
+                console.log(data.id);
+              } else if (change.type === "removed") {
+                $scope.filteredTasks.splice($scope.filteredTasks.indexOf(data.id), 1);
+                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+                delete $scope.tasks[data.id];
+                delete $scope.completed[data.id];
+              }
+            });
+            $scope.refreshSoon();
+          })
+        } else {
+          $scope.filter = null;
+          $scope.filteredRef = null;
+          $scope.filteredTasks = null;
+        }
       };
 
       /* var scrollTickPending = false;
