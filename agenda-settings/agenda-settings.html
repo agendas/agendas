@@ -9,7 +9,8 @@
   <md-list-item ng-repeat="(user, role) in permissions">
     <p ng-if="getUsername(user)">{{getUsername(user) || "No Username"}}</p>
     <md-progress-circular ng-if="!getUsername(user)" md-mode="indeterminate"></md-progress-circular>
-    <md-select class="md-secondary" ng-model="role" ng-change="$ctrl.changePermission(user, role)" ng-disabled="$first && $last && role === 'editor'" style="margin: 0;">
+    <md-select class="md-secondary" ng-model="role" ng-change="$ctrl.changePermission(user, role)" ng-disabled="$first && $last && role === 'manager'" style="margin: 0;">
+      <md-option value="manager">Can manage</md-option>
       <md-option value="editor">Can edit</md-option>
       <md-option value="viewer">Can view</md-option>
       <md-option value="none">No access</md-option>
@@ -21,6 +22,7 @@
       <input type="text" ng-model="usernameToAdd" />
     </md-input-container>
     <md-select style="margin: 0;" class="md-secondary" ng-model="roleToAdd">
+      <md-option value="manager">Can manage</md-option>
       <md-option value="editor">Can edit</md-option>
       <md-option value="viewer">Can view</md-option>
     </md-select>

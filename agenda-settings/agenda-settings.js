@@ -29,12 +29,18 @@ angular.module("agendasApp")
           if (data.exists() && !permissions[data.val()]) {
             var update = {};
             update[data.val()] = true;
-            if ($scope.roleToAdd === "editor") {
+            if ($scope.roleToAdd === "manager") {
+              $scope.permissionsRef.doc(data.val()).set({
+                manage: true,
+                complete_tasks: true,
+                edit_tags: true,
+                edit_tasks: true
+              });
+            } else if ($scope.roleToAdd === "editor") {
               $scope.permissionsRef.doc(data.val()).set({
                 complete_tasks: true,
                 edit_tags: true,
-                edit_tasks: true,
-                manage: true
+                edit_tasks: true
               });
             }
             $scope.agendaRef.update(update).then(function() {
@@ -62,6 +68,12 @@ angular.module("agendasApp")
           $scope.agendaRef.update(permissions);
           $scope.permissionsRef.doc(user).delete();
         } else if (role === "editor") {
+          $scope.permissionsRef.doc(user).set({
+            complete_tasks: true,
+            edit_tags: true,
+            edit_tasks: true
+          });
+        } else if (role === "manager") {
           $scope.permissionsRef.doc(user).set({
             complete_tasks: true,
             edit_tags: true,
@@ -139,6 +151,8 @@ angular.module("agendasApp")
             if (!permissions) {
               $scope.permissions[permission] = "viewer";
             } else if (permissions.manage) {
+              $scope.permissions[permission] = "manager";
+            } else if (permissions.edit_tasks) {
               $scope.permissions[permission] = "editor";
             }
           }
