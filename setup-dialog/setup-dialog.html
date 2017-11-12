@@ -1,10 +1,10 @@
-<md-dialog-content ng-if="!(usernameStep || tutorialStep)">
+<md-dialog-content ng-if="loading || !(usernameStep || tutorialStep || updateNotes)">
   <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
     <md-progress-circular md-mode="indeterminate" style="height: 100px; width: 100px;"></md-progress-circular>
     <p>Loading...</p>
   </div>
 </md-dialog-content>
-<md-dialog-actions ng-if="!(usernameStep || tutorialStep)">
+<md-dialog-actions ng-if="loading || !(usernameStep || tutorialStep || updateNotes)">
   <md-button style="opacity: 0.5;" ng-click="done()">Skip Setup</md-button>
   <span flex></span>
 </md-dialog-actions>
@@ -29,16 +29,79 @@
   <md-button ng-disabled="changingUsername" class="md-accent" ng-click="saveUsername(username.username)">Continue</md-button>
 </md-dialog-actions>
 
-<md-dialog-content ng-if="tutorialStep">
+<md-dialog-content ng-if="tutorialStep && !taskStep && !doneStep && !loading">
   <div style="width: 100%; padding: 32px;" layout="row" layout-align="center center">
-    <span class="md-display-1">You're all set</span>
+    <span class="md-display-1">Create your first agenda</span>
   </div>
   <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
-    <p>Create an agenda, then start using Agendas!</p>
+    <p>Each agenda will hold multiple tasks.</p>
+    <md-input-container style="display: block; width: 100%; margin-top: 1em;" md-is-error="agendaError">
+      <label>Agenda Name</label>
+      <input placeholder="School, Work, etc..." type="text" ng-model="agendaName.name"/>
+    </md-input-container>
   </div>
 </md-dialog-content>
-<md-dialog-actions ng-if="tutorialStep">
-  <md-button ng-if="usernameStep" ng-click="backToUsername()">Back</md-button>
-  <span flex ng-if="usernameStep"></span>
+<md-dialog-actions ng-if="tutorialStep && !taskStep && !doneStep && !loading">
+  <md-button class="md-accent" ng-click="doneTutorialStep()">{{agendaName.name ? "Next" : "Skip"}}</md-button>
+</md-dialog-actions>
+
+<md-dialog-content ng-if="taskStep && !doneStep && !loading">
+  <div style="width: 100%; padding: 32px;" layout="row" layout-align="center center">
+    <span class="md-display-1">Add your first task</span>
+  </div>
+  <div class="md-dialog-content" layout="column" layout-align="center center" layout-margin>
+    <p>Type your first task into the box. Hit Enter or the + button when you're done.</p>
+    <p><strong>Protip:</strong> Try using words and phrases such as "today", "tomorrow", and "every day".</p>
+    <task-creator style="display: block; width: 100%; margin-top: 1em; border: 1px solid #888888; border-radius: 2px; position: relative;" tags="tags" on-add-task="addTask(task)"></task-creator>
+  </div>
+</md-dialog-content>
+<md-dialog-actions ng-if="taskStep && !doneStep && !loading">
+  <md-button class="md-accent" ng-click="skipTaskStep()">Skip</md-button>
+</md-dialog-actions>
+
+<md-dialog-content ng-if="doneStep">
+  <div style="width: 100%; padding: 32px;" layout="column" layout-align="center center">
+    <span class="md-display-1">You're all set.</span>
+    <md-button class="md-accent" ng-click="done()">Get started</md-button>
+  </div>
+</md-dialog-content>
+
+<md-dialog-content ng-if="updateNotes">
+  <div class="md-dialog-content">
+    <h3 class="md-headline">Welcome to Agendas 3.2!</h3>
+    <p>Here's a rundown of what's new:</p>
+  </div>
+  <md-list>
+    <md-list-item class="md-2-line">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'green'}">brush</md-icon>
+      <div class="md-list-item-text">
+        <h3>A fresh coat of paint.</h3>
+        <p>Our new design is simpler, beautiful, and more customizable than ever before.</p>
+      </div>
+    </md-list-item>
+    <md-list-item class="md-2-line">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'blue'}">filter_list</md-icon>
+      <div class="md-list-item-text">
+        <h3>Powerful filtering capabilities.</h3>
+        <p>Filter tasks by completion, deadline, tags, and priority to find the right task.</p>
+      </div>
+    </md-list-item>
+    <md-list-item class="md-2-line">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'purple'}">people</md-icon>
+      <div class="md-list-item-text">
+        <h3>A revamped sharing system.</h3>
+        <p>Agendas 3.2 introduces the new "can manage" permission. Let people edit your tasks, but not the agenda itself.</p>
+      </div>
+    </md-list-item>
+    <md-list-item class="md-2-line">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'pink'}">offline_pin</md-icon>
+      <div class="md-list-item-text">
+        <h3>All of this, even when you're offline.</h3>
+        <p>Stuck on a desert island without Wi-Fi or cellular data? Don't worry! All of your agendas, tags, and tasks will work offline!</p>
+      </div>
+    </md-list-item>
+  </md-list>
+</md-dialog-content>
+<md-dialog-actions ng-if="updateNotes">
   <md-button class="md-accent" ng-click="done()">Done</md-button>
 </md-dialog-actions>

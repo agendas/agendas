@@ -5,7 +5,7 @@
 }
 
 html, body {
-  background-color: #F5F5F5;
+  background-color: transparent;
 }
 
 html, body, body > div:first-child, ui-view, auth, agenda, settings, .full {
@@ -22,7 +22,6 @@ body, input, textarea, md-chip {
 
 html[md-theme="dark"], html[md-theme="dark"] body {
   color: white;
-  background-color: #212121;
   /*height: auto;*/
 }
 
@@ -41,24 +40,50 @@ md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] {
   position: fixed;
   top: 0;
   left: 0;
-}
-
-md-sidenav md-list-item md-card {
-  width: 100%;
   box-shadow: none;
-  margin: 0.5rem;
-  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
-md-sidenav md-list-item md-card > md-card-content {
-  padding: 0.5rem;
+[md-theme="dark"] md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] {
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
-md-sidenav md-list-item md-card md-progress-circular svg > path {
-  stroke: white;
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item + md-divider {
+  margin-top: 0.5rem;
 }
 
-agendas-menu-toolbar > md-toolbar.md-menu-toolbar,
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item ~ md-divider {
+  margin-bottom: 0.5rem;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item {
+  margin-left: 1rem;
+  margin-right: 1rem;
+  border-radius: 3px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item:hover {
+  background-color: white;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  color: black;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item:hover .md-button.md-no-style {
+  background-color: transparent;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item:hover md-icon {
+  color: black;
+}
+
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item:hover .md-list-item-text h3,
+md-sidenav.md-locked-open.md-sidenav-left[md-component-id="agendasSidenav"] md-list-item:hover .md-list-item-text p {
+  color: black;
+}
+
+agendas-menu-toolbar > md-toolbar.md-default-theme.md-menu-toolbar,
 agendas-menu-toolbar > md-toolbar.md-dark-theme.md-menu-toolbar {
   background-color: rgba(255, 255, 255, 0);
 }
@@ -115,8 +140,22 @@ md-nav-bar ul._md-nav-bar-list {
 .add-task {
   position: fixed;
   bottom: 0;
-  background-color: white;
+  background-color: transparent;
   z-index: 2;
+  width: 100%;
+}
+
+.add-task:not(md-list-item) {
+  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, transparent);
+}
+
+html[md-theme="dark"] .add-task:not(md-list-item) {
+  background-image: linear-gradient(to top, black, rgba(0, 0, 0, 0.4) 60%, transparent);
+}
+
+task-creator input {
+  color: inherit;
+  background-color: inherit;
 }
 
 .add-task > md-list-item,
@@ -125,30 +164,29 @@ task-creator {
 }
 
 agenda div[md-whiteframe] {
-  background-color: #FAFAFA;
+  background-color: transparent;
+  box-shadow: none;
 }
 
-html[md-theme="dark"] agenda div[md-whiteframe] {
-  background-color: #454545;
-}
-
-agenda md-list.task-list {
+agenda md-list.task-list:not(.no-padding), agenda tag-editor, agenda agenda-settings {
+  display: block;
   padding-bottom: 72px;
 }
 
 agenda md-nav-bar > .md-nav-bar {
   position: -webkit-sticky;
   position: sticky;
-  top: 0;
-  background-color: white;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  top: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-bottom: none;
+  border-radius: 10px;
   z-index: 2;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
-  background-color: #454545;
-  border-bottom-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 task-creator > div.autocomplete {
@@ -188,7 +226,8 @@ task-creator input {
 
 @media (max-width: 599px) {
   .add-task {
-    width: 95%;
+    padding-left: 2.5%;
+    padding-right: 2.5%;
   }
 }
 
@@ -266,48 +305,48 @@ html[md-theme="dark"] .md-nav-bar .md-nav-item > .md-button.md-unselected {
   color: white;
 }
 
-html[md-theme="dark"] .add-task {
-  background-color: #454545;
-}
-
-html[md-theme="dark"] task-creator input {
-  background-color: #454545;
-  color: white;
-}
-
 html[md-theme="dark"] task-creator input::-webkit-input-placeholder {
+  opacity: 1;
   color: #E0E0E0;
 }
 html[md-theme="dark"] task-creator input::-moz-placeholder {
   opacity: 1;
   color: #E0E0E0;
 }
-html[md-theme="dark"] task-creator input:-moz-placeholder {
+html[md-theme="dark"] task-creator input::-ms-input-placeholder {
   opacity: 1;
   color: #E0E0E0;
 }
-html[md-theme="dark"] task-creator input::-ms-input-placeholder {
+html[md-theme="dark"] task-creator input::placeholder {
+  opacity: 1;
   color: #E0E0E0;
 }
-html[md-theme="dark"] task-creator input::placeholder {
+
+html[md-theme="dark"] task-creator p {
   color: #E0E0E0;
 }
 
 @media (min-width: 600px) and (max-width: 959px) {
   .add-task {
-    width: 90%;
+    padding-left: 5%;
+    padding-right: 5%;
   }
 }
 
 @media (min-width: 960px) and (max-width: 1279px) {
   .add-task {
-    width: 80%;
+    padding-left: 10%;
+    padding-right: 10%;
   }
 }
 
 @media (min-width: 1280px) {
-  .add-task {
-    width: calc(0.6 * (100% - 320px));
+  .add-task:not(md-list-item) {
+    padding-left: calc(0.2 * (100% - 320px));
+    padding-right: calc(0.2 * (100% - 320px));
+    left: 320px;
+    right: 0;
+    width: initial;
   }
 }
 
@@ -317,13 +356,48 @@ app-dialog li {
   margin-bottom: 1em;
 }
 
-agenda .task-list md-list-item {
-  transition: opacity 0.2s;
+.task-list md-list-item {
+  transition: opacity 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
+  border-radius: 5px;
 }
 
-agenda .task-list.task-editor-open md-list-item {
+.task-list md-list-item .md-button.md-no-style {
+  border-radius: 5px;
+}
+
+.task-list md-list-item:hover {
+  background-color: white;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  color: black;
+}
+
+.task-list md-list-item:hover .md-button.md-no-style {
+  background-color: transparent;
+}
+
+.task-list.task-editor-open md-list-item {
   opacity: 0.3;
   pointer-events: none;
+}
+
+.task-list md-list-item.task.md-2-line:hover .md-list-item-text h3 {
+  color: rgba(0,0,0,0.87);
+}
+
+.task-list md-list-item.task.md-2-line:hover .md-list-item-text p {
+  color: rgba(0,0,0,0.54)
+}
+
+/*.task:hover .md-list-item-text p {
+  color: rgba(0, 0, 0, )
+}*/
+
+.task-list .task:hover md-icon {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.task-list .task:hover md-checkbox.md-primary:not(.md-checked) .md-container .md-icon {
+  border-color: rgba(0,0,0,0.54);
 }
 
 .task:not(.show) {
@@ -336,9 +410,12 @@ agenda .task-list.task-editor-open md-list-item {
   color: #C62828;
 }
 
-html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text h3,
-html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text p,
-html[md-theme="dark"] .task.overdue:not(.completed) .md-list-item-text md-icon {
+html[md-theme="dark"] .task-list > .task.overdue:not(.completed):not(:hover) .md-list-item-text h3,
+html[md-theme="dark"] .task-list > .task.overdue:not(.completed):not(:hover) .md-list-item-text p,
+html[md-theme="dark"] .task-list > .task.overdue:not(.completed):not(:hover) .md-list-item-text md-icon,
+html[md-theme="dark"] :not(.task-list) > .task.overdue:not(.completed) .md-list-item-text h3,
+html[md-theme="dark"] :not(.task-list) > .task.overdue:not(.completed) .md-list-item-text p,
+html[md-theme="dark"] :not(.task-list) > .task.overdue:not(.completed) .md-list-item-text md-icon {
   color: #FFCDD2;
 }
 
@@ -354,4 +431,38 @@ html[md-theme="dark"] md-list-item.task.completed .md-list-item-text h3 {
 md-dialog tag-color-picker {
   display: flex;
   flex-direction: column;
+}
+
+.agendas-wallpaper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-color: #F5F5F5;
+  background-size: cover;
+  background-position: center;
+}
+
+[md-theme="dark"] .agendas-wallpaper {
+  background-color: #212121;
+}
+
+.wallpaper-tile {
+  background-size: cover;
+  background-position: center;
+}
+
+.md-dialog-container task-creator .autocomplete {
+  z-index: 81;
+}
+
+wallpaper-picker md-input-container .md-errors-spacer {
+  display: none;
+}
+
+wallpaper-picker md-input-container {
+  margin: 0;
+  margin-left: 1em;
 }

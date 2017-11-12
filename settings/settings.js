@@ -18,6 +18,11 @@ angular.module("agendasApp")
         location.reload(false);
       };
 
+      $scope.applyEnableOffline = function(enableOffline) {
+        localStorage.agendasEnableOffline = JSON.stringify(enableOffline);
+        location.reload(false);
+      };
+
       $scope.showChangeUsernameDialog = function(username) {
         $mdDialog.show({
           template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><username-dialog></username-dialog></md-dialog>"
@@ -141,24 +146,29 @@ angular.module("agendasApp")
           case "settings":
             $scope.selectedTab = 0;
             break;
-          case "settings.appearance":
+          case "settings.account":
             $scope.selectedTab = 1;
             break;
-          case "settings.account":
+          case "settings.apps":
             $scope.selectedTab = 2;
             break;
-          case "settings.apps":
-            $scope.selectedTab = 3;
-            break;
           case "settings.credits":
-            $scope.selectedTab = 4;
+            $scope.selectedTab = 3;
             break;
         }
       });
 
       $scope.$watch("selectedTab", function(tab) {
-        var tabs = ["settings", "settings.appearance", "settings.account", "settings.apps", "settings.credits"]
+        var tabs = ["settings", "settings.account", "settings.apps", "settings.credits"]
         $state.go(tabs[tab]);
       });
+
+      $scope.openWallpaperPicker = function() {
+        $mdDialog.show({
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><wallpaper-picker></wallpaper-picker></md-dialog>",
+          targetEvent: event,
+          clickOutsideToClose: true
+        });
+      };
     }
   })

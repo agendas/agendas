@@ -29,5 +29,10 @@ angular.module("agendasApp")
       icon: "dns",
       title: "Firebase",
       url: "https://firebase.google.com/"
+    },
+    {
+      icon: "collections",
+      title: "Wikimedia Commons",
+      url: "https://commons.wikimedia.org"
     }
   ])

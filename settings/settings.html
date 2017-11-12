@@ -8,7 +8,7 @@
           <md-icon ng-if="!$root.user.photoURL" class="md-avatar-icon">person</md-icon>
         </md-card-avatar>
         <md-card-header-text>
-          <span class="md-title">{{$root.username || "No Username"}}</span>
+          <span class="md-title">{{$root.username || ($root.isOffline ? "Offline" : "No Username")}}</span>
           <span class="md-subhead">{{$root.user.email}}</span>
         </md-card-header-text>
       </md-card-header>
@@ -25,13 +25,20 @@
             <md-list-item>
               <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
             </md-list-item>
+            <md-list-item class="md-2-line" ng-click="openWallpaperPicker()">
+              <div class="md-list-item-text">
+                <h3>Change background image</h3>
+                <p>Give Agendas a new look.</p>
+              </div>
+            </md-list-item>
             <md-list-item class="md-2-line">
               <div class="md-list-item-text">
-                <h3>Show completed tasks in all agendas</h3>
-                <p>This setting can be overriden.</p>
+                <h3>Dark theme (experimental)</h3>
+                <p>Enjoy the dark side, stealth, and also bugs? Flick this switch!</p>
               </div>
-              <md-switch class="md-secondary" ng-model="$root.showCompleted" ng-change="applyShowCompleted($root.showCompleted)"></md-switch>
+              <md-switch class="md-secondary" ng-model="$root.darkTheme" ng-change="applyDarkTheme($root.darkTheme)"></md-switch>
             </md-list-item>
+            <md-subheader ng-if="developer">Developer</md-subheader>
             <md-list-item class="md-2-line" ng-if="developer">
               <div class="md-list-item-text">
                 <h3>Show developer console</h3>
@@ -42,28 +49,7 @@
           </md-tab-body>
         </md-tab>
 
-        <md-tab>
-          <md-tab-label>
-            <md-icon>brush</md-icon>
-            Appearance
-          </md-tab-label>
-          <md-tab-body>
-            <md-list>
-              <md-list-item>
-                <p md-colors="{color: 'grey'}">These settings only apply to this device.</p>
-              </md-list-item>
-              <md-list-item class="md-2-line">
-                <div class="md-list-item-text">
-                  <h3>Dark theme (experimental)</h3>
-                  <p>Enjoy the dark side, stealth, and also bugs? Flick this switch!</p>
-                </div>
-                <md-switch class="md-secondary" ng-model="$root.darkTheme" ng-change="applyDarkTheme($root.darkTheme)"></md-switch>
-              </md-list-item>
-            </md-list>
-          </md-tab-body>
-        </md-tab>
-
-        <md-tab>
+        <md-tab ng-disabled="$root.isOffline">
           <md-tab-label>
             <md-icon>person</md-icon>
             Account
@@ -92,7 +78,7 @@
           </md-tab-body>
         </md-tab>
 
-        <md-tab>
+        <md-tab ng-disabled="$root.isOffline">
           <md-tab-label>
             <md-icon>apps</md-icon>
             Apps

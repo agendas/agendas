@@ -64,3 +64,22 @@ function taskComparator(a, b) {
 
   return 0;
 }
+
+angular.module("agendasApp")
+  .directive("onScrollBottom", function() {
+    return {
+      restrict: "A",
+      scope: {
+        onScrollBottom: "&onScrollBottom"
+      },
+      controller: function($scope, $element) {
+        $element[0].addEventListener("scroll", function(event) {
+          if (event.target.scrollTop + 10 >= (event.target.scrollHeight - event.target.offsetHeight)) {
+            window.requestAnimationFrame(function() {
+              $scope.onScrollBottom({$event: event});
+            });
+          }
+        });
+      }
+    };
+  })
