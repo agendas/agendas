@@ -12,7 +12,13 @@ angular.module("agendasApp")
       $scope.selectNone = function() {
         $scope.wallpaper = {};
       };
+      $scope.selectCustom = function() {
+        $scope.wallpaper = {custom: true, url: ""};
+      };
       $scope.select = function() {
+        if ($scope.wallpaper.url) {
+          $scope.wallpaper.url = encodeURI($scope.wallpaper.url);
+        }
         $rootScope.wallpaper = $scope.wallpaper;
         localStorage.agendasWallpaper = JSON.stringify($scope.wallpaper);
         $mdDialog.hide();

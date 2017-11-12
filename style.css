@@ -153,7 +153,7 @@ html[md-theme="dark"] .add-task:not(md-list-item) {
   background-image: linear-gradient(to top, black, rgba(0, 0, 0, 0.4) 60%, transparent);
 }
 
-.add-task input {
+task-creator input {
   color: inherit;
   background-color: inherit;
 }
@@ -442,6 +442,7 @@ md-dialog tag-color-picker {
   z-index: -1;
   background-color: #F5F5F5;
   background-size: cover;
+  background-position: center;
 }
 
 [md-theme="dark"] .agendas-wallpaper {
@@ -451,4 +452,17 @@ md-dialog tag-color-picker {
 .wallpaper-tile {
   background-size: cover;
   background-position: center;
+}
+
+.md-dialog-container task-creator .autocomplete {
+  z-index: 81;
+}
+
+wallpaper-picker md-input-container .md-errors-spacer {
+  display: none;
+}
+
+wallpaper-picker md-input-container {
+  margin: 0;
+  margin-left: 1em;
 }

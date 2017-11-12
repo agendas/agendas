@@ -1,4 +1,4 @@
-var version = 'v3.2b::';
+var version = 'v3.2::';
 
 self.addEventListener("install", function(event) {
   console.log("WORKER: Installing service worker...");

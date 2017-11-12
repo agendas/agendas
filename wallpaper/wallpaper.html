@@ -8,10 +8,18 @@
       </md-grid-tile-footer>
     </md-grid-tile>
     <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(\'' + ((wallpaper.collection || wallpaper.image) === key ? $root.getWallpaperURL(wallpaper) : (collection.images ? $root.getWallpaperURL({collection: key}) : $root.getWallpaperURL({image: key}))) + '\')'}">
-      <md-grid-tile-footer ng-show="collection.images" ng-style="{'background-color': (wallpaper.collection || wallpaper.image) === key ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}" style="padding-left: 1em;">
+      <md-grid-tile-footer ng-show="collection.images || (wallpaper.collection || wallpaper.image) === key" ng-style="{'background-color': (wallpaper.collection || wallpaper.image) === key ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}" style="padding-left: 1em;">
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) !== key">access_time</md-icon>
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) === key">done</md-icon>
         <span ng-if="(wallpaper.collection || wallpaper.image) === key">Selected</span>
+      </md-grid-tile-footer>
+    </md-grid-tile>
+    <md-grid-tile ng-click="selectCustom()" style="background-color: rgba(255, 255, 255, 0.2);">
+      <md-icon style="font-size: 2em;">link</md-icon>
+      <md-grid-tile-footer style="padding-left: 1em;" ng-style="wallpaper.custom ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}">
+        <span ng-if="!wallpaper.custom">Custom URL</span>
+        <md-icon ng-if="wallpaper.custom">done</md-icon>
+        <span ng-if="wallpaper.custom">Selected</span>
       </md-grid-tile-footer>
     </md-grid-tile>
   </md-grid-list>
@@ -34,9 +42,14 @@
     <md-option ng-if="wallpapers[wallpaper.collection].images.sunset" ng-value="wallpapers[wallpaper.collection].images.sunset">Sunset</md-option>
     <md-option ng-if="wallpapers[wallpaper.collection].images.night" ng-value="wallpapers[wallpaper.collection].images.night">Night</md-option>
   </md-select>
-  <span ng-if="wallpaper && !wallpaper.collection">{{images[wallpaper.image].name}}</span>
-  <md-button ng-class="{'md-accent': viewingCredits}" class="md-icon-button" ng-if="wallpaper" ng-click="viewImageCredits()"><md-icon>info</md-icon></md-button>
-  <span flex></span>
+  <span ng-if="wallpaper && !wallpaper.collection && !wallpaper.custom">{{images[wallpaper.image].name}}</span>
+  <span ng-if="wallpaper.custom">Custom URL </span>
+  <md-button ng-class="{'md-accent': viewingCredits}" class="md-icon-button" ng-if="wallpaper.collection || wallpaper.image" ng-click="viewImageCredits()"><md-icon>info</md-icon></md-button>
+  <span flex ng-if="!wallpaper.custom"></span>
+  <md-input-container flex ng-if="wallpaper.custom" style="vertical-align: middle;">
+    <label>Wallpaper URL</label>
+    <input placeholder="https://example.com" type="url" ng-model="wallpaper.url" />
+  </md-input-container>
   <md-button class="md-primary" ng-click="cancel()">Cancel</md-button>
   <md-button class="md-accent" ng-click="select()">Select</md-button>
 </md-dialog-actions>

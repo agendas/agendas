@@ -73,6 +73,8 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
         firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").once("value").then(function(data) {
           if (!data.val()) {
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog></setup-dialog></md-dialog>"});
+          } else if (data.val() !== "3.2") {
+            $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog update-notes='true'></setup-dialog></md-dialog>"});
           }
         });
 
@@ -189,7 +191,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
           image = collection.night;
         }
         return wallpapers.images[image].url;
-      } else {
+      } else if (wallpaper.custom) {
         return wallpaper.url;
       }
     };
@@ -198,7 +200,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       $rootScope.wallpaperURL = $rootScope.getWallpaperURL($rootScope.wallpaper);
     };
 
-    $scope.$watch("$root.wallpaper.collection + '_' + $root.wallpaper.image", $scope.refreshWallpaper);
+    $scope.$watch("$root.wallpaper.collection + '_' + $root.wallpaper.image + '_' + $root.wallpaper.custom", $scope.refreshWallpaper);
     $scope.$watch(function() {
       return new Date().getHours();
     }, $scope.refreshWallpaper);
