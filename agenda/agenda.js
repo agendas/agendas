@@ -315,15 +315,14 @@ angular.module("agendasApp")
 
                   $scope.completedTasksArray.splice(start, 0, data.id);
                 }
-
-                $scope.completed[data.id] = data.data().completed;
-                $scope.tasks[data.id] = data.data();
-              } else if (change.type === "removed") {
-                $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
-                //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                delete $scope.tasks[data.id];
-                delete $scope.completed[data.id];
               }
+              $scope.completed[data.id] = data.data().completed;
+              $scope.tasks[data.id] = data.data();
+            } else if (change.type === "removed") {
+              $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
+              //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
+              delete $scope.tasks[data.id];
+              delete $scope.completed[data.id];
             }
           });
           $scope.refreshSoon();
