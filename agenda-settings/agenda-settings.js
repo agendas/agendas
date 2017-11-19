@@ -23,20 +23,22 @@ angular.module("agendasApp")
         }
       };
 
+      $scope.toAdd = {username: "", role: ""};
+
       this.addPermission = function() {
         var permissions = $scope.permissions;
-        firebase.database().ref("/usernames").child($scope.usernameToAdd).once("value").then(function(data) {
+        firebase.database().ref("/usernames").child($scope.toAdd.username).once("value").then(function(data) {
           if (data.exists() && !permissions[data.val()]) {
             var update = {};
             update[data.val()] = true;
-            if ($scope.roleToAdd === "manager") {
+            if ($scope.toAdd.role === "manager") {
               $scope.permissionsRef.doc(data.val()).set({
                 manage: true,
                 complete_tasks: true,
                 edit_tags: true,
                 edit_tasks: true
               });
-            } else if ($scope.roleToAdd === "editor") {
+            } else if ($scope.toAdd.role === "editor") {
               $scope.permissionsRef.doc(data.val()).set({
                 complete_tasks: true,
                 edit_tags: true,
@@ -44,8 +46,7 @@ angular.module("agendasApp")
               });
             }
             $scope.agendaRef.update(update).then(function() {
-              $scope.usernameToAdd = "";
-              $scope.roleToAdd = null;
+              $scope.toAdd = {username: "", role: null};
               $timeout();
             });
             $scope.usernameInvalid && $timeout();
