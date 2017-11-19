@@ -19,14 +19,14 @@
   <md-list-item ng-if="permissions[$root.user.uid] === 'manager'">
     <md-input-container style="margin: 0;" flex md-is-error="usernameInvalid">
       <label>Username</label>
-      <input type="text" ng-model="usernameToAdd" />
+      <input type="text" ng-model="toAdd.username" />
     </md-input-container>
-    <md-select style="margin: 0;" class="md-secondary" ng-model="roleToAdd">
+    <md-select style="margin: 0;" class="md-secondary" ng-model="toAdd.role">
       <md-option value="manager">Can manage</md-option>
       <md-option value="editor">Can edit</md-option>
       <md-option value="viewer">Can view</md-option>
     </md-select>
-    <md-button class="md-secondary md-icon-button md-accent" ng-click="$ctrl.addPermission()" ng-disabled="!roleToAdd"><md-icon>person_add</md-icon></md-button>
+    <md-button class="md-secondary md-icon-button md-accent" ng-click="$ctrl.addPermission()" ng-disabled="!toAdd.username || !toAdd.role"><md-icon>person_add</md-icon></md-button>
   </md-list-item>
   <md-divider></md-divider>
   <md-list-item ng-if="permissions[$root.user.uid] === 'manager'">

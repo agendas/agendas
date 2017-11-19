@@ -28,11 +28,15 @@ angular.module("agendasApp")
         $scope.permissions = {};
         $scope.categories = [];
         $scope.tasks = {};
+        $scope.currentTasks = $scope.tasks;
         $scope.tasksArray = [];
         $scope.completed = {};
         $scope.completedTasksArray = [];
         $scope.unsubscribe = [];
         $scope.unsubcribeFilter = null;
+        $scope.filteredTasksArray = [];
+        $scope.filteredTasks = {};
+        $scope.completedTasks = {};
         //$scope.completedTasks = [];
 
         $scope.selectedTask = null;
@@ -118,6 +122,7 @@ angular.module("agendasApp")
 
       $scope.tasks = {};
       $scope.tasksArray = [];
+      $scope.currentTasks = $scope.tasks;
       $scope.completed = {};
       //$scope.completedTasks = [];
 
@@ -240,7 +245,7 @@ angular.module("agendasApp")
           tasks.docChanges.forEach(function(change) {
             var data = change.doc;
             if (change.type === "added") {
-              $scope.tasks[data.id] = data.data();
+              $scope.completedTasks[data.id] = data.data();
               $scope.completed[data.id] = !!data.data().completed;
               if ($scope.completedTasksArray.length < 1) {
                 $scope.completedTasksArray.push(data.id);
@@ -256,7 +261,7 @@ angular.module("agendasApp")
                   }
 
                   var index = Math.floor((start + end) / 2);
-                  var task = $scope.tasks[$scope.completedTasksArray[index]];
+                  var task = $scope.completedTasks[$scope.completedTasksArray[index]];
                   var compare = -taskComparator(task, toAdd);
 
                   if (compare > 0) {
@@ -273,18 +278,18 @@ angular.module("agendasApp")
                 $scope.completedTasksArray.splice(start, 0, data.id);
               }
             } else if (change.type === "modified") {
-              var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+              var oldDeadline = $scope.completedTasks[data.id].deadline && new Date($scope.completedTasks[data.id].deadline);
               var newDeadline = data.data().deadline && new Date(data.data().deadline);
 
               if (
                 (oldDeadline && !newDeadline) ||
                 (newDeadline && !oldDeadline) ||
                 (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
-                $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
-                $scope.tasks[data.id].completed != data.data().completed ||
-                ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+                $scope.completedTasks[data.id].deadlineTime != data.data().deadlineTime ||
+                $scope.completedTasks[data.id].completed != data.data().completed ||
+                ($scope.completedTasks[data.id].priority || 0) !== (data.data().priority || 0)
               ) {
-                $scope.completedTasksArray.splice($scope.tasksArray.indexOf(data.id), 1);
+                $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
 
                 if ($scope.completedTasksArray.length < 1) {
                   $scope.completedTasksArray.push(data.id);
@@ -299,7 +304,7 @@ angular.module("agendasApp")
                     }
 
                     var index = Math.floor((start + end) / 2);
-                    var task = $scope.tasks[$scope.completedTasksArray[index]];
+                    var task = $scope.completedTasks[$scope.completedTasksArray[index]];
                     var compare = -taskComparator(task, toAdd);
 
                     if (compare > 0) {
@@ -317,11 +322,11 @@ angular.module("agendasApp")
                 }
               }
               $scope.completed[data.id] = data.data().completed;
-              $scope.tasks[data.id] = data.data();
+              $scope.completedTasks[data.id] = data.data();
             } else if (change.type === "removed") {
               $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
               //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-              delete $scope.tasks[data.id];
+              delete $scope.completedTasks[data.id];
               delete $scope.completed[data.id];
             }
           });
@@ -333,6 +338,7 @@ angular.module("agendasApp")
         if (!$scope.completeRefs) {
           $scope.completeRefs = [];
           $scope.completedTasksArray = [];
+          $scope.completedTasks = {};
           $scope.paginateCompletedTasks();
         }
 
@@ -342,7 +348,7 @@ angular.module("agendasApp")
           fullscreen: $mdMedia("sm") || $mdMedia("xs"),
           locals: {
             completedTasksArray: $scope.completedTasksArray,
-            tasks: $scope.tasks,
+            tasks: $scope.completedTasks,
             completed: $scope.completed,
             completeTask: $scope.completeTask,
             getTags: $scope.getTags,
@@ -386,11 +392,11 @@ angular.module("agendasApp")
       };
 
       $scope.getTasksArray = function() {
-        return $scope.filteredTasks || $scope.tasksArray;
+        return $scope.filteredTasksArray || $scope.tasksArray;
       };
 
       $scope.completeTask = function(taskKey) {
-        var task = $scope.tasks[taskKey];
+        var task = $scope.tasks[taskKey] || $scope.completedTasks[taskKey];
         if (task.repeat && $scope.completed[taskKey]) {
           var day = 24 * 60 * 60 * 1000;
           var next = null;
@@ -564,7 +570,9 @@ angular.module("agendasApp")
 
         if ($scope.filter && !($scope.filter.filter === "everything" && $scope.filter.completion === false)) {
           $scope.filteredRef = $scope.tasksRef;
-          $scope.filteredTasks = [];
+          $scope.filteredTasksArray = [];
+          $scope.filteredTasks = {};
+          $scope.currentTasks = $scope.filteredTasks;
 
           if ($scope.filter.filter === "deadline") {
             var today = new Date();
@@ -618,23 +626,23 @@ angular.module("agendasApp")
             tasks.docChanges.forEach(function(change) {
               var data = change.doc;
               if (change.type === "added") {
-                $scope.tasks[data.id] = data.data();
+                $scope.filteredTasks[data.id] = data.data();
                 $scope.completed[data.id] = !!data.data().completed;
-                if ($scope.filteredTasks.length < 1) {
-                  $scope.filteredTasks.push(data.id);
+                if ($scope.filteredTasksArray.length < 1) {
+                  $scope.filteredTasksArray.push(data.id);
                 } else {
                   var start = 0;
-                  var end = $scope.filteredTasks.length - 1;
+                  var end = $scope.filteredTasksArray.length - 1;
                   var deadline = new Date(data.data().deadline);
                   var toAdd = data.data();
 
                   while (end >= start) {
-                    if (end < 0 || start > $scope.filteredTasks.length) {
+                    if (end < 0 || start > $scope.filteredTasksArray.length) {
                       break;
                     }
 
                     var index = Math.floor((start + end) / 2);
-                    var task = $scope.tasks[$scope.filteredTasks[index]];
+                    var task = $scope.filteredTasks[$scope.filteredTasksArray[index]];
                     var compare = taskComparator(task, toAdd);
 
                     if (compare > 0) {
@@ -648,36 +656,36 @@ angular.module("agendasApp")
                     }
                   }
 
-                  $scope.filteredTasks.splice(start, 0, data.id);
+                  $scope.filteredTasksArray.splice(start, 0, data.id);
                 }
               } else if (change.type === "modified") {
-                var oldDeadline = $scope.tasks[data.id].deadline && new Date($scope.tasks[data.id].deadline);
+                var oldDeadline = $scope.filteredTasks[data.id].deadline && new Date($scope.filteredTasks[data.id].deadline);
                 var newDeadline = data.data().deadline && new Date(data.data().deadline);
 
                 if (
                   (oldDeadline && !newDeadline) ||
                   (newDeadline && !oldDeadline) ||
                   (oldDeadline && oldDeadline.getTime()) !== (newDeadline && newDeadline.getTime()) ||
-                  $scope.tasks[data.id].deadlineTime != data.data().deadlineTime ||
-                  $scope.tasks[data.id].completed != data.data().completed ||
-                  ($scope.tasks[data.id].priority || 0) !== (data.data().priority || 0)
+                  $scope.filteredTasks[data.id].deadlineTime != data.data().deadlineTime ||
+                  $scope.filteredTasks[data.id].completed != data.data().completed ||
+                  ($scope.filteredTasks[data.id].priority || 0) !== (data.data().priority || 0)
                 ) {
-                  $scope.filteredTasks.splice($scope.filteredTasks.indexOf(data.id), 1);
+                  $scope.filteredTasksArray.splice($scope.filteredTasksArray.indexOf(data.id), 1);
 
-                  if ($scope.filteredTasks.length < 1) {
-                    $scope.filteredTasks.push(data.id);
+                  if ($scope.filteredTasksArray.length < 1) {
+                    $scope.filteredTasksArray.push(data.id);
                   } else {
                     var start = 0;
-                    var end = $scope.filteredTasks.length - 1;
+                    var end = $scope.filteredTasksArray.length - 1;
                     var toAdd = data.data();
 
                     while (end >= start) {
-                      if (end < 0 || start > $scope.filteredTasks.length) {
+                      if (end < 0 || start > $scope.filteredTasksArray.length) {
                         break;
                       }
 
                       var index = Math.floor((start + end) / 2);
-                      var task = $scope.tasks[$scope.filteredTasks[index]];
+                      var task = $scope.filteredTasks[$scope.filteredTasksArray[index]];
                       var compare = taskComparator(task, toAdd);
 
                       if (compare > 0) {
@@ -691,19 +699,16 @@ angular.module("agendasApp")
                       }
                     }
 
-                    $scope.filteredTasks.splice(start, 0, data.id);
+                    $scope.filteredTasksArray.splice(start, 0, data.id);
                   }
                 }
 
                 $scope.completed[data.id] = data.data().completed;
-                $scope.tasks[data.id] = data.data();
-                console.log($scope.tasks);
-                console.log(data.data());
-                console.log(data.id);
+                $scope.filteredTasks[data.id] = data.data();
               } else if (change.type === "removed") {
-                $scope.filteredTasks.splice($scope.filteredTasks.indexOf(data.id), 1);
+                $scope.filteredTasksArray.splice($scope.filteredTasksArray.indexOf(data.id), 1);
                 //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
-                delete $scope.tasks[data.id];
+                delete $scope.filteredTasks[data.id];
                 delete $scope.completed[data.id];
               }
             });
@@ -712,7 +717,9 @@ angular.module("agendasApp")
         } else {
           $scope.filter = null;
           $scope.filteredRef = null;
-          $scope.filteredTasks = null;
+          $scope.filteredTasksArray = null;
+          $scope.filteredTasks = {};
+          $scope.currentTasks = $scope.tasks;
         }
       };
 
