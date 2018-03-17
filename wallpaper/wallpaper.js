@@ -38,5 +38,30 @@ angular.module("agendasApp")
           });
         }
       };
+
+      $scope.getWallpaperThumbnail = function(wallpaper) {
+        var hour = new Date().getHours();
+
+        if (wallpaper.image) {
+          return wallpapers.images[wallpaper.image].thumbnail || wallpapers.images[wallpaper.image].url;
+        } else if (wallpaper.collection) {
+          var collection = wallpapers.options[wallpaper.collection].images;
+          var image;
+          if (hour >= 6 && hour < 8 && collection.dawn) {
+            image = collection.dawn;
+          } else if (hour >= 8 && hour < 18) {
+            image = collection.day;
+          } else if (hour === 7) {
+            image = collection.day;
+          } else if (hour >= 18 && hour < 21 && collection.sunset) {
+            image = collection.sunset;
+          } else {
+            image = collection.night;
+          }
+          return wallpapers.images[image].thumbnail || wallpapers.images[image].url;
+        } else if (wallpaper.custom) {
+          return wallpaper.url;
+        }
+      };
     }
   })

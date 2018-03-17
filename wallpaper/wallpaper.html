@@ -7,7 +7,7 @@
         <span ng-if="!(wallpaper.collection || wallpaper.image)">Selected</span>
       </md-grid-tile-footer>
     </md-grid-tile>
-    <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(\'' + ((wallpaper.collection || wallpaper.image) === key ? $root.getWallpaperURL(wallpaper) : (collection.images ? $root.getWallpaperURL({collection: key}) : $root.getWallpaperURL({image: key}))) + '\')'}">
+    <md-grid-tile ng-click="selectOption(key, collection)" ng-repeat="(key, collection) in wallpapers" class="wallpaper-tile" ng-style="{'background-image': 'url(\'' + ((wallpaper.collection || wallpaper.image) === key ? getWallpaperThumbnail(wallpaper) : (collection.images ? getWallpaperThumbnail({collection: key}) : getWallpaperThumbnail({image: key}))) + '\')'}">
       <md-grid-tile-footer ng-show="collection.images || (wallpaper.collection || wallpaper.image) === key" ng-style="{'background-color': (wallpaper.collection || wallpaper.image) === key ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}" style="padding-left: 1em;">
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) !== key">access_time</md-icon>
         <md-icon ng-if="(wallpaper.collection || wallpaper.image) === key">done</md-icon>
@@ -16,7 +16,7 @@
     </md-grid-tile>
     <md-grid-tile ng-click="selectCustom()" style="background-color: rgba(255, 255, 255, 0.2);">
       <md-icon style="font-size: 2em;">link</md-icon>
-      <md-grid-tile-footer style="padding-left: 1em;" ng-style="wallpaper.custom ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}">
+      <md-grid-tile-footer style="padding-left: 1em;" ng-style="{'background-color': wallpaper.custom ? 'rgba(0, 0, 255, 0.36)' : 'rgba(0, 0, 0, 0.36)'}">
         <span ng-if="!wallpaper.custom">Custom URL</span>
         <md-icon ng-if="wallpaper.custom">done</md-icon>
         <span ng-if="wallpaper.custom">Selected</span>
