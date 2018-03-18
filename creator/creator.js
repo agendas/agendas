@@ -16,6 +16,12 @@ angular.module("agendasApp")
         yearly: "year", "each year": "year", "every year": "year"
       }));
 
+      var completed = ["complete", "completed", "done", "already", "check", "checkmark", "checked", "hide", "hidden"];
+
+      var priorities = new Map(Object.entries({
+        none: 0, low: 1, medium: 2, high: 3, urgent: 4, important: 4, asap: 4, required: 4, needed: 4
+      }));
+
       var nextId = 1;
 
       $scope.tags = this.tags;
@@ -26,6 +32,8 @@ angular.module("agendasApp")
       $scope.selectedMatch = null;
       $scope.hasDeadlineChip = false;
       $scope.hasRepeatChip = false;
+      $scope.hasCompletedChip = false;
+      $scope.hasPriorityChip = false;
       $scope.tagChips = {};
 
       $scope.addMatch = function(match) {
@@ -80,6 +88,22 @@ angular.module("agendasApp")
             }
           });
         };
+
+        if (!$scope.hasCompletedChip) {
+          completed.forEach(function(completeText) {
+            if (text.toLowerCase().endsWith(completeText)) {
+              $scope.addMatch({type: "completed", icon: "done", text: completeText});
+            }
+          });
+        }
+
+        if (!$scope.hasPriorityChip) {
+          priorities.forEach(function(priority, priorityText) {
+            if (text.toLowerCase().endsWith(priorityText)) {
+              $scope.addMatch({type: "priority", icon: "error", text: priorityText, priority: priority});
+            }
+          });
+        }
       };
 
       $scope.hasFocus = function() {
@@ -105,6 +129,10 @@ angular.module("agendasApp")
           $scope.tagChips[match.text] = true;
         } else if (match.type === "repeat") {
           $scope.hasRepeatChip = true;
+        } else if (match.type === "completed") {
+          $scope.hasCompletedChip = true;
+        } else if (match.type === "priority") {
+          $scope.hasPriorityChip = true;
         }
 
         $scope.items[index].text = $scope.items[index].text.slice(0, -1 * (match.text.length));
@@ -121,6 +149,12 @@ angular.module("agendasApp")
         }
         if ($scope.items[index].type === "repeat") {
           $scope.hasRepeatChip = false;
+        }
+        if ($scope.items[index].type === "completed") {
+          $scope.hasCompletedChip = false;
+        }
+        if ($scope.items[index].type === "priority") {
+          $scope.hasPriorityChip = false;
         }
         $scope.items.splice(index, 1);
         if ($scope.items.length > 0) {
@@ -292,6 +326,10 @@ angular.module("agendasApp")
               task.deadline.setSeconds(0);
               task.deadline.setMilliseconds(0);
             }
+          } else if (item.type === "completed") {
+            task.completed = true;
+          } else if (item.type === "priority") {
+            task.priority = item.priority;
           }
         });
 
@@ -301,6 +339,8 @@ angular.module("agendasApp")
         $scope.matches = [];
         $scope.hasDeadlineChip = false;
         $scope.hasRepeatChip = false;
+        $scope.hasCompletedChip = false;
+        $scope.hasPriorityChip = false;
         $scope.tagChips = {};
         $scope.selectedMatch = null;
 
