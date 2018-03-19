@@ -169,7 +169,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router", "hc.marked"])
       return {"background-image": background};
     };
 
-    $rootScope.wallpaper = localStorage.agendasWallpaper ? JSON.parse(localStorage.agendasWallpaper) : {collection: "san-francisco"};
+    $rootScope.wallpaper = localStorage.agendasWallpaper ? JSON.parse(localStorage.agendasWallpaper) : {collection: "new-york"};
 
     $rootScope.getWallpaperURL = function(wallpaper) {
       var hour = new Date().getHours();
