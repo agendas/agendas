@@ -1,7 +1,7 @@
 <md-dialog-content>
   <div class="md-dialog-content">
     <h3 class="md-title">Notes for "{{$ctrl.name}}"</h3>
-    <p style="white-space: pre-wrap; line-height: 150%;">{{$ctrl.notes}}</p>
+    <div style="white-space: pre-wrap; line-height: 150%;" marked="$ctrl.notes" opts="{sanitize: true, gfm: true, tables: true}"></div>
   </div>
 </md-dialog-content>
 <md-dialog-actions>

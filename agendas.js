@@ -1,4 +1,4 @@
-angular.module("agendasApp", ["ngMaterial", "ui.router"])
+angular.module("agendasApp", ["ngMaterial", "ui.router", "hc.marked"])
   .config(($stateProvider) => {
     $stateProvider.state({
       name: "home",
@@ -51,6 +51,11 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       component: "consoleDetail"
     });
     $stateProvider.state({
+      name: "all",
+      url: "/all",
+      component: "all"
+    });
+    $stateProvider.state({
       name: "agenda",
       url: "/:agenda",
       component: "agenda"
@@ -73,7 +78,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
         firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").once("value").then(function(data) {
           if (!data.val()) {
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog></setup-dialog></md-dialog>"});
-          } else if (data.val() !== "3.2") {
+          } else if (data.val() !== "3.3") {
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog update-notes='true'></setup-dialog></md-dialog>"});
           }
         });
@@ -169,7 +174,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router"])
       return {"background-image": background};
     };
 
-    $rootScope.wallpaper = localStorage.agendasWallpaper ? JSON.parse(localStorage.agendasWallpaper) : {collection: "san-francisco"};
+    $rootScope.wallpaper = localStorage.agendasWallpaper ? JSON.parse(localStorage.agendasWallpaper) : {collection: "new-york"};
 
     $rootScope.getWallpaperURL = function(wallpaper) {
       var hour = new Date().getHours();

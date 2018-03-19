@@ -97,12 +97,14 @@ md-list-item.selected md-icon {
   color: white;
 }
 
-agenda div[md-whiteframe="4"] {
+agenda div[md-whiteframe="4"],
+all div[md-whiteframe="4"] {
   border-top-left-radius:  10px;
   border-top-right-radius: 10px;
 }
 
-agenda md-tabs md-tabs-canvas {
+agenda md-tabs md-tabs-canvas,
+all md-tabs md-tabs-canvas {
   border-bottom-color: rgba(0, 0, 0, 0.15);
   border-bottom-style: solid;
   border-bottom-width: 1px;
@@ -146,7 +148,7 @@ md-nav-bar ul._md-nav-bar-list {
 }
 
 .add-task:not(md-list-item) {
-  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, transparent);
+  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, rgba(255, 255, 255, 0));
 }
 
 html[md-theme="dark"] .add-task:not(md-list-item) {
@@ -163,21 +165,23 @@ task-creator {
   width: 100%;
 }
 
-agenda div[md-whiteframe] {
+agenda div[md-whiteframe],
+all div[md-whiteframe] {
   background-color: transparent;
   box-shadow: none;
 }
 
-agenda md-list.task-list:not(.no-padding), agenda tag-editor, agenda agenda-settings {
+agenda md-list.task-list:not(.no-padding), agenda tag-editor, agenda agenda-settings,
+all md-list.task-list:not(.no-padding), all tag-editor, all agenda-settings {
   display: block;
   padding-bottom: 72px;
 }
 
-agenda md-nav-bar > .md-nav-bar {
+agenda md-nav-bar > .md-nav-bar,
+all md-nav-bar > .md-nav-bar {
   position: -webkit-sticky;
   position: sticky;
   top: 10px;
-  background-color: rgba(255, 255, 255, 0.7);
   border-bottom: none;
   border-radius: 10px;
   z-index: 2;
@@ -185,7 +189,13 @@ agenda md-nav-bar > .md-nav-bar {
   -webkit-backdrop-filter: blur(10px);
 }
 
-html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
+agenda md-nav-bar.md-default-theme > .md-nav-bar,
+all md-nav-bar.md-default-theme > .md-nav-bar {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar,
+html[md-theme="dark"] all md-nav-bar > .md-nav-bar {
   background-color: rgba(0, 0, 0, 0.7);
 }
 

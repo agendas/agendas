@@ -7,45 +7,47 @@ angular.module("agendasApp")
       tagsObject: "="
     },
     controller: function($scope, $mdDialog) {
-      $scope.filter = Object.assign({}, this.filter);
-      $scope.hadFilter = !!this.filter;
+      this.$onInit = () => {
+        $scope.filter = Object.assign({}, this.filter);
+        $scope.hadFilter = !!this.filter;
 
-      if (!$scope.hadFilter) {
-        $scope.filter = {filter: "deadline", type: "today", tags: []};
-      }
-
-      /*$scope.$watch("filter.filter", function(newValue, oldValue) {
-        if (oldValue) {
-          $scope.filter.type = null;
-          $scope.filter.from = null;
-          $scope.filter.to   = null;
+        if (!$scope.hadFilter) {
+          $scope.filter = {filter: "deadline", type: "today", tags: []};
         }
-      });*/
 
-      $scope.cancel = $mdDialog.cancel;
-      $scope.remove = function() {
-        $mdDialog.hide(null);
-      };
+        /*$scope.$watch("filter.filter", function(newValue, oldValue) {
+          if (oldValue) {
+            $scope.filter.type = null;
+            $scope.filter.from = null;
+            $scope.filter.to   = null;
+          }
+        });*/
 
-      $scope.apply = function() {
-        $mdDialog.hide($scope.filter);
-      };
+        $scope.cancel = $mdDialog.cancel;
+        $scope.remove = function() {
+          $mdDialog.hide(null);
+        };
 
-      var tags = this.tagsArray;
+        $scope.apply = function() {
+          $mdDialog.hide($scope.filter);
+        };
 
-      $scope.getMdColor = function(color) {
-        return color === "black" ? {color: "grey-900"} : (color ? {color: color} : {});
-      };
+        var tags = this.tagsArray;
 
-      $scope.getMatchingTags = function(text) {
-        if (text && text.length > 0) {
-          var query = text.toLowerCase();
-          return tags.filter(function(category) {
-            return category.name.toLowerCase().indexOf(query) === 0;
-          })
-        } else {
-          return [];
-        }
+        $scope.getMdColor = function(color) {
+          return color === "black" ? {color: "grey-900"} : (color ? {color: color} : {});
+        };
+
+        $scope.getMatchingTags = function(text) {
+          if (text && text.length > 0) {
+            var query = text.toLowerCase();
+            return tags.filter(function(category) {
+              return category.name.toLowerCase().indexOf(query) === 0;
+            })
+          } else {
+            return [];
+          }
+        };
       };
     }
   })

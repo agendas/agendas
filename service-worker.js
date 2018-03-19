@@ -1,4 +1,4 @@
-var version = 'v3.2.1::';
+var version = 'v3.3::';
 
 self.addEventListener("install", function(event) {
   console.log("WORKER: Installing service worker...");
@@ -48,13 +48,15 @@ self.addEventListener("install", function(event) {
       var libraries = [
         "angular-animate.min",
         "angular-aria.min",
+        "angular-marked.min",
         "angular-material.min",
         "angular-messages.min",
         "angular-ui-router.min",
         "angular.min",
         "chrono.min",
         "firebase-firestore",
-        "firebase"
+        "firebase",
+        "marked"
       ];
       directories.forEach(function(directory) {
         var components = directory.split("/");
