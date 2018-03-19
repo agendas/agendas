@@ -21,6 +21,11 @@
       <p>Developer Console</p>
     </md-list-item>
     <md-divider></md-divider>
+    <md-list-item ui-sref="all">
+      <md-icon class="md-avatar-icon" md-colors="{background: 'accent'}">list</md-icon>
+      <p>All Agendas</p>
+    </md-list-item>
+    <md-divider></md-divider>
     <md-list-item ng-class="agendaIsSelected(agenda.id) ? 'selected' : ''" ng-click="selectAgenda(agenda)" ng-show="agenda.name" ng-repeat="agenda in agendas" style="height: 1.25em;">
       <md-icon>list</md-icon>
       <p>{{agenda.name}}</p>

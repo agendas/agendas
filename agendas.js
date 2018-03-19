@@ -51,6 +51,11 @@ angular.module("agendasApp", ["ngMaterial", "ui.router", "hc.marked"])
       component: "consoleDetail"
     });
     $stateProvider.state({
+      name: "all",
+      url: "/all",
+      component: "all"
+    });
+    $stateProvider.state({
       name: "agenda",
       url: "/:agenda",
       component: "agenda"

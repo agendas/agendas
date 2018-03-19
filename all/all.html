@@ -1,0 +1,44 @@
+<agendas-menu-toolbar></agendas-menu-toolbar>
+<div ng-style="{height: mdMedia('md') ? 'calc(100vh - 64px)' : '100vh'}" layout="row" layout-align="center center">
+  <div style="height: 100%;" layout="column" flex-gt-md="60" flex-md="80" flex-sm="90" flex-xs="95">
+    <h1 class="md-display-2" style="margin-top: 0.5em; margin-bottom: 1.5em;">All Agendas</h1>
+    <div md-whiteframe="4" flex="grow">
+      <md-list class="task-list" ng-class="selectedTask ? 'task-editor-open' : 'task-editor-closed'" ng-show="screen == 'tasks'">
+        <md-list-item ng-disabled="!permissions[agendaTasks.get(task)].edit_tasks" ng-click="showTaskEditor(task)" ng-repeat-start="task in getTasksArray() track by task" class="task md-2-line show" ng-class="{completed: completed[task], overdue: isOverdue(currentTasks[task])}">
+          <md-checkbox class="md-primary" ng-disabled="!permissions[agendaTasks.get(task)].complete_tasks" ng-model="completed[task]" ng-change="completeTask(task)"></md-checkbox>
+          <div class="md-list-item-text">
+            <h3>{{currentTasks[task].name}}</h3>
+            <p>
+              <span><md-icon>list</md-icon> {{agendas[agendaTasks.get(task)]}}</span>
+              <span ng-if="currentTasks[task].deadline"><md-icon>today</md-icon> {{getDeadlineString(currentTasks[task].deadline, completed[task])}}</span>
+              <span ng-if="currentTasks[task].deadline && currentTasks[task].deadlineTime"><md-icon>access_time</md-icon> {{currentTasks[task].deadline | date:"shortTime"}}</span>
+              <span ng-if="currentTasks[task].tags && getTags(currentTasks[task]).length > 0">
+                <md-icon>local_offer</md-icon>
+                <span class="tag-circle-container" ng-repeat="tag in getTags(currentTasks[task]) track by tag">
+                  <span class="tag-circle" md-colors="getMdColor(categories[agendaTasks.get(task)][tag].color)">
+                    <md-tooltip md-delay="0">{{categories[agendaTasks.get(task)][tag].name}}</md-tooltip>
+                  </span>
+                </span>
+                <span ng-if="getTags(currentTasks[task]).length < 2">{{categories[agendaTasks.get(task)][getTags(currentTasks[task])[0]].name}}</span>
+              </span>
+              <span ng-if="currentTasks[task].priority">
+                <md-icon>error</md-icon> {{priorities[currentTasks[task].priority - 1] || currentTasks[task].priority}}
+              </span>
+            </p>
+          </div>
+          <md-button class="md-secondary md-icon-button" ng-click="viewNotes(currentTasks[task].name, currentTasks[task].notes, $event)" ng-if="currentTasks[task].notes && !selectedTask"><md-icon>notes</md-icon><md-tooltip>Notes</md-tooltip></md-button>
+          <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-disabled="!permissions[agendaTasks.get(task)].edit_tasks" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
+        </md-list-item>
+        <div ng-repeat-end>
+          <task-editor ng-if="selectedTask === task" task="currentTasks[task]" task-key="task" tags-array="categories" tags-object="categories[agendaTasks.get(task)]" on-finish="hideTaskEditor()" agenda="agendaTasks.get(task)"></task-editor>
+          <md-divider ng-if="selectedTask === task"></md-divider>
+        </div>
+      </md-list>
+    </div>
+  </div>
+  <div class="add-task">
+    <md-list-item class="add-task">
+      <p>Go to an agenda to add tasks.</p>
+    </md-list-item>
+  </div>
+</div>
