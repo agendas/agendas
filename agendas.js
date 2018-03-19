@@ -1,4 +1,4 @@
-angular.module("agendasApp", ["ngMaterial", "ui.router"])
+angular.module("agendasApp", ["ngMaterial", "ui.router", "hc.marked"])
   .config(($stateProvider) => {
     $stateProvider.state({
       name: "home",
