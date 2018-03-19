@@ -374,7 +374,7 @@ angular.module("agendasApp")
         url: "https://upload.wikimedia.org/wikipedia/commons/a/aa/Antarctic-light_066_hg.jpg",
         credit: "By Hannes Grobe/AWI (Own work) [CC BY 3.0 (http://creativecommons.org/licenses/by/3.0)], via Wikimedia Commons",
         creditURL: "https://commons.wikimedia.org/wiki/File%3AAntarctic-light_066_hg.jpg",
-        thumbnail: "https://commons.wikimedia.org/wiki/File%3AAntarctic-light_066_hg.jpg"
+        thumbnail: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Antarctic-light_066_hg.jpg/840px-Antarctic-light_066_hg.jpg"
       },
       "sugar-loaf-from-cristo": {
         name: "Sugar loaf from Cristo Redentor",

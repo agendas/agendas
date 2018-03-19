@@ -7,7 +7,7 @@ angular.module("agendasApp")
     controller: function($scope, $mdDialog, $rootScope, $mdToast, $state, db, $timeout) {
       this.$onInit = () => {
         $scope.done = function() {
-          firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").set("3.2");
+          firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").set("3.3");
 
           if ($scope.skippedUsername) {
             $mdToast.show($mdToast.simple()

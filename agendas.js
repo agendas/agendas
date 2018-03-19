@@ -78,7 +78,7 @@ angular.module("agendasApp", ["ngMaterial", "ui.router", "hc.marked"])
         firebase.database().ref("/users/" + $rootScope.user.uid + "/setupComplete").once("value").then(function(data) {
           if (!data.val()) {
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog></setup-dialog></md-dialog>"});
-          } else if (data.val() !== "3.2") {
+          } else if (data.val() !== "3.3") {
             $mdDialog.show({template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><setup-dialog update-notes='true'></setup-dialog></md-dialog>"});
           }
         });
