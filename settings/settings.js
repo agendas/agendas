@@ -165,7 +165,7 @@ angular.module("agendasApp")
 
       $scope.openWallpaperPicker = function() {
         $mdDialog.show({
-          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><wallpaper-picker></wallpaper-picker></md-dialog>",
+          template: "<md-dialog ng-class=\"$root.darkTheme ? 'md-dark-theme' : ''\"><wallpaper-picker layout='column'></wallpaper-picker></md-dialog>",
           targetEvent: event,
           clickOutsideToClose: true
         });

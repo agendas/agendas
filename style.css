@@ -146,7 +146,7 @@ md-nav-bar ul._md-nav-bar-list {
 }
 
 .add-task:not(md-list-item) {
-  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, transparent);
+  background-image: linear-gradient(to top, white, rgba(255, 255, 255, 0.5) 70%, rgba(255, 255, 255, 0));
 }
 
 html[md-theme="dark"] .add-task:not(md-list-item) {
@@ -177,12 +177,15 @@ agenda md-nav-bar > .md-nav-bar {
   position: -webkit-sticky;
   position: sticky;
   top: 10px;
-  background-color: rgba(255, 255, 255, 0.7);
   border-bottom: none;
   border-radius: 10px;
   z-index: 2;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+
+agenda md-nav-bar.md-default-theme > .md-nav-bar {
+  background-color: rgba(255, 255, 255, 0.7);
 }
 
 html[md-theme="dark"] agenda md-nav-bar > .md-nav-bar {
