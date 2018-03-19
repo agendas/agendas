@@ -362,5 +362,16 @@ angular.module("agendasApp")
           targetEvent: event
         });
       };
+
+      $scope.getTagsArray = (agenda) => {
+        return Object.keys($scope.categories[agenda]).map((key) => {
+          var tag = $scope.categories[agenda][key];
+          return {
+            key: key,
+            name: tag.name,
+            color: tag.color
+          }
+        });
+      };
     }
   })

@@ -30,7 +30,7 @@
           <md-button class="md-secondary md-icon-button" ng-click="showTaskEditor(task)" ng-disabled="!permissions[agendaTasks.get(task)].edit_tasks" ng-if="!selectedTask"><md-icon>edit</md-icon></md-button>
         </md-list-item>
         <div ng-repeat-end>
-          <task-editor ng-if="selectedTask === task" task="currentTasks[task]" task-key="task" tags-array="categories" tags-object="categories[agendaTasks.get(task)]" on-finish="hideTaskEditor()" agenda="agendaTasks.get(task)"></task-editor>
+          <task-editor ng-if="selectedTask === task" task="currentTasks[task]" task-key="task" tags-array="getTagsArray(agendaTasks.get(task))" tags-object="categories[agendaTasks.get(task)]" on-finish="hideTaskEditor()" agenda="agendaTasks.get(task)"></task-editor>
           <md-divider ng-if="selectedTask === task"></md-divider>
         </div>
       </md-list>
