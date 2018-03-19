@@ -230,21 +230,29 @@ angular.module("agendasApp")
       }));
 
       $scope.lastTask = null;
+      $scope.trackedTasks = {tasks: 0};
 
       $scope.paginateCompletedTasks = function() {
         var query = $scope.tasksRef.where("completed", "==", true).orderBy("deadline", "desc").limit(20);
         if ($scope.lastTask) {
           query = query.startAfter($scope.lastTask);
         }
+        $scope.addCompletedQuery(query);
+      };
+
+      $scope.addCompletedQuery = function(query, track) {
         $scope.completeRefs.push(query);
         $scope.lastCompletedRef = query;
         $scope.unsubscribe.push(query.onSnapshot(function(tasks) {
-          if ($scope.lastCompletedRef === query) {
+          if ($scope.lastCompletedRef === query && !track) {
             $scope.lastTask = tasks.size < 1 ? null : tasks.docs[tasks.size - 1];
           }
           tasks.docChanges.forEach(function(change) {
             var data = change.doc;
             if (change.type === "added") {
+              if (track) {
+                $scope.trackedTasks.tasks++;
+              }
               $scope.completedTasks[data.id] = data.data();
               $scope.completed[data.id] = !!data.data().completed;
               if ($scope.completedTasksArray.length < 1) {
@@ -324,6 +332,9 @@ angular.module("agendasApp")
               $scope.completed[data.id] = data.data().completed;
               $scope.completedTasks[data.id] = data.data();
             } else if (change.type === "removed") {
+              if (track) {
+                $scope.trackedTasks.tasks--;
+              }
               $scope.completedTasksArray.splice($scope.completedTasksArray.indexOf(data.id), 1);
               //$scope.completedTasks.splice($scope.completedTasks.indexOf(data.id), 1);
               delete $scope.completedTasks[data.id];
@@ -339,7 +350,8 @@ angular.module("agendasApp")
           $scope.completeRefs = [];
           $scope.completedTasksArray = [];
           $scope.completedTasks = {};
-          $scope.paginateCompletedTasks();
+          //$scope.addCompletedQuery($scope.tasksRef.where("completed", "==", true).where("deadline", "==", null), true);
+          $scope.addCompletedQuery($scope.tasksRef.where("completed", "==", true).orderBy("deadline", "desc").limit(20));
         }
 
         $mdDialog.show({
@@ -358,9 +370,10 @@ angular.module("agendasApp")
             permissions: $scope.permissions,
             priorities: $scope.priorities,
             completeRefs: $scope.completeRefs,
-            paginateCompletedTasks: $scope.paginateCompletedTasks
+            paginateCompletedTasks: $scope.paginateCompletedTasks,
+            trackedTasks: $scope.trackedTasks
           },
-          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions, priorities, completeRefs, paginateCompletedTasks) {
+          controller: function($scope, $mdDialog, completedTasksArray, tasks, completed, completeTask, getTags, getMdColor, getDeadlineString, categoryObj, permissions, priorities, completeRefs, paginateCompletedTasks, trackedTasks) {
             $scope.tasksArray = completedTasksArray;
             $scope.tasks = tasks;
             $scope.completed = completed;
@@ -372,6 +385,7 @@ angular.module("agendasApp")
             $scope.categoryObj = categoryObj;
             $scope.permissions = permissions;
             $scope.priorities = priorities;
+            $scope.trackedTasks = trackedTasks;
 
             $scope.showTaskEditor = function(task) {
               $scope.selectedTask = task;
@@ -383,7 +397,7 @@ angular.module("agendasApp")
 
             $scope.paginate = function() {
               console.log("Paginating...");
-              if ($scope.tasksArray.length >= completeRefs.length * 20) {
+              if ($scope.tasksArray.length >= (completeRefs.length - 1) * 20 + trackedTasks.tasks) {
                 paginateCompletedTasks();
               }
             };
