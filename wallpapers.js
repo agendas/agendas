@@ -514,7 +514,7 @@ angular.module("agendasApp")
         }
       },
       "antarctica": {
-        name: "Antarctica",
+        name: "Antarctica 1",
         images: {
           dawn: "antarctica-mcmurdo-radarsatunderthemoonatdawn",
           day: "mount-jackson-antarctica",
