@@ -86,7 +86,7 @@ angular.module("agendasApp")
         }
       };
 
-      var agenda = this.agenda;
+      var agenda = $stateParams.agenda;
       var deleteBatch = function(query, batchSize) {
         return query.get().then(function(data) {
           if (data.size < 1) {
