@@ -115,7 +115,7 @@ angular.module("agendasApp")
       };
       this.deleteAgenda = function() {
         $mdDialog.show($mdDialog.confirm()
-          .title("Delete \"" + agenda.name + "\"?")
+          .title("Delete this agenda?")
           .cancel("Cancel")
           .ok("Delete")
         ).then(function() {
